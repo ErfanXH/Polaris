@@ -1,0 +1,46 @@
+services:
+  database:
+    image: mysql:8
+    
+    restart: always
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  polaris-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ./entrypoint.sh
+    volumes:
+      - .:/app
+    ports:
+      - "9000:9000"  # Using 9000 because 8000 is busy
+    env_file:
+      - .env
+    depends_on:
+      - database
+
+  polaris-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5174:5173" # Using 5174 because 5173 is busy
+    environment:
+      - NODE_ENV=production
+      - CHOKIDAR_USEPOLLING=true
+    command: "npm run dev"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mysql_data:

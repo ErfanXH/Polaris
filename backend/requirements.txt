@@ -1,0 +1,6 @@
+django
+djangorestframework
+mysqlclient
+djangorestframework-simplejwt
+drf-yasg
+django-environ
