@@ -30,7 +30,7 @@ TIME_ZONE = 'Asia/Tehran'
 USE_I18N = True
 USE_TZ = True
 ALLOWED_HOSTS = [host.strip() for host in env('ALLOWED_HOSTS').split(',')]
-
+SMS_API_TOKEN = env('SMS_API_TOKEN')
 BASE_URL = f"api"
 
 # Application definition
@@ -128,13 +128,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = f'api/static/'
+STATIC_URL ='api/static/'
 
-STATIC_ROOT = "/var/www/iransanad/static"
+STATIC_ROOT ='/var/www/iransanad/static'
 
-MEDIA_URL = f'api/media/'
+MEDIA_URL = 'api/media/'
 
-MEDIA_ROOT = "/var/www/iransanad/media"
+MEDIA_ROOT = '/var/www/iransanad/media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -145,6 +145,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
     ),
 }
 
