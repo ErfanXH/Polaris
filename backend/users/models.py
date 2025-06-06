@@ -11,7 +11,7 @@ SENDER_EMAIL = settings.EMAIL_HOST_USER
 
 class User(AbstractUser):
     phone_validator=RegexValidator(
-                regex=r'^09\d{9,10}$',
+                regex=r'^09\d{9}$',
                 message="Phone number must be like 09123456789")
     phone_number = models.CharField(max_length=11,validators=[phone_validator],unique=True)
     username = models.CharField(max_length=150,null=True,blank=True,default=name_generator,unique=False)

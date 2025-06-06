@@ -3,16 +3,16 @@ from django.utils import timezone
 from django.conf import settings
 from requests import post
 from random import randint
-
+from uuid import uuid4
 
 
 def send_OTP(destiantion_numbers: list|str ,message: str ,code_length : int = 5) -> str:
     url = 'https://portal.amootsms.com/rest/SendQuickOTP'
     line_number = 'public'
-    token = '1531E805B6AB23BD8CBD90C448B597FC2B494E41'
-    #token = settings.SMS_API_TOKEN
-    time  = str(datetime.now())
-    #time = str(timezone.now())
+    #token = '1531E805B6AB23BD8CBD90C448B597FC2B494E41'
+    token = settings.SMS_API_TOKEN
+    #time  = str(datetime.now())
+    time = str(timezone.now())
     destiantion_numbers = str(destiantion_numbers) if type(destiantion_numbers) == list else str(list((destiantion_numbers,)))
     data = {
         'Token' : token,
@@ -32,7 +32,7 @@ def name_generator(ai_generated: bool = False ,random_length : int = 8 ):
     if ai_generated:
         raise NotImplementedError
     else:
-        result = ''.join([str(randint(0,9)) for _ in range(random_length)])
+        result = uuid4()
     
     return result
     
