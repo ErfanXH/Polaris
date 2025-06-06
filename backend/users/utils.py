@@ -2,6 +2,10 @@ from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
 from requests import post
+from random import randint
+
+
+
 def send_OTP(destiantion_numbers: list|str ,message: str ,code_length : int = 5) -> str:
     url = 'https://portal.amootsms.com/rest/SendQuickOTP'
     line_number = 'public'
@@ -22,6 +26,18 @@ def send_OTP(destiantion_numbers: list|str ,message: str ,code_length : int = 5)
     return response.json()
 
 
+
+def name_generator(ai_generated: bool = False ,random_length : int = 8 ):
+    result = ''
+    if ai_generated:
+        raise NotImplementedError
+    else:
+        result = ''.join([str(randint(0,9)) for _ in range(random_length)])
+    
+    return result
+    
+    
+    
 if __name__  == '__main__':
     response = send_OTP('9360904088', 'این یک پیام تست است\nاینم بخش دیگه تست')
     print(response)

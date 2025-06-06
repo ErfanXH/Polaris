@@ -4,9 +4,8 @@ from .views import *
 from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter()
-#router.register('', AuthenticationViewSet, 'auth')
-#router.register("verification",VerificationViewSet,basename="verification")
-
+router.register('', AuthenticationViewSet, 'auth')
+router.register('profile', ProfileViewSet, 'profile')
 
 
 
