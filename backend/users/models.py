@@ -23,7 +23,10 @@ class User(AbstractUser):
     is_banned = models.BooleanField(default=False)
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
+    
     def send_code(self):
+        if self.verification_code!=None and self.expire_at > timezone.now() + timedelta(minutes=7) :
+            pass #logic for repeated request for getting code
         if settings.VERIFICATION_METHOD =='phone_number':
             self.verification_code = send_OTP(self.phone_number,'Polaris Verification Code:')
             
@@ -33,21 +36,31 @@ class User(AbstractUser):
                             f'Here is your validation code\n Code:{self.verification_code}',
                             SENDER_EMAIL)
             
-        self.expire_at = timezone.now() + timedelta(minutes=10)
+        self.expire_at = timezone.now() + timedelta(minutes=15)
         self.is_verified = False
         self.save()
         return True
     
-    def verify(self,code,confirm=True):
-        if code == self.verification_code and timezone.now()<self.expire_at:
-            if confirm:
-                self.is_verified = True
-                self.verification_code = None
-                self.expire_at = timezone.now()
-                self.save()
-            return True
+    def verify_code(self,code):
+        return code == self.verification_code
+    
+    def is_code_expired(self):
+        return timezone.now()>self.expire_at
+    
+    def verify_user(self,code):
+        if self.verify_code(code) and not self.is_code_expired():
+            self.is_verified = True
+            self.verification_code = None
+            self.expire_at = timezone.now()
+            self.save()
+            return "verified"
+        elif self.is_code_expired():
+            return 'expired'
+        elif not self.verify_code(code):
+            return 'mismatch'
         else:
-            return False
+            return 'unknown'
+    
     
     def token(self):
         refresh = RefreshToken.for_user(self)

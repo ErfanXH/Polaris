@@ -63,13 +63,13 @@ class AuthenticationViewSet(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
-        if not validated_data.get('code'):
-            return Response({'message':'code field should not be empty'} , status=status.HTTP_400_BAD_REQUEST)
-        if validated_data['user'].verify(validated_data['code'],confirm = False):
-            return Response({'message':'verification code is valid'} , status=status.HTTP_200_OK)
-        else:
+        if validated_data['user'].is_code_expired():
+            return Response({'message':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+        elif not validated_data['user'].verify_code(validated_data['code']):
             return Response({'message':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
-        
+        else:
+            return Response({'message':'verification code is valid'} , status=status.HTTP_200_OK)
+    
     @action(detail=False, methods=['POST'])
     def get_verification_code(self,request):
         serializer = self.get_serializer(data=request.data)
@@ -80,12 +80,20 @@ class AuthenticationViewSet(GenericViewSet):
         except:
             return Response({'message':'could not send OTP code,please try again'} , status=status.HTTP_502_BAD_GATEWAY)
         return Response({'message':'verification code sent'} , status=status.HTTP_200_OK)
+    
     @action(detail=False, methods=['POST'])
     def verification(self,request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
-        return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
+        if validated_data['result']== 'expired':
+            return Response({'message':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+        elif validated_data['result'] == 'mismatch':
+            return Response({'message':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+        elif validated_data['result'] == 'verified':
+            return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({'message':'verification failed for unknown reason'} , status=status.HTTP_417_EXPECTATION_FAILED)
         
 class ProfileViewSet(mixins.RetrieveModelMixin,mixins.UpdateModelMixin,GenericViewSet):
     def get_queryset(self):
