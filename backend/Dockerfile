@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     git \
     default-libmysqlclient-dev \
-    mysql-client \
+    default-mysql-client \
     gcc \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
