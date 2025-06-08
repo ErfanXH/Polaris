@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile
     command: ./entrypoint.sh
     volumes:
-      - .:/app
+      - ./backend:/back
     ports:
       - "9000:9000"  # Using 9000 because 8000 is busy
     env_file:
@@ -39,8 +39,8 @@ services:
       - CHOKIDAR_USEPOLLING=true
     command: "npm run dev"
     volumes:
-      - .:/app
-      - /app/node_modules
+      - ./frontend:/front
+      - /front/node_modules
 
 volumes:
   mysql_data:
