@@ -11,8 +11,7 @@ RUN apt-get update && apt-get install -y \
     mysql-client \
     gcc \
     python3-dev \
-    pkg-config \
-    && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /back
 
@@ -21,7 +20,5 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
-
-RUN chmod +x /back/entrypoint.sh
 
 EXPOSE 9000
