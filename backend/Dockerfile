@@ -7,7 +7,12 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    default-libmysqlclient-dev \
+    mysql-client \
+    gcc \
+    python3-dev \
+    pkg-config \
+    && apt-get clean
 
 WORKDIR /back
 
