@@ -17,4 +17,6 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
+RUN chmod +x /back/entrypoint.sh
+
 EXPOSE 9000

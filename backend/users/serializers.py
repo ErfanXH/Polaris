@@ -16,11 +16,13 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError("phone number must be like 09xxxxxxxxx and 11 digit in total")
         user = User.objects.filter(Q(phone_number=attrs['phone_number']) | Q(email=attrs['email']))
         if len(user.values()) >=2 :
-            raise APIException("there are users with this phone number and email",status.HTTP_409_CONFLICT)
+            raise serializers.ValidationError("there are users with this phone number and email",status.HTTP_409_CONFLICT)
         elif len(user.values()) == 1 and user.first().is_verified:
-            raise APIException("there is a user with this phone number and emsil",status.HTTP_409_CONFLICT)
+            raise serializers.ValidationError("there is a user with this phone number and email",status.HTTP_409_CONFLICT)
         elif len(user.values()) == 1 and not user.first().is_verified:
-            if not user.first().check_password(attrs['password']):
+            if user.first().phone_number != attrs['phone_number'] or user.first().email !=attrs['email']:
+                raise serializers.ValidationError("phone number and email does not match", status.HTTP_409_CONFLICT)
+            elif not user.first().check_password(attrs['password']):
                 raise PermissionDenied('Password is incorrect')
             else:
                 attrs['exist']=True
@@ -40,12 +42,10 @@ class LoginSerializer(serializers.ModelSerializer):
         write_only_fields = ['number_or_email','password']
         
     def validate(self, attrs):
-        if match(r'^09\d{9,10}$', attrs['number_or_email']):
-            attrs['phone_number'] = attrs['number_or_email']
-            user = User.objects.filter(phone_number=attrs['phone_number']).first()
+        if match(r'^09\d{9}$', attrs['number_or_email']):
+            user = User.objects.filter(phone_number=attrs['number_or_email']).first()
         elif match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', attrs['number_or_email']):
-            attrs['email'] = attrs['number_or_email']
-            user = User.objects.filter(email=attrs['email']).first()
+            user = User.objects.filter(email=attrs['number_or_email']).first()
         else:
             raise serializers.ValidationError('number_or_email field must be a phone number or email')
         attrs.pop('number_or_email')
@@ -54,28 +54,31 @@ class LoginSerializer(serializers.ModelSerializer):
         elif user and not user.check_password(attrs['password']):
             raise PermissionDenied('Password is incorrect')
         else:
-            attrs['exists']=True
             attrs['user']= user
-        return super().validate(attrs)
+        return attrs
     
     def to_representation(self, instance):
-        return {
-            *super().to_representation(self, instance),
-            *instance.token()
+        representation = {
+            'phone_number': instance.phone_number,
+            'username': instance.username,
+            'email': instance.email,
+            'image': instance.image.url if instance.image else None,
+            'is_staff': instance.is_staff,
         }
+        representation.update(instance.token())
+        return representation
+        
         
         
 class VerifyCodeSerializer(serializers.Serializer):
     number_or_email = serializers.CharField(write_only = True)
-    code = serializers.CharField(required = False)
+    code = serializers.CharField(allow_blank=False)
     
     def validate(self, attrs):
-        if match(r'^09\d{9,10}$', attrs['number_or_email']):
-            attrs['phone_number'] = attrs['number_or_email']
-            user = User.objects.filter(phone_number=attrs['phone_number']).first()
+        if match(r'^09\d{9}$', attrs['number_or_email']):
+            user = User.objects.filter(phone_number=attrs['number_or_email']).first()
         elif match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', attrs['number_or_email']):
-            attrs['email'] = attrs['number_or_email']
-            user = User.objects.filter(email=attrs['email']).first()
+            user = User.objects.filter(email=attrs['number_or_email']).first()
         else:
             raise serializers.ValidationError('number_or_email field must be a phone number or email')
         attrs.pop('number_or_email')
@@ -90,12 +93,10 @@ class GetVerificationCodeSerializer(serializers.Serializer):
     number_or_email = serializers.CharField(write_only = True)
     
     def validate(self, attrs):
-        if match(r'^09\d{9,10}$', attrs['number_or_email']):
-            attrs['phone_number'] = attrs['number_or_email']
-            user = User.objects.filter(phone_number=attrs['phone_number']).first()
+        if match(r'^09\d{9}$', attrs['number_or_email']):
+            user = User.objects.filter(phone_number=attrs['number_or_email']).first()
         elif match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', attrs['number_or_email']):
-            attrs['email'] = attrs['number_or_email']
-            user = User.objects.filter(email=attrs['email']).first()
+            user = User.objects.filter(email=attrs['number_or_email']).first()
         else:
             raise serializers.ValidationError('number_or_email field must be a phone number or email')
         attrs.pop('number_or_email')
@@ -107,9 +108,9 @@ class GetVerificationCodeSerializer(serializers.Serializer):
         return super().validate(attrs)
 
 class VerificationSerializer(serializers.ModelSerializer):
-    number_or_email = serializers.CharField()
-    password = serializers.CharField(validators=[validate_password])
-    code = serializers.CharField()
+    number_or_email = serializers.CharField(write_only = True)
+    password = serializers.CharField(validators=[validate_password],allow_null=True)
+    code = serializers.CharField(allow_blank=False)
     class Meta:
         model = User
         fields = ['number_or_email','password','phone_number','username','email','image','code','is_staff']
@@ -117,12 +118,10 @@ class VerificationSerializer(serializers.ModelSerializer):
         write_only_fields = ['number_or_email','password','code']
         
     def validate(self, attrs):
-        if match(r'^09\d{9,10}$', attrs['number_or_email']):
-            attrs['phone_number'] = attrs['number_or_email']
-            user = User.objects.filter(phone_number=attrs['phone_number']).first()
+        if match(r'^09\d{9}$', attrs['number_or_email']):
+            user = User.objects.filter(phone_number=attrs['number_or_email']).first()
         elif match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', attrs['number_or_email']):
-            attrs['email'] = attrs['number_or_email']
-            user = User.objects.filter(email=attrs['email']).first()
+            user = User.objects.filter(email=attrs['number_or_email']).first()
         else:
             raise serializers.ValidationError('number_or_email field must be a phone number or email')
         attrs.pop('number_or_email')
@@ -132,17 +131,21 @@ class VerificationSerializer(serializers.ModelSerializer):
         elif user and not user.check_password(attrs['password']):
             raise PermissionDenied('Password is incorrect')
         else:
-            if not user.verify(attrs['code']):
-                raise APIException('verification code does not match' , code = status.HTTP_406_NOT_ACCEPTABLE)
-        attrs['user'] = user
-        return super().validate(attrs)
+            attrs['result'] = user.verify_user(attrs['code'])
+            attrs['user'] = user
+        return attrs
 
     def to_representation(self, instance):
-        return {
-            *super().to_representation(self, instance),
-            *instance.token()
+        representation = {
+            'phone_number': instance.phone_number,
+            'username': instance.username,
+            'email': instance.email,
+            'image': instance.image.url if instance.image else None,
+            'is_staff': instance.is_staff,
         }
-        
+        representation.update(instance.token())
+        return representation
+            
         
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
