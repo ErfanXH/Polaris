@@ -1,5 +1,5 @@
 // src/main/java/com/netwatcher/polaris/signup/SignUpState.kt
-package com.netwatcher.polaris.presentation.sign_up
+package com.netwatcher.polaris.presentation.auth
 
 /**
  * Represents the current UI state of the Sign-Up screen.

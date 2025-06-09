@@ -3,44 +3,25 @@ package com.netwatcher.polaris
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.netwatcher.polaris.presentation.auth.AuthViewModel
+import com.netwatcher.polaris.presentation.auth.SignUpScreen
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
+import com.netwatcher.polaris.data.repository.AuthRepositoryImpl
+import com.netwatcher.polaris.di.NetworkModule
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val viewModel = AuthViewModel(NetworkModule.authRepository)
+
         setContent {
             PolarisTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
+                SignUpScreen(viewModel = viewModel) {
+                    // onSuccess -> show message or navigate
+                    println("Sign up success")
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PolarisTheme {
-        Greeting("Android")
     }
 }
