@@ -60,10 +60,12 @@ class LoginSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = {
             'phone_number': instance.phone_number,
-            'username': instance.username,
             'email': instance.email,
+            'username': instance.username,
             'image': instance.image.url if instance.image else None,
             'is_staff': instance.is_staff,
+            'is_superuser': instance.is_superuser,
+            'is_banned': instance.is_banned,
         }
         representation.update(instance.token())
         return representation
@@ -109,7 +111,7 @@ class GetVerificationCodeSerializer(serializers.Serializer):
 
 class VerificationSerializer(serializers.ModelSerializer):
     number_or_email = serializers.CharField(write_only = True)
-    password = serializers.CharField(validators=[validate_password],allow_null=True)
+    password = serializers.CharField(validators=[validate_password])
     code = serializers.CharField(allow_blank=False)
     class Meta:
         model = User
@@ -128,8 +130,6 @@ class VerificationSerializer(serializers.ModelSerializer):
         
         if not user:
             raise NotFound('no user found')
-        elif user and not user.check_password(attrs['password']):
-            raise PermissionDenied('Password is incorrect')
         else:
             attrs['result'] = user.verify_user(attrs['code'])
             attrs['user'] = user
@@ -138,10 +138,12 @@ class VerificationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = {
             'phone_number': instance.phone_number,
-            'username': instance.username,
             'email': instance.email,
+            'username': instance.username,
             'image': instance.image.url if instance.image else None,
             'is_staff': instance.is_staff,
+            'is_superuser': instance.is_superuser,
+            'is_banned': instance.is_banned,
         }
         representation.update(instance.token())
         return representation
@@ -150,4 +152,5 @@ class VerificationSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ["phone_number","email","username","image","is_superuser","is_banned","date_joined"]
+        read_only_fields = ["phone_number","email","is_superuser","is_banned","date_joined"]

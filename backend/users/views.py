@@ -4,7 +4,11 @@ from .models import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.viewsets import GenericViewSet , mixins
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework.decorators import action
 from uuid import uuid4
 class AuthenticationViewSet(GenericViewSet):
@@ -54,6 +58,8 @@ class AuthenticationViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
         if validated_data['user'].is_verified:
+            validated_data['user'].last_login = timezone.now()
+            validated_data['user'].save()
             return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
         else:
             return Response({'message' : 'verification required, verify with code sent to your email'}, status=status.HTTP_403_FORBIDDEN)
@@ -86,18 +92,51 @@ class AuthenticationViewSet(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
+        user = validated_data['user']
         if validated_data['result']== 'expired':
             return Response({'message':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         elif validated_data['result'] == 'mismatch':
             return Response({'message':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         elif validated_data['result'] == 'verified':
-            return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
+            user.set_password(validated_data['password'])
+            validated_data['user'].last_login = timezone.now()
+            user.save()
+            return Response(serializer.to_representation(user), status=status.HTTP_202_ACCEPTED)
+            
         else:
             return Response({'message':'verification failed for unknown reason'} , status=status.HTTP_417_EXPECTATION_FAILED)
         
-class ProfileViewSet(mixins.RetrieveModelMixin,mixins.UpdateModelMixin,GenericViewSet):
-    def get_queryset(self):
-        return User.objects.filter(phone_number=self.request.user.phone_number)
+class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    lookup_field = "phone_number"
+    parser_classes = [MultiPartParser, FormParser]
     serializer_class = ProfileSerializer
+
+    @swagger_auto_schema(
+        operation_description="Retrieves the profile information of the currently authenticated user.",
+        responses={200: ProfileSerializer()}
+    )
+    def get(self, request):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Updates the profile information of the currently authenticated user.",
+        request_body=ProfileSerializer,
+        responses={200: ProfileSerializer()}
+    )
+    def put(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Partially updates the profile information of the currently authenticated user.",
+        request_body=ProfileSerializer,
+        responses={200: ProfileSerializer()}
+    )
+    def patch(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)

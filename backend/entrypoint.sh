@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Waiting for MySQL to be ready..."
-sleep 20
+sleep 10
 
 echo "Running migrations..."
 python manage.py migrate

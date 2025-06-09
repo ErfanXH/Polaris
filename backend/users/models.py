@@ -7,7 +7,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from random import randint
 from .utils import send_OTP, name_generator
+from uuid import uuid4
+import os
 SENDER_EMAIL = settings.EMAIL_HOST_USER
+
+
+def file_name(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f'{uuid4().hex}.{ext}'
+    return os.path.join("profile_images/", filename)
 
 class User(AbstractUser):
     phone_validator=RegexValidator(
@@ -16,7 +24,7 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=11,validators=[phone_validator],unique=True)
     username = models.CharField(max_length=150,null=True,blank=True,default=name_generator,unique=False)
     email = models.EmailField(unique=True)
-    image = models.ImageField(upload_to="profile_images", blank=True, null=True)
+    image = models.ImageField(upload_to=file_name, blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     verification_code = models.CharField(max_length=8,null=True,blank=True,unique=True)
     expire_at = models.DateTimeField(null=True,blank=True) #if is_verified==true,this field show last validated date
@@ -65,8 +73,8 @@ class User(AbstractUser):
     def token(self):
         refresh = RefreshToken.for_user(self)
         return {
-            "access":str(refresh.access_token),
-            "refresh":str(refresh)
+            "access":f"JWT {str(refresh.access_token)}",
+            "refresh":f"JWT {str(refresh)}"
         }
     
     def __str__(self):
