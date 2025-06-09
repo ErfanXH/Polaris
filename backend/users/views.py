@@ -8,7 +8,6 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from rest_framework.decorators import action
 from uuid import uuid4
 class AuthenticationViewSet(GenericViewSet):
@@ -49,7 +48,7 @@ class AuthenticationViewSet(GenericViewSet):
         except:
             return Response('could not send OTP code,please try again' , status=status.HTTP_502_BAD_GATEWAY)
         
-        auth_status['message'] = 'OTP code has been sent'
+        auth_status['detail'] = 'OTP code has been sent'
         return Response(auth_status, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['POST'])
@@ -62,7 +61,7 @@ class AuthenticationViewSet(GenericViewSet):
             validated_data['user'].save()
             return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
         else:
-            return Response({'message' : 'verification required, verify with code sent to your email'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail' : 'verification required, verify with code sent to your email'}, status=status.HTTP_403_FORBIDDEN)
         
     @action(detail=False, methods=['POST'])
     def verify_code(self,request):
@@ -70,11 +69,11 @@ class AuthenticationViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
         if validated_data['user'].is_code_expired():
-            return Response({'message':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'detail':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         elif not validated_data['user'].verify_code(validated_data['code']):
-            return Response({'message':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'detail':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
-            return Response({'message':'verification code is valid'} , status=status.HTTP_200_OK)
+            return Response({'detail':'verification code is valid'} , status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['POST'])
     def get_verification_code(self,request):
@@ -84,8 +83,8 @@ class AuthenticationViewSet(GenericViewSet):
         try:
             validated_data['user'].send_code()
         except:
-            return Response({'message':'could not send OTP code,please try again'} , status=status.HTTP_502_BAD_GATEWAY)
-        return Response({'message':'verification code sent'} , status=status.HTTP_200_OK)
+            return Response({'detail':'could not send OTP code,please try again'} , status=status.HTTP_502_BAD_GATEWAY)
+        return Response({'detail':'verification code sent'} , status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['POST'])
     def verification(self,request):
@@ -94,9 +93,9 @@ class AuthenticationViewSet(GenericViewSet):
         validated_data=serializer.validated_data
         user = validated_data['user']
         if validated_data['result']== 'expired':
-            return Response({'message':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'detail':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         elif validated_data['result'] == 'mismatch':
-            return Response({'message':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'detail':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         elif validated_data['result'] == 'verified':
             user.set_password(validated_data['password'])
             validated_data['user'].last_login = timezone.now()
@@ -104,7 +103,7 @@ class AuthenticationViewSet(GenericViewSet):
             return Response(serializer.to_representation(user), status=status.HTTP_202_ACCEPTED)
             
         else:
-            return Response({'message':'verification failed for unknown reason'} , status=status.HTTP_417_EXPECTATION_FAILED)
+            return Response({'detail':'verification failed for unknown reason'} , status=status.HTTP_417_EXPECTATION_FAILED)
         
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]

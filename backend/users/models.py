@@ -29,6 +29,7 @@ class User(AbstractUser):
     verification_code = models.CharField(max_length=8,null=True,blank=True,unique=True)
     expire_at = models.DateTimeField(null=True,blank=True) #if is_verified==true,this field show last validated date
     is_banned = models.BooleanField(default=False)
+    allow_usperuser_access = models.BooleanField(default=True)
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
     
@@ -77,5 +78,13 @@ class User(AbstractUser):
             "refresh":f"JWT {str(refresh)}"
         }
     
+    def ban(self):
+        self.is_banned = True
+        self.save()
+        
+    def make_staff(self):
+        self.is_staff = True
+        self.save()
+        
     def __str__(self):
         return self.username
