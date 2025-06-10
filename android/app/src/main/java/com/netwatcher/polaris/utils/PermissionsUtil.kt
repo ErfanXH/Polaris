@@ -1,4 +1,4 @@
-package eh.learning.homepage.utils
+package com.netwatcher.polaris.utils
 
 import android.Manifest
 import android.app.Activity
