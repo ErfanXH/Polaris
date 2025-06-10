@@ -17,7 +17,7 @@ import com.netwatcher.polaris.domain.model.SignUpRequest
 fun SignUpScreen(
     viewModel: AuthViewModel,
     onNavigateToLogin: () -> Unit,
-    onNavigateToVerification: (email:String,password:String) -> Unit
+    onNavigateToVerification: (email: String, password: String) -> Unit
 ) {
     val uiState by viewModel.authUiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -35,9 +35,12 @@ fun SignUpScreen(
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Error) {
             snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
-        }
-        else if (uiState is AuthUiState.Success) {
-            snackbarHostState.showSnackbar(message = "Login Successful", duration = SnackbarDuration.Short)
+        } else if (uiState is AuthUiState.Success) {
+            snackbarHostState.showSnackbar(
+                message = "Login Successful",
+                duration = SnackbarDuration.Short
+            )
+            onNavigateToVerification(email, password)
         }
     }
 
@@ -49,10 +52,12 @@ fun SignUpScreen(
                 isValid = false
                 "Email is required"
             }
+
             !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                 isValid = false
                 "Invalid email format"
             }
+
             else -> null
         }
 
@@ -71,6 +76,7 @@ fun SignUpScreen(
                 isValid = false
                 "Phone number should be 11 digits"
             }
+
             else -> null
         }
 
@@ -79,10 +85,12 @@ fun SignUpScreen(
                 isValid = false
                 "Password is required"
             }
+
             password.length < 6 -> {
                 isValid = false
                 "Password must be at least 6 characters"
             }
+
             else -> null
         }
 
@@ -170,7 +178,7 @@ fun SignUpScreen(
             }
             if (uiState is AuthUiState.Success) {
                 LaunchedEffect(Unit) {
-                    onNavigateToVerification(email,password)
+                    onNavigateToVerification(email, password)
                 }
             }
         }

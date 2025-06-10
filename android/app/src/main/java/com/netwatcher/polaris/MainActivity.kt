@@ -52,7 +52,7 @@ fun PolarisNav() {
                 onNavigateToVerification = { numberOrEmail, password ->
                     navController.navigate("verification?numberOrEmail=$numberOrEmail&password=$password")
                 },
-                //onSuccess = {navController.navigate("home")}
+                onSuccess = { navController.navigate("home") }
             )
         }
 
@@ -63,7 +63,12 @@ fun PolarisNav() {
             )) { backStackEntry ->
             val numberOrEmail = backStackEntry.arguments?.getString("numberOrEmail") ?: ""
             val password = backStackEntry.arguments?.getString("password") ?: ""
-            VerificationScreen(viewModel = viewModel,numberOrEmail = numberOrEmail,password = password,onBack = { navController.popBackStack() })
+            VerificationScreen(
+                viewModel = viewModel,
+                numberOrEmail = numberOrEmail,
+                password = password,
+                onBack = { navController.popBackStack() },
+                onVerified = { navController.navigate("home") })
         }
     }
 }
