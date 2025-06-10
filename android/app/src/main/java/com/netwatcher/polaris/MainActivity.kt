@@ -14,6 +14,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.netwatcher.polaris.presentation.auth.LoginScreen
 import com.netwatcher.polaris.presentation.auth.VerificationScreen
+import com.netwatcher.polaris.presentation.home.HomeScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -52,7 +53,13 @@ fun PolarisNav() {
                 onNavigateToVerification = { numberOrEmail, password ->
                     navController.navigate("verification?numberOrEmail=$numberOrEmail&password=$password")
                 },
-                //onSuccess = {navController.navigate("home")}
+                onSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
 
@@ -63,7 +70,18 @@ fun PolarisNav() {
             )) { backStackEntry ->
             val numberOrEmail = backStackEntry.arguments?.getString("numberOrEmail") ?: ""
             val password = backStackEntry.arguments?.getString("password") ?: ""
-            VerificationScreen(viewModel = viewModel,numberOrEmail = numberOrEmail,password = password,onBack = { navController.popBackStack() })
+            VerificationScreen(
+                viewModel = viewModel,
+                numberOrEmail = numberOrEmail,
+                password = password,
+                onBack = { navController.popBackStack() },
+                onVerified = { navController.navigate("home") })
+        }
+
+        composable("home") {
+            HomeScreen(
+                onLogout = { navController.navigate("login") }
+            )
         }
     }
 }

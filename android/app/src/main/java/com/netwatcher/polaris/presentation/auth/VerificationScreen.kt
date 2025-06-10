@@ -31,8 +31,9 @@ fun VerificationScreen(
     numberOrEmail: String,
     password: String,
     onBack: () -> Unit,
+    onVerified: () -> Unit
 ) {
-    val uiState by viewModel.authUiState.collectAsState()
+    val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
     val snackbarHostState = remember { SnackbarHostState() }
     var lastAction by remember { mutableStateOf<VerificationAction?>(null) }
 
@@ -47,11 +48,19 @@ fun VerificationScreen(
             is AuthUiState.Error -> snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
             is AuthUiState.Success -> {
                 when (lastAction) {
-                    VerificationAction.VERIFY -> snackbarHostState.showSnackbar("Verification successful")
+                    VerificationAction.VERIFY -> {
+                        snackbarHostState.showSnackbar(
+                            message = "Verification successful",
+                            duration = SnackbarDuration.Short
+                        )
+                        onVerified()
+                    }
+
                     VerificationAction.RESEND -> snackbarHostState.showSnackbar("Verification code resent")
                     null -> {}
                 }
             }
+
             else -> {}
         }
     }

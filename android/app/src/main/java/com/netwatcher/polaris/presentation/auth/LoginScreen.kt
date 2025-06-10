@@ -17,9 +17,10 @@ import com.netwatcher.polaris.domain.model.LoginRequest
 fun LoginScreen(
     viewModel: AuthViewModel,
     onNavigateToSignUp: () -> Unit,
-    onNavigateToVerification: (numberOrEmail: String, password: String) -> Unit
+    onNavigateToVerification: (numberOrEmail: String, password: String) -> Unit,
+    onSuccess: () -> Unit
 ) {
-    val uiState by viewModel.authUiState.collectAsState()
+    val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
     val snackbarHostState = remember { SnackbarHostState() }
 
     var numberOrEmail by remember { mutableStateOf("") }
@@ -29,11 +30,27 @@ fun LoginScreen(
     var passwordError by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    // ✅ LaunchedEffect for UI side effects like Snackbar and Navigation
     LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Error) {
-            snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
-        } else if (uiState is AuthUiState.Success) {
-            snackbarHostState.showSnackbar("Login Successful", duration = SnackbarDuration.Short)
+        when (uiState) {
+            is AuthUiState.Error -> {
+                snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
+            }
+
+            AuthUiState.Success -> {
+                snackbarHostState.showSnackbar(
+                    "Login Successful",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetState()
+                onSuccess()
+            }
+
+            AuthUiState.RequiresVerification -> {
+                onNavigateToVerification(numberOrEmail, password)
+            }
+
+            else -> {}
         }
     }
 
@@ -45,6 +62,7 @@ fun LoginScreen(
                 isValid = false
                 "Email or phone is required"
             }
+
             else -> null
         }
 
@@ -53,10 +71,12 @@ fun LoginScreen(
                 isValid = false
                 "Password is required"
             }
+
             password.length < 6 -> {
                 isValid = false
                 "Password must be at least 6 characters"
             }
+
             else -> null
         }
 
@@ -130,15 +150,6 @@ fun LoginScreen(
 
             TextButton(onClick = onNavigateToSignUp) {
                 Text("Don't have an account? Sign up")
-            }
-
-            LaunchedEffect(Unit) {
-                when (uiState) {
-                    is AuthUiState.Error -> snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
-                    //AuthUiState.Success -> onNavigateToHome()
-                    AuthUiState.RequiresVerification -> onNavigateToVerification(numberOrEmail, password)
-                    else -> {}
-                }
             }
         }
     }
