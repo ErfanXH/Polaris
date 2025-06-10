@@ -20,7 +20,7 @@ fun LoginScreen(
     onNavigateToVerification: (numberOrEmail: String, password: String) -> Unit,
     onSuccess: () -> Unit
 ) {
-    val uiState by viewModel.authUiState.collectAsState()
+    val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
     val snackbarHostState = remember { SnackbarHostState() }
 
     var numberOrEmail by remember { mutableStateOf("") }
@@ -42,6 +42,7 @@ fun LoginScreen(
                     "Login Successful",
                     duration = SnackbarDuration.Short
                 )
+                viewModel.resetState()
                 onSuccess()
             }
 

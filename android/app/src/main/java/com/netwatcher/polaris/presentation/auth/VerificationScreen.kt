@@ -33,7 +33,7 @@ fun VerificationScreen(
     onBack: () -> Unit,
     onVerified: () -> Unit
 ) {
-    val uiState by viewModel.authUiState.collectAsState()
+    val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
     val snackbarHostState = remember { SnackbarHostState() }
     var lastAction by remember { mutableStateOf<VerificationAction?>(null) }
 
