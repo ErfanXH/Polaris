@@ -1,4 +1,4 @@
-package eh.learning.homepage.ui.home.components
+package com.netwatcher.polaris.presentation.home
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape

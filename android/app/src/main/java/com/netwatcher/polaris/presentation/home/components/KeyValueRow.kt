@@ -1,4 +1,4 @@
-package eh.learning.homepage.ui.home.components
+package com.netwatcher.polaris.presentation.home.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

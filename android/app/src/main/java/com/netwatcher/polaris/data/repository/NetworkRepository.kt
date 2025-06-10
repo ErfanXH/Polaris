@@ -1,4 +1,4 @@
-package eh.learning.homepage.data.repository
+package com.netwatcher.polaris.data.repository
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -15,9 +15,9 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import eh.learning.homepage.data.model.NetworkData
-import eh.learning.homepage.utils.DnsUtility
-import eh.learning.homepage.utils.LocationUtility
+import com.netwatcher.polaris.domain.model.NetworkData
+import com.netwatcher.polaris.utils.DnsUtility
+import com.netwatcher.polaris.utils.LocationUtility
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.Continuation
@@ -25,10 +25,10 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
-import eh.learning.homepage.utils.PingUtility
-import eh.learning.homepage.utils.SmsTestUtility
-import eh.learning.homepage.utils.ThroughputUtility
-import eh.learning.homepage.utils.WebTestUtility
+import com.netwatcher.polaris.utils.PingUtility
+import com.netwatcher.polaris.utils.SmsTestUtility
+import com.netwatcher.polaris.utils.ThroughputUtility
+import com.netwatcher.polaris.utils.WebTestUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext

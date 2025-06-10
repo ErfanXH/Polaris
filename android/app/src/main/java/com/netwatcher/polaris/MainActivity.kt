@@ -1,5 +1,6 @@
 package com.netwatcher.polaris
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +19,24 @@ import com.netwatcher.polaris.presentation.home.HomeScreen
 
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1
+        private val REQUIRED_PERMISSIONS = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_SMS
+        )
+
+        private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -79,9 +98,7 @@ fun PolarisNav() {
         }
 
         composable("home") {
-            HomeScreen(
-                onLogout = { navController.navigate("login") }
-            )
+
         }
     }
 }

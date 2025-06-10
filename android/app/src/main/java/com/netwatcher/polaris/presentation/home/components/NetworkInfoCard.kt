@@ -1,4 +1,4 @@
-package eh.learning.homepage.ui.home.components
+package com.netwatcher.polaris.presentation.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
