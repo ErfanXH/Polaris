@@ -32,14 +32,9 @@ class RegisterSerializer(serializers.Serializer):
         return super().validate(attrs)
 
 
-class LoginSerializer(serializers.ModelSerializer):
-    number_or_email = serializers.CharField()
-    password = serializers.CharField(validators=[validate_password])
-    class Meta:
-        model = User
-        fields = ['number_or_email','password','phone_number','username','email','image','is_staff']
-        read_only_fields = ['phone_number','username','email','image','is_staff']
-        write_only_fields = ['number_or_email','password']
+class LoginSerializer(serializers.Serializer):
+    number_or_email = serializers.CharField(write_only = True)
+    password = serializers.CharField(validators=[validate_password], write_only = True)
         
     def validate(self, attrs):
         if match(r'^09\d{9}$', attrs['number_or_email']):
@@ -59,12 +54,12 @@ class LoginSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = {
+            'id': instance.id,
             'phone_number': instance.phone_number,
             'email': instance.email,
             'username': instance.username,
             'image': instance.image.url if instance.image else None,
             'is_staff': instance.is_staff,
-            'is_superuser': instance.is_superuser,
             'is_banned': instance.is_banned,
         }
         representation.update(instance.token())
@@ -109,15 +104,10 @@ class GetVerificationCodeSerializer(serializers.Serializer):
             attrs['user'] = user
         return super().validate(attrs)
 
-class VerificationSerializer(serializers.ModelSerializer):
+class VerificationSerializer(serializers.Serializer):
     number_or_email = serializers.CharField(write_only = True)
-    password = serializers.CharField(validators=[validate_password])
-    code = serializers.CharField(allow_blank=False)
-    class Meta:
-        model = User
-        fields = ['number_or_email','password','phone_number','username','email','image','code','is_staff']
-        read_only_fields = ['phone_number','username','email','image','is_staff']
-        write_only_fields = ['number_or_email','password','code']
+    password = serializers.CharField(validators=[validate_password],write_only = True)
+    code = serializers.CharField(write_only = True)
         
     def validate(self, attrs):
         if match(r'^09\d{9}$', attrs['number_or_email']):
@@ -137,12 +127,12 @@ class VerificationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = {
+            'id': instance.id,
             'phone_number': instance.phone_number,
             'email': instance.email,
             'username': instance.username,
             'image': instance.image.url if instance.image else None,
             'is_staff': instance.is_staff,
-            'is_superuser': instance.is_superuser,
             'is_banned': instance.is_banned,
         }
         representation.update(instance.token())
@@ -152,5 +142,5 @@ class VerificationSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["phone_number","email","username","image","is_superuser","is_banned","date_joined"]
-        read_only_fields = ["phone_number","email","is_superuser","is_banned","date_joined"]
+        fields = ["phone_number","email","username","image","is_staff","is_banned","date_joined","allow_usperuser_access"]
+        read_only_fields = ["phone_number","email","is_staff","is_banned","date_joined"]

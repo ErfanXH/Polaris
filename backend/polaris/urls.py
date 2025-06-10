@@ -11,6 +11,7 @@ urlpatterns = [
     path(f'{BASE_URL}/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path(f'{BASE_URL}/nbt-admin/', admin.site.urls),
     path(f'{BASE_URL}/users/',include('users.urls')),
+    path(f'{BASE_URL}/mobile/',include('mobile_reports.urls')),
 ]\
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)\
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

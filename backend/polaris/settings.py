@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     # Local apps
-    'users'
+    'users',
+    'mobile_reports',
 ]
 
 MIDDLEWARE = [
