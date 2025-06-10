@@ -33,7 +33,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5174:5173" # Using 5174 because 5173 is busy
+      - "5174:5174" # Using 5174 because 5173 is busy
     environment:
       - NODE_ENV=production
       - CHOKIDAR_USEPOLLING=true

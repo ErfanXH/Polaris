@@ -61,7 +61,7 @@ class AuthenticationViewSet(GenericViewSet):
             validated_data['user'].save()
             return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
         else:
-            return Response({'detail' : 'verification required, verify with code sent to your email'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail' : 'verification required, verify with code sent to your email'}, status=status.HTTP_401_UNAUTHORIZED)
         
     @action(detail=False, methods=['POST'])
     def verify_code(self,request):

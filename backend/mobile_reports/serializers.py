@@ -4,8 +4,8 @@ from .models import *
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["phone_number","email","username","image","is_superuser","is_banned","date_joined"]
-        read_only_fields = ["phone_number","email","username","image","is_superuser","is_banned","date_joined"]
+        fields = ["phone_number","email","username","image","is_staff","is_banned","date_joined","allow_usperuser_access"]
+        read_only_fields = ["phone_number","email","username","image","is_staff","is_banned","date_joined","allow_usperuser_access"]
         
         
         
@@ -21,7 +21,7 @@ class MeasurementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Measurement
         fields = '__all__'
-        read_only_fields = ['id', 'timestamp']
+        read_only_fields = ['id', 'timestamp','device']
 
 
 
@@ -29,7 +29,7 @@ class TestResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestResult
         fields = '__all__'
-        read_only_fields = ['id', 'timestamp']
+        read_only_fields = ['id', 'timestamp','device']
         
         
         
@@ -50,16 +50,10 @@ class BulkTestResultSerializer(serializers.ModelSerializer):
 
         
 class BulkUploadMeasurementSerializer(serializers.Serializer):
-    device_id = serializers.CharField(max_length=255)
     measurements = serializers.ListField(child=BulkMeasurementSerializer())
-    
-    def validate_device_id(self, value):
-        if not Device.objects.filter(device_id=value).exists():
-            raise serializers.ValidationError("Device not registered")
-        return value
-    
+
     def create(self, validated_data):
-        device = Device.objects.get(device_id=validated_data['device_id'])
+        device = Device.objects.get(device_id=self.context['device_id'])
         measurements = []
         
         for measurement_data in validated_data['measurements']:
@@ -82,16 +76,10 @@ class BulkUploadMeasurementSerializer(serializers.Serializer):
 
 
 class BulkUploadTestResultSerializer(serializers.Serializer):
-    device_id = serializers.CharField(max_length=255)
     test_results = serializers.ListField(child=BulkTestResultSerializer())
     
-    def validate_device_id(self, value):
-        if not Device.objects.filter(device_id=value).exists():
-            raise serializers.ValidationError("Device not registered")
-        return value
-    
     def create(self, validated_data):
-        device = Device.objects.get(device_id=validated_data['device_id'])
+        device = Device.objects.get(device_id=self.context['device_id'])
         test_results = []
         
         for test_data in validated_data['test_results']:
@@ -105,3 +93,8 @@ class BulkUploadTestResultSerializer(serializers.Serializer):
             test_results.append(test_result)
     
         return test_results
+    
+    
+    
+class BulkDeleteSerializer(serializers.Serializer):
+    ids = serializers.ListField(child=serializers.IntegerField())
