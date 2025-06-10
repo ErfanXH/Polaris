@@ -1,9 +1,9 @@
-package eh.learning.homepage.ui.home
+package com.netwatcher.polaris.presentation.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import eh.learning.homepage.data.model.NetworkData
+import com.netwatcher.polaris.domain.model.NetworkData
 import eh.learning.homepage.data.repository.NetworkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

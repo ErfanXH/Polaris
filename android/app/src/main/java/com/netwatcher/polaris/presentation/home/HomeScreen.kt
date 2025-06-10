@@ -1,4 +1,4 @@
-package eh.learning.homepage.ui.home
+package com.netwatcher.polaris.presentation.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,8 +12,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import eh.learning.homepage.data.model.NetworkData
-import eh.learning.homepage.ui.home.components.*
+import com.netwatcher.polaris.domain.model.NetworkData
+import com.netwatcher.polaris.presentation.home.components.*
 
 @Composable
 fun HomeScreen(
