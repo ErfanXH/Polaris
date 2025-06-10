@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.netwatcher.polaris.domain.model.NetworkData
-import eh.learning.homepage.data.repository.NetworkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.location.Location
+import com.netwatcher.polaris.domain.repository.NetworkRepository
 
 class HomeViewModel(
     private val repository: NetworkRepository
@@ -69,10 +69,3 @@ class HomeViewModel(
     }
 }
 
-sealed class HomeUiState {
-    object Loading : HomeUiState()
-    object Empty : HomeUiState()
-    data class Success(val data: NetworkData) : HomeUiState()
-    data class LocationSuccess(val location: Location) : HomeUiState()
-    data class Error(val message: String) : HomeUiState()
-}

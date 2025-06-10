@@ -1,4 +1,4 @@
-package com.netwatcher.polaris.presentation.home
+package com.netwatcher.polaris.presentation.home.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
