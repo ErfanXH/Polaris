@@ -2,74 +2,48 @@ package com.netwatcher.polaris.presentation.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import com.netwatcher.polaris.domain.model.SignUpRequest
+import com.netwatcher.polaris.domain.model.LoginRequest
 
 @Composable
-fun SignUpScreen(
+fun LoginScreen(
     viewModel: AuthViewModel,
-    onNavigateToLogin: () -> Unit,
-    onNavigateToVerification: (email:String,password:String) -> Unit
+    onNavigateToSignUp: () -> Unit,
+    onNavigateToVerification: (numberOrEmail: String, password: String) -> Unit
 ) {
     val uiState by viewModel.authUiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var email by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
+    var numberOrEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var phoneError by remember { mutableStateOf<String?>(null) }
+    var numberOrEmailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Show Snack bar on API error
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Error) {
             snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
-        }
-        else if (uiState is AuthUiState.Success) {
-            snackbarHostState.showSnackbar(message = "Login Successful", duration = SnackbarDuration.Short)
+        } else if (uiState is AuthUiState.Success) {
+            snackbarHostState.showSnackbar("Login Successful", duration = SnackbarDuration.Short)
         }
     }
 
     val validateInputs: () -> Boolean = {
         var isValid = true
 
-        emailError = when {
-            email.isBlank() -> {
+        numberOrEmailError = when {
+            numberOrEmail.isBlank() -> {
                 isValid = false
-                "Email is required"
-            }
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                isValid = false
-                "Invalid email format"
-            }
-            else -> null
-        }
-
-        phoneError = when {
-            phoneNumber.isBlank() -> {
-                isValid = false
-                "Phone number is required"
-            }
-
-            !phoneNumber.startsWith("09") -> {
-                isValid = false
-                "Phone number should start with '09'"
-            }
-
-            phoneNumber.length != 11 -> {
-                isValid = false
-                "Phone number should be 11 digits"
+                "Email or phone is required"
             }
             else -> null
         }
@@ -101,24 +75,13 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                isError = emailError != null,
+                value = numberOrEmail,
+                onValueChange = { numberOrEmail = it },
+                label = { Text("Email or Phone") },
+                isError = numberOrEmailError != null,
                 modifier = Modifier.fillMaxWidth()
             )
-            emailError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = { phoneNumber = it },
-                label = { Text("Phone Number") },
-                isError = phoneError != null,
-                modifier = Modifier.fillMaxWidth()
-            )
-            phoneError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            numberOrEmailError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -145,10 +108,9 @@ fun SignUpScreen(
             Button(
                 onClick = {
                     if (validateInputs()) {
-                        viewModel.signUp(
-                            SignUpRequest(
-                                email = email,
-                                phoneNumber = phoneNumber,
+                        viewModel.login(
+                            LoginRequest(
+                                numberOrEmail = numberOrEmail,
                                 password = password
                             )
                         )
@@ -156,21 +118,26 @@ fun SignUpScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Sign Up")
+                Text("Login")
             }
 
             if (uiState is AuthUiState.Loading) {
                 Spacer(modifier = Modifier.height(16.dp))
                 CircularProgressIndicator()
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = onNavigateToLogin) {
-                Text("Already have an account? Login")
+            TextButton(onClick = onNavigateToSignUp) {
+                Text("Don't have an account? Sign up")
             }
-            if (uiState is AuthUiState.Success) {
-                LaunchedEffect(Unit) {
-                    onNavigateToVerification(email,password)
+
+            LaunchedEffect(Unit) {
+                when (uiState) {
+                    is AuthUiState.Error -> snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
+                    //AuthUiState.Success -> onNavigateToHome()
+                    AuthUiState.RequiresVerification -> onNavigateToVerification(numberOrEmail, password)
+                    else -> {}
                 }
             }
         }

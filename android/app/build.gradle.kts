@@ -62,6 +62,8 @@ dependencies {
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     // Retrofit for HTTP requests
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
