@@ -12,6 +12,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.netwatcher.polaris.R
 import com.netwatcher.polaris.domain.model.LoginRequest
 
 @Composable
@@ -105,6 +110,13 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .height(100.dp)
+                    .padding(bottom = 24.dp),
+            )
             OutlinedTextField(
                 value = numberOrEmail,
                 onValueChange = { numberOrEmail = it },

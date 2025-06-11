@@ -1,5 +1,6 @@
 package com.netwatcher.polaris.presentation.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import com.netwatcher.polaris.R
 import com.netwatcher.polaris.domain.model.SignUpRequest
 
 @Composable
@@ -116,6 +119,13 @@ fun SignUpScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .height(100.dp)
+                    .padding(bottom = 24.dp),
+            )
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
