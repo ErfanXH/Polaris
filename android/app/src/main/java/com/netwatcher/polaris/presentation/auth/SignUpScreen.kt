@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.platform.LocalFocusManager
 import com.netwatcher.polaris.domain.model.SignUpRequest
 
 @Composable
@@ -20,6 +21,7 @@ fun SignUpScreen(
     onNavigateToVerification: (email: String, password: String) -> Unit
 ) {
     val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
+    val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var email by remember { mutableStateOf("") }
@@ -36,10 +38,6 @@ fun SignUpScreen(
         if (uiState is AuthUiState.Error) {
             snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
         } else if (uiState is AuthUiState.Success) {
-            snackbarHostState.showSnackbar(
-                message = "Login Successful",
-                duration = SnackbarDuration.Short
-            )
             viewModel.resetState()
             onNavigateToVerification(email, password)
         }
@@ -99,7 +97,16 @@ fun SignUpScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp) // Adjust as needed
+                    .wrapContentSize(Alignment.TopCenter) // 👈 Align top
+            ) {
+                SnackbarHost(hostState = snackbarHostState)
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -154,6 +161,7 @@ fun SignUpScreen(
             Button(
                 onClick = {
                     if (validateInputs()) {
+                        focusManager.clearFocus(force = true)
                         viewModel.signUp(
                             SignUpRequest(
                                 email = email,
@@ -174,13 +182,11 @@ fun SignUpScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = onNavigateToLogin) {
+            TextButton(onClick = {
+                viewModel.resetState()
+                onNavigateToLogin()
+            }) {
                 Text("Already have an account? Login")
-            }
-            if (uiState is AuthUiState.Success) {
-                LaunchedEffect(Unit) {
-                    onNavigateToVerification(email, password)
-                }
             }
         }
     }

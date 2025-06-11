@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -21,6 +22,7 @@ fun LoginScreen(
     onSuccess: () -> Unit
 ) {
     val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
+    val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var numberOrEmail by remember { mutableStateOf("") }
@@ -84,7 +86,16 @@ fun LoginScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp) // Adjust as needed
+                    .wrapContentSize(Alignment.TopCenter) // 👈 Align top
+            ) {
+                SnackbarHost(hostState = snackbarHostState)
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -128,6 +139,7 @@ fun LoginScreen(
             Button(
                 onClick = {
                     if (validateInputs()) {
+                        focusManager.clearFocus(force = true)
                         viewModel.login(
                             LoginRequest(
                                 numberOrEmail = numberOrEmail,

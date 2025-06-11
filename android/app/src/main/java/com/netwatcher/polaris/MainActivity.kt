@@ -200,7 +200,13 @@ fun PolarisNav(mainActivity: MainActivity) {
                 numberOrEmail = numberOrEmail,
                 password = password,
                 onBack = { navController.popBackStack() },
-                onVerified = { navController.navigate("home") }
+                onVerified = {
+                    navController.navigate("home") {
+                        popUpTo("verification?numberOrEmail={numberOrEmail}&password={password}") {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
 

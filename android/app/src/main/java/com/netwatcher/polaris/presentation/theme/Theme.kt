@@ -8,6 +8,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
@@ -37,11 +38,39 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+val CustomLightColorScheme = lightColorScheme(
+    primary = accentGoldLight,
+    onPrimary = textPrimaryLight,
+    secondary = secondaryBgLight,
+    onSecondary = textSecondaryLight,
+    tertiary = accentGoldLight,
+    background = primaryBgLight,
+    onBackground = textPrimaryLight,
+    surface = cardBgLight,
+    onSurface = textPrimaryLight,
+    error = errorLight,
+    onError = Color.White
+)
+
+val CustomDarkColorScheme = darkColorScheme(
+    primary = accentGoldDark,
+    onPrimary = textPrimaryDark,
+    secondary = secondaryBgDark,
+    onSecondary = textSecondaryDark,
+    tertiary = accentGoldDark,
+    background = primaryBgDark,
+    onBackground = textPrimaryDark,
+    surface = cardBgDark,
+    onSurface = textPrimaryDark,
+    error = errorDark,
+    onError = Color.Black
+)
+
 @Composable
 fun PolarisTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -50,8 +79,8 @@ fun PolarisTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> CustomDarkColorScheme
+        else -> CustomLightColorScheme
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
