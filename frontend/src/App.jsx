@@ -1,35 +1,96 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+import { useState, useEffect } from "react";
+import SignUp from "./pages/SignUp/index";
+import Login from "./pages/Login/index";
+import ResetPassword from "./pages/ResetPassword/index";
+import Verify from "./pages/Verify/index";
+import Dashboard from "./pages/Dashboard/index";
+import Map from "./pages/Map/index";
+import "./index.css";
+import "react-toastify/dist/ReactToastify.css";
+import { isAuthenticated } from "./utils/AuthManager.js";
 
-function App() {
-  const [count, setCount] = useState(0)
+const ProtectedRoute = ({
+  isAuthenticated,
+  redirectPath = "/login",
+  children,
+}) => {
+  if (!isAuthenticated) {
+    return <Navigate to={redirectPath} replace />;
+  }
 
+  return children ? children : <Outlet />;
+};
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Root />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/sign_up",
+    element: <SignUp />,
+  },
+  {
+    path: "/reset_password",
+    element: <ResetPassword />,
+  },
+  {
+    path: "/verify",
+    element: <Verify />,
+  },
+  {
+    path: "/user",
+  },
+  // Protected routes group
+  {
+    element: <ProtectedRoute isAuthenticated={isAuthenticated} />,
+    children: [
+      {
+        path: "/user/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/user/dashboard",
+        element: <Dashboard />,
+        index,
+      },
+      {
+        path: "/user/map",
+        element: <Map />,
+      },
+    ],
+  },
+  {
+    path: "*",
+    element: <ErrorPage />,
+  },
+]);
+
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeContext.Provider value={{ isDarkMode }}>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      <RouterProvider router={router} />
+    </ThemeContext.Provider>
+  );
 }
-
-export default App
