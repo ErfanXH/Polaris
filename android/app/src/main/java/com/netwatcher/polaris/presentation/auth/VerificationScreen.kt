@@ -53,6 +53,7 @@ fun VerificationScreen(
                             message = "Verification successful",
                             duration = SnackbarDuration.Short
                         )
+                        viewModel.resetState()
                         onVerified()
                     }
 
@@ -69,7 +70,16 @@ fun VerificationScreen(
     val code = codeDigits.joinToString("")
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp) // Adjust as needed
+                    .wrapContentSize(Alignment.TopCenter) // 👈 Align top
+            ) {
+                SnackbarHost(hostState = snackbarHostState)
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -110,6 +120,7 @@ fun VerificationScreen(
             Button(
                 onClick = {
                     if (isCodeValid) {
+                        focusManager.clearFocus(force = true)
                         lastAction = VerificationAction.VERIFY
                         viewModel.verify(
                             VerificationRequest(
@@ -134,13 +145,16 @@ fun VerificationScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = {
+                lastAction = VerificationAction.RESEND
                 viewModel.retryVerification(VerificationRetryRequest(numberOrEmail))
             }) {
-                lastAction = VerificationAction.RESEND
                 Text("Resend Code")
             }
 
-            TextButton(onClick = onBack) {
+            TextButton(onClick = {
+                viewModel.resetState()
+                onBack()
+            }) {
                 Text("Go Back")
             }
         }
