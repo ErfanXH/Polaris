@@ -21,7 +21,7 @@ class MeasurementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Measurement
         fields = '__all__'
-        read_only_fields = ['id', 'timestamp','device']
+        read_only_fields = ['id','device','created_at',]
 
 
 
@@ -29,7 +29,7 @@ class TestResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestResult
         fields = '__all__'
-        read_only_fields = ['id', 'timestamp','device']
+        read_only_fields = ['id', 'device','created_at',]
         
         
         
@@ -37,7 +37,7 @@ class BulkMeasurementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Measurement
         exclude = ['device']
-        read_only_fields = ['id', 'timestamp']
+        read_only_fields = ['id','created_at',]
         
         
         
@@ -45,7 +45,7 @@ class BulkTestResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestResult
         exclude = ['device']
-        read_only_fields = ['id', 'timestamp']
+        read_only_fields = ['id','created_at',]
         
 
         
@@ -59,6 +59,7 @@ class BulkUploadMeasurementSerializer(serializers.Serializer):
         for measurement_data in validated_data['measurements']:
             measurement = Measurement.objects.create(
                 device=device,
+                timestamp = measurement_data.get('timestamp'),
                 latitude=measurement_data.get('latitude'),
                 longitude=measurement_data.get('longitude'),
                 network_type=measurement_data.get('network_type'),
@@ -85,6 +86,7 @@ class BulkUploadTestResultSerializer(serializers.Serializer):
         for test_data in validated_data['test_results']:
             test_result = TestResult.objects.create(
                 device=device,
+                timestamp = test_data.get('timestamp'),
                 test_type=test_data.get('test_type'),
                 value=test_data.get('value'),
                 success=test_data.get('success'),

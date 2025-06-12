@@ -152,6 +152,7 @@ SIMPLE_JWT = {
 }
 
 SWAGGER_SETTINGS = {
+    'APIS_SORTER': None,
     'SECURITY_DEFINITIONS': {
         'Bearer': {
             'type': 'apiKey',
