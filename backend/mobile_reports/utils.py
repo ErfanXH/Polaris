@@ -1,8 +1,7 @@
 
-
 def arfcn_to_frequency(arfcn : int, network_type : str) -> float:
     
-    if arfcn is None or network_type is None:
+    if arfcn is None or network_type in [None , 'UNKNOWN']:
         return None
     
     if network_type in ('GSM', 'GPRS', 'EDGE'):
