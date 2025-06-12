@@ -1,7 +1,6 @@
 services:
   database:
     image: mysql:8.0-debian
-    
     restart: always
     env_file: .env
     environment:
@@ -13,6 +12,11 @@ services:
       - "${DB_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   polaris-backend:
     build:
@@ -26,7 +30,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   polaris-frontend:
     build:
