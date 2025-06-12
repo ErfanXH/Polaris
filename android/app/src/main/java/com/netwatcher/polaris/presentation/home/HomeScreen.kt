@@ -1,10 +1,21 @@
 package com.netwatcher.polaris.presentation.home
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,7 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.netwatcher.polaris.domain.model.NetworkData
-import com.netwatcher.polaris.presentation.home.components.*
+import com.netwatcher.polaris.presentation.home.components.KeyValueRow
+import com.netwatcher.polaris.presentation.home.components.NetworkInfoCard
+import com.netwatcher.polaris.presentation.home.components.RunTestButton
 
 @Composable
 fun HomeScreen(
@@ -93,7 +106,7 @@ private fun HomeContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "نتیجه آخرین تست",
+                text = "Last Test Results",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -106,34 +119,34 @@ private fun HomeContent(
 @Composable
 private fun NetworkResults(networkData: NetworkData) {
     val sections = listOf(
-        Triple("مکان کاربر", listOf(
-            "عرض جغرافیایی" to networkData.latitude.toString(),
-            "طول جغرافیایی" to networkData.longitude.toString(),
-            "زمان ثبت" to networkData.timestamp
+        Triple("User Location", listOf(
+            "Latitude" to networkData.latitude.toString(),
+            "Longitude" to networkData.longitude.toString(),
+            "Date Time" to networkData.timestamp
         )) { _: NetworkData -> /* No special handling */ },
 
-        Triple("فناوری سلولی", when (networkData.networkType) {
+        Triple("Cell Technology", when (networkData.networkType) {
             "LTE", "5G" -> listOf(
-            "فناوری" to networkData.networkType,
+            "Technology" to networkData.networkType,
             "TAC" to (networkData.tac ?: "N/A"),
-            "شناسه سلول" to (networkData.cellId ?: "N/A"),
-            "PLMN شناسه" to (networkData.plmnId ?: "N/A"),
+            "Cell ID" to (networkData.cellId ?: "N/A"),
+            "PLMN ID" to (networkData.plmnId ?: "N/A"),
             "ARFCN" to "${networkData.arfcn} (${networkData.frequency} MHz)",
-            "باند فرکانسی" to (networkData.frequencyBand ?: "N/A")
+            "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
             "WCDMA", "HSPA", "HSPA+", "GSM", "GPRS", "EDGE" -> listOf(
-                "فناوری" to networkData.networkType,
+                "Technology" to networkData.networkType,
                 "LAC" to (networkData.lac ?: "N/A"),
                 "RAC" to (networkData.rac ?: "N/A"),
-                "شناسه سلول" to (networkData.cellId ?: "N/A"),
-                "PLMN شناسه" to (networkData.plmnId ?: "N/A"),
+                "Cell ID" to (networkData.cellId ?: "N/A"),
+                "PLMN ID" to (networkData.plmnId ?: "N/A"),
                 "ARFCN" to "${networkData.arfcn} (${networkData.frequency} MHz)",
-                "باند فرکانسی" to (networkData.frequencyBand ?: "N/A")
+                "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
             else -> emptyList()
         }) { _: NetworkData -> /* No special handling */ },
 
-        Triple("کیفیت سیگنال", when (networkData.networkType) {
+        Triple("Signal Quality", when (networkData.networkType) {
             "LTE" -> listOf(
                 "RSRP" to "${networkData.rsrp} dBm",
                 "RSRQ" to "${networkData.rsrq} dB",
@@ -153,12 +166,13 @@ private fun NetworkResults(networkData: NetworkData) {
             else -> emptyList()
         }) { _: NetworkData -> /* No special handling */ },
 
-        Triple("تست های عملکردی", listOf(
-            "HTTP گذردهی" to "${networkData.httpThroughput} Mbps",
+        Triple("Functional Tests", listOf(
+            "HTTP Upload Throughput" to "${String.format("%.2f", networkData.httpUploadThroughput)} Mbps",
+            "HTTP Download Throughput" to "${String.format("%.2f", networkData.httpDownloadThroughput)} Mbps",
             "Ping" to "${networkData.pingTime} ms",
-            "DNS زمان پاسخ" to "${networkData.dnsResponse} ms",
-            "Web زمان پاسخ" to "${networkData.webResponse} ms",
-            "SMS زمان تحویل" to "${networkData.smsDeliveryTime} ms"
+            "DNS Response Time" to "${networkData.dnsResponse} ms",
+            "Web Response Time" to "${networkData.webResponse} ms",
+            "SMS Delivery Time" to "${networkData.smsDeliveryTime} ms"
         )) { _: NetworkData -> /* No special handling */ }
     )
 

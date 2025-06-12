@@ -22,7 +22,7 @@ fun KeyValueRow(
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = value)
         Text(text = key, fontWeight = FontWeight.Bold)
+        Text(text = value)
     }
 }
