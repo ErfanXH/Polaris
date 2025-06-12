@@ -3,7 +3,6 @@ package com.netwatcher.polaris.data.repository
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Looper
 import android.telephony.*
@@ -16,24 +15,26 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.netwatcher.polaris.domain.model.NetworkData
+import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.DnsUtility
 import com.netwatcher.polaris.utils.LocationUtility
+import com.netwatcher.polaris.utils.PingUtility
+import com.netwatcher.polaris.utils.ThroughputUtility
+import com.netwatcher.polaris.utils.WebTestUtility
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import com.netwatcher.polaris.utils.PingUtility
-import com.netwatcher.polaris.utils.ThroughputUtility
-import com.netwatcher.polaris.utils.WebTestUtility
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class NetworkRepositoryImpl(
     private val context: Context,
     private val telephonyManager: TelephonyManager,
-    private val connectivityManager: ConnectivityManager
+    private val networkDataDao: NetworkDataDao
 ) : NetworkRepository {
 
     private val fusedLocationClient by lazy {
@@ -41,6 +42,19 @@ class NetworkRepositoryImpl(
     }
 
 //    private val smsTestUtility = SmsTestUtility(context)
+
+    override suspend fun addNetworkData(networkData: NetworkData) {
+        networkDataDao.addNetworkData(networkData)
+    }
+    override fun getAllNetworkData(): Flow<List<NetworkData>> {
+        return networkDataDao.getAllNetworkData()
+    }
+    override suspend fun getNetworkDataById(id: Long): Flow<NetworkData> {
+        return networkDataDao.getNetworkDataById(id)
+    }
+    override suspend fun deleteNetworkData(networkData: NetworkData) {
+        networkDataDao.deleteNetworkData(networkData)
+    }
 
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine { cont ->
@@ -127,7 +141,7 @@ class NetworkRepositoryImpl(
         val testUrls = listOf(
             "https://www.google.com",
             "https://www.cloudflare.com",
-            "https://quera.org"
+//            "https://quera.org"
         )
 
         val results = mutableListOf<Long>()
@@ -136,7 +150,7 @@ class NetworkRepositoryImpl(
             try {
                 val time = WebTestUtility.measureWebResponseTime(url)
                 time?.let { results.add(it) }
-                if (results.size >= 2) break
+                if (results.size >= 1) break
             } catch (e: Exception) {
                 Log.e("NetworkRepository", "Error measuring web response for $url: ${e.message}")
             }
@@ -162,7 +176,7 @@ class NetworkRepositoryImpl(
         val webResponseTime = measureWebResponseTime()
 //        val smsDeliveryTime = measureSmsDeliveryTime()?.toInt() ?: -1
 
-        return NetworkData(
+        val networkData = NetworkData(
             location?.latitude ?: 0.0,
             location?.longitude ?: 0.0,
             SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(Date()),
@@ -182,6 +196,8 @@ class NetworkRepositoryImpl(
             getRxLev(cellInfo),
             getSsRsrp(cellInfo),
             uploadThroughput,
+//            downloadThroughput,
+            -1.0,
             pingTime,
             dnsTime,
             webResponseTime,
@@ -189,47 +205,10 @@ class NetworkRepositoryImpl(
             -1
 //            -1.0,-1.0,-1,-1,-1
         )
-    }
 
-    @SuppressLint("MissingPermission")
-    override suspend fun getLastTestResult(): NetworkData? {
-        val location = getCurrentLocation()
-        val cellInfo = telephonyManager.allCellInfo.firstOrNull { it.isRegistered }
-        val netType = getNetworkType(cellInfo)
+        addNetworkData(networkData)
 
-        val pingTime = pingTest() ?: 0.0
-        val dnsTime = dnsTest()?.toInt() ?: 0
-        val uploadThroughput = measureUploadThroughput() ?: 0.0
-        val webResponseTime = measureWebResponseTime()
-//        val smsDeliveryTime = measureSmsDeliveryTime()?.toInt() ?: -1
-
-        return NetworkData(
-            location?.latitude ?: 0.0,
-            location?.longitude ?: 0.0,
-            SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(Date()),
-            netType,
-            getTac(cellInfo),
-            getLac(cellInfo),
-            getCellId(cellInfo),
-            getRac(cellInfo),
-            getPlmnId(),
-            getArfcn(cellInfo),
-            getFrequency(cellInfo),
-            getFrequencyBand(cellInfo),
-            getRsrp(cellInfo),
-            getRsrq(cellInfo),
-            getRscp(cellInfo),
-            getEcIo(cellInfo),
-            getRxLev(cellInfo),
-            getSsRsrp(cellInfo),
-            uploadThroughput,
-            pingTime,
-            dnsTime,
-            webResponseTime,
-//            smsDeliveryTime
-            -1
-//            -1.0,-1.0,-1,-1,-1
-        )
+        return networkData
     }
 
     private fun getNetworkType(cellInfo: CellInfo?): String {
