@@ -105,6 +105,8 @@ class AuthenticationViewSet(GenericViewSet):
         else:
             return Response({'detail':'verification failed for unknown reason'} , status=status.HTTP_417_EXPECTATION_FAILED)
         
+        
+        
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -139,3 +141,43 @@ class ProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
+    
+    
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    @swagger_auto_schema(
+        operation_description="change user password.",
+        request_body=ChangePasswordSerializer,
+        responses={200: ChangePasswordSerializer()} 
+    )
+    def patch(self, request):
+        serializer = self.serializer_class(data=request.data, context={'user': request.user})
+        serializer.is_valid(raise_exception=True)
+        password = serializer.validated_data['new_password']
+        user = request.user
+        user.set_password(password)
+        user.save()
+        return Response({'detail': 'password changed successfully'}, status=status.HTTP_200_OK)
+
+
+
+class AdminViewSet(GenericViewSet):
+    serializer_class = AdminPasswordSerializer
+    permission_classes = [IsAuthenticated]
+    
+    @action(['POST'],detail=False)
+    def make_admin(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.make_admin()
+        return Response({'detail' : f'user {request.user.phone_number} now have Admin access'})
+    
+    @action(['POST'],detail=False)
+    def make_superuser(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.make_superuser()
+        return Response({'detail' : f'user {request.user.phone_number} now have Superuser access'})

@@ -8,7 +8,7 @@ router.register(r'device/(?P<device_id>\d+)/measurement', MeasurementViewSet, 'm
 router.register(r'device/(?P<device_id>\d+)/test_result', TestResultViewSet, 'test_result')
 router.register(r'device/(?P<device_id>\d+)/bulk_upload', BulkUploadViewSet, 'bulk_upload')
 router.register(r'device/(?P<device_id>\d+)/bulk_delete', BulkDeleteViewSet, 'bulk_delete')
-
+router.register(r'device/(?P<device_id>\d+)/HTTPTest', HTTPTestViewSet, 'HTTPTest')
 
 urlpatterns = [
 
