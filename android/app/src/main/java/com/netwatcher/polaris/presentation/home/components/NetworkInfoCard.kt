@@ -31,7 +31,6 @@ fun NetworkInfoCard(
             Text(
                 text = title,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.End,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold

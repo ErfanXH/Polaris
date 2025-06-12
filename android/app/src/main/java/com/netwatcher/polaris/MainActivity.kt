@@ -3,9 +3,13 @@ package com.netwatcher.polaris
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -16,7 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavType
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
@@ -28,6 +34,7 @@ import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.LocationUtility
+import com.netwatcher.polaris.worker.NetworkTestWorker
 
 class MainActivity : ComponentActivity() {
 
@@ -116,12 +123,35 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            basePermissionsGranted && REQUIRED_PERMISSIONS_API_29.all {
+//        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            basePermissionsGranted && REQUIRED_PERMISSIONS_API_29.all {
+//                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+//            }
+//        } else {
+//            basePermissionsGranted
+//        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }
-        } else {
-            basePermissionsGranted
+            return basePermissionsGranted && backgroundLocationGranted
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return basePermissionsGranted
+        }
+        return true
+    }
+
+    private fun checkBatteryOptimizations() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val intent = Intent()
+            val packageName = packageName
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
         }
     }
 
@@ -133,6 +163,8 @@ class MainActivity : ComponentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                checkBatteryOptimizations()
+                NetworkTestWorker.schedule(this)
                 checkLocationAndSetContent()
             } else {
                 Toast.makeText(
@@ -153,12 +185,16 @@ fun PolarisNav(mainActivity: MainActivity) {
 
     val telephonyManager =
         mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-    val connectivityManager =
-        mainActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+    val database = AppDatabaseHelper.getDatabase(mainActivity)
     val homeViewModel = remember {
-        HomeViewModel(NetworkRepositoryImpl(mainActivity, telephonyManager, connectivityManager))
+        HomeViewModel(
+            NetworkRepositoryImpl(
+                context = mainActivity,
+                telephonyManager = telephonyManager,
+                networkDataDao = database.networkDataDao()
+            )
+        )
     }
-
     NavHost(navController = navController, startDestination = "login") {
 
         composable("sign_up") {

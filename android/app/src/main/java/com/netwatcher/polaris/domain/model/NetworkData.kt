@@ -1,5 +1,9 @@
 package com.netwatcher.polaris.domain.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "networkData-table")
 data class NetworkData (
     val latitude: Double,
     val longitude: Double,
@@ -19,10 +23,13 @@ data class NetworkData (
     val ecIo: Int?,
     val rxLev: Int?,
     val ssRsrp: Int?,
-    val httpThroughput: Double,
+    val httpUploadThroughput: Double,
+    val httpDownloadThroughput: Double,
     val pingTime: Double,
     val dnsResponse: Int,
     val webResponse: Long?,
-    val smsDeliveryTime: Int
+    val smsDeliveryTime: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
 ) {
 }
