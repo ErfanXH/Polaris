@@ -4,6 +4,7 @@ from rest_framework.exceptions import PermissionDenied, NotFound ,APIException
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
 from re import match
+from django.conf import settings
 from .models import *
 
 class RegisterSerializer(serializers.Serializer):
@@ -144,3 +145,23 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ["phone_number","email","username","image","is_staff","is_banned","date_joined","allow_usperuser_access"]
         read_only_fields = ["phone_number","email","is_staff","is_banned","date_joined"]
+
+class ChangePasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(validators=[validate_password],write_only = True)
+    new_password = serializers.CharField(validators=[validate_password],write_only = True)
+    
+    def validate(self, attrs):
+        if not self.context['user'].check_password(attrs['password']):
+            raise serializers.ValidationError('given password do not match with you current password')
+        else:
+            return attrs
+
+
+
+class AdminPasswordSerializer(serializers.Serializer):
+    admin_password = serializers.CharField(write_only = True)
+    
+    def validate(self, attrs):
+        if hash(attrs['admin_password']) != settings.ADMIN_PASSWORD:
+            raise PermissionDenied('admin password is incorrect')
+        return attrs

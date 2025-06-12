@@ -1,7 +1,11 @@
 #!/bin/sh
 
+# Wait for MySQL to be ready
 echo "Waiting for MySQL to be ready..."
-sleep 10
+while ! nc -z database 3306; do
+  sleep 1
+done
+echo "MySQL is ready!"
 
 echo "Running migrations..."
 python manage.py migrate

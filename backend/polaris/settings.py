@@ -20,7 +20,7 @@ ALLOWED_HOSTS = [host.strip() for host in env('ALLOWED_HOSTS').split(',')]
 VERIFICATION_METHOD = env('VERIFICATION_METHOD')
 SMS_API_TOKEN = env('SMS_API_TOKEN')
 BASE_URL = f"api"
-
+ADMIN_PASSWORD = hash(env('ADMIN_PASSWORD'))
 AUTH_USER_MODEL = 'users.User'
 
 if VERIFICATION_METHOD not in ['email','phone_number']:
@@ -37,12 +37,15 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'drf_yasg',
+    'corsheaders',
     # Local apps
     'users',
     'mobile_reports',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,6 +54,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = '*'
+#CORS_ALLOWED_ORIGINS =[]  #activate this to for deployment and remove CORS_ALLOW_ALL_ORIGINS
 
 ROOT_URLCONF = 'polaris.urls'
 
@@ -152,6 +159,7 @@ SIMPLE_JWT = {
 }
 
 SWAGGER_SETTINGS = {
+    'APIS_SORTER': None,
     'SECURITY_DEFINITIONS': {
         'Bearer': {
             'type': 'apiKey',

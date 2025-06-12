@@ -31,12 +31,13 @@ class Measurement(models.Model):
         'LTE'    : 'LTE'    ,
         '5G'     : '5G'     ,
         'LTE-Adv': 'LTE-Adv',
+        'UNKNOWN': 'UNKNOWN',
     }
     
     NETWORK_TYPES_MAP = {v: k for k, v in NETWORK_TYPES.items()}
     
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='measurements')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(null=True, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     network_type = models.CharField(max_length=10, choices=NETWORK_TYPES)
@@ -48,6 +49,7 @@ class Measurement(models.Model):
     rac = models.CharField(max_length=100, null=True, blank=True)  # routing Area Code
     plmn = models.CharField(max_length=100, null=True, blank=True) # Public Land Mobile Network
     arfcn = models.IntegerField(null=True, blank=True)  # Absolute Radio Frequency Channel Number
+    created_at = models.DateTimeField(auto_now_add=True)
     
     @property
     def arfcn_frequency(self):
@@ -76,12 +78,12 @@ class TestResult(models.Model):
         'SMS'  : 'SMS'  ,
     }
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='test_results')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(null=True, blank=True)
     test_type = models.CharField(max_length=10, choices=TEST_TYPES)
     value = models.FloatField()  
     success = models.BooleanField()
     additional_info = models.JSONField(null=True, blank=True) 
-    
+    created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ['-timestamp']
         indexes = [

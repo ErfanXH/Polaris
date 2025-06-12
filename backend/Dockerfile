@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     gcc \
     python3-dev \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /back
@@ -20,5 +21,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
+
+# Make sure entrypoint is executable
+RUN chmod +x entrypoint.sh
 
 EXPOSE 9000
