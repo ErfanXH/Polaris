@@ -17,9 +17,11 @@
     "@mui/material": "^7.1.1",
     "@mui/x-date-pickers": "^8.5.1",
     "@react-leaflet/core": "^3.0.0",
+    "@tailwindcss/vite": "^4.1.10",
     "axios": "^1.9.0",
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",
+    "js-cookie": "^3.0.5",
     "leaflet": "^1.9.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -35,11 +37,13 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "tailwindcss": "^4.1.9",
+    "postcss": "^8.5.5",
+    "tailwindcss": "^4.1.10",
     "vite": "^6.3.5"
   }
 }
