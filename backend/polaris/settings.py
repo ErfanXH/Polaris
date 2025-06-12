@@ -20,7 +20,7 @@ ALLOWED_HOSTS = [host.strip() for host in env('ALLOWED_HOSTS').split(',')]
 VERIFICATION_METHOD = env('VERIFICATION_METHOD')
 SMS_API_TOKEN = env('SMS_API_TOKEN')
 BASE_URL = f"api"
-
+ADMIN_PASSWORD = hash(env('ADMIN_PASSWORD'))
 AUTH_USER_MODEL = 'users.User'
 
 if VERIFICATION_METHOD not in ['email','phone_number']:

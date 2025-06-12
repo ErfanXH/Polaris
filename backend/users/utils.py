@@ -2,9 +2,8 @@ from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
 from requests import post
-from random import randint
 from uuid import uuid4
-
+import os
 
 def send_OTP(destiantion_numbers: list|str ,message: str ,code_length : int = 5) -> str:
     url = 'https://portal.amootsms.com/rest/SendQuickOTP'
@@ -27,16 +26,13 @@ def send_OTP(destiantion_numbers: list|str ,message: str ,code_length : int = 5)
 
 
 
-def name_generator(ai_generated: bool = False ,random_length : int = 8 ):
-    result = ''
-    if ai_generated:
-        raise NotImplementedError
-    else:
-        result = uuid4()
+def name_generator():    
+    return uuid4().hex[:30]
     
-    return result
-    
-    
+def file_name(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f'{uuid4().hex}.{ext}'
+    return os.path.join("profile_images/", filename)
     
 if __name__  == '__main__':
     response = send_OTP('9360904088', 'این یک پیام تست است\nاینم بخش دیگه تست')

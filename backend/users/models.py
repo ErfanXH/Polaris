@@ -6,16 +6,13 @@ from django.core.validators import RegexValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from random import randint
-from .utils import send_OTP, name_generator
+from .utils import send_OTP, name_generator,file_name
 from uuid import uuid4
 import os
 SENDER_EMAIL = settings.EMAIL_HOST_USER
 
-
-def file_name(instance, filename):
-    ext = filename.split('.')[-1]
-    filename = f'{uuid4().hex}.{ext}'
-    return os.path.join("profile_images/", filename)
+def name_generator():
+    return uuid4().hex[:30]
 
 class User(AbstractUser):
     phone_validator=RegexValidator(
@@ -31,8 +28,7 @@ class User(AbstractUser):
     is_banned = models.BooleanField(default=False)
     allow_usperuser_access = models.BooleanField(default=True)
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = []
-    
+    REQUIRED_FIELDS = ['email',]
     def send_code(self):
         if self.verification_code!=None and self.expire_at > timezone.now() + timedelta(minutes=7) :
             pass #logic for repeated request for getting code
@@ -55,6 +51,17 @@ class User(AbstractUser):
     
     def is_code_expired(self):
         return timezone.now()>self.expire_at
+    
+    def make_admin(self):
+        self.is_staff = True
+        self.save()
+        return True
+    
+    def make_superuser(self):
+        self.is_staff = True
+        self.is_superuser = True
+        self.save()
+        return True
     
     def verify_user(self,code):
         if self.verify_code(code) and not self.is_code_expired():
