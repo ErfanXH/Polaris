@@ -32,7 +32,7 @@ class NetworkTestWorker(
 //            println("Background test result: $result")
             Log.d("Background", "$result")
 
-            repository.addNetworkData(result)
+//            repository.addNetworkData(result)
 
             Result.success()
         } catch (e: Exception) {
