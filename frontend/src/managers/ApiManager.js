@@ -13,7 +13,7 @@ api.interceptors.request.use(
   (config) => {
     const token = cookie.LoadToken();
     if (token) {
-      config.headers.Authorization = { token };
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },

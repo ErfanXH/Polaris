@@ -1,1 +1,3 @@
-export default function NotFound() {}
+export default function NotFound() {
+  console.error("fuck");
+}

@@ -60,7 +60,7 @@ export default function Login() {
       const response = await LoginManager.login(data);
       toast.success("Login Successful", {
         autoClose: 3000,
-        onClose: () => navigate("/dashboard"),
+        onClose: () => navigate("/user/dashboard"),
         pauseOnHover: false,
       });
     } catch (error) {
