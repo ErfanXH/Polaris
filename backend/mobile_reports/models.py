@@ -6,8 +6,8 @@ User = get_user_model()
 
 
 class Device(models.Model):
-    device_id = models.CharField(max_length=255, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices')
+    device_id = models.CharField(max_length=255,primary_key=True)
     manufacturer = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     os_version = models.CharField(max_length=50)
@@ -36,35 +36,42 @@ class Measurement(models.Model):
     
     NETWORK_TYPES_MAP = {v: k for k, v in NETWORK_TYPES.items()}
     
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='measurements')
-    timestamp = models.DateTimeField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_measurements')
     latitude = models.FloatField()
     longitude = models.FloatField()
+    timestamp = models.DateTimeField(null=True, blank=True)
     network_type = models.CharField(max_length=10, choices=NETWORK_TYPES)
-    signal_strength = models.FloatField(null=True, blank=True)  # RSRP or RSCP or RxLev 
-    signal_quality = models.FloatField(null=True, blank=True)  # RSRQ or Ec/N0
-    cell_id = models.CharField(max_length=100, null=True, blank=True)
     lac = models.CharField(max_length=100, null=True, blank=True)  # Location Area Code
     tac = models.CharField(max_length=100, null=True, blank=True)  # Tracking Area Code
     rac = models.CharField(max_length=100, null=True, blank=True)  # routing Area Code
-    plmn = models.CharField(max_length=100, null=True, blank=True) # Public Land Mobile Network
+    cell_id = models.CharField(max_length=100, null=True, blank=True)
+    plmn_id = models.CharField(max_length=100, null=True, blank=True) # Public Land Mobile Network
     arfcn = models.IntegerField(null=True, blank=True)  # Absolute Radio Frequency Channel Number
+    frequency = models.FloatField(null=True, blank=True)
+    frequency_band = models.CharField(max_length=100, null=True, blank=True)
+    rsrp = models.IntegerField(null=True, blank=True)
+    rsrq = models.IntegerField(null=True, blank=True)
+    rscp = models.IntegerField(null=True, blank=True)
+    ecIo = models.IntegerField(null=True, blank=True)
+    rxLev = models.IntegerField(null=True, blank=True)
+    ssRsrp = models.IntegerField(null=True, blank=True)
+    http_upload = models.FloatField()
+    http_download = models.FloatField()
+    ping_time = models.FloatField()
+    dns_response = models.IntegerField()
+    web_response = models.BigIntegerField()
+    sms_delivery_time = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    @property
-    def arfcn_frequency(self):
-        return arfcn_to_frequency(self.arfcn, self.network_type)
-
     class Meta:
         ordering = ['-timestamp']
         indexes = [
-            models.Index(fields=['device', 'timestamp']),
+            models.Index(fields=['user', 'timestamp']),
             models.Index(fields=['latitude', 'longitude']),
         ]
         
         
     def __str__(self):
-        return f"Measurement at {self.timestamp} by {self.device}"
+        return f"Measurement at {self.timestamp} by {self.user}"
 
 
 
@@ -77,7 +84,7 @@ class TestResult(models.Model):
         'DNS'  : 'DNS'  ,
         'SMS'  : 'SMS'  ,
     }
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='test_results')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users_testResults')
     timestamp = models.DateTimeField(null=True, blank=True)
     test_type = models.CharField(max_length=10, choices=TEST_TYPES)
     value = models.FloatField()  
@@ -87,7 +94,7 @@ class TestResult(models.Model):
     class Meta:
         ordering = ['-timestamp']
         indexes = [
-            models.Index(fields=['device', 'timestamp']),
+            models.Index(fields=['user', 'timestamp']),
             ]
     
     def __str__(self):
