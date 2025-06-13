@@ -11,8 +11,13 @@ const LoginManager = {
       }
       return response.data;
     } catch (error) {
-      console.error(error.response);
-      throw error.response?.data || error.message;
+      if (error.response?.status === 401) {
+        throw {
+          status: 401,
+          type: "EMAIL_NOT_VERIFIED",
+        };
+      }
+      throw JSON.stringify(error.response?.data) || error.message;
     }
   },
 };

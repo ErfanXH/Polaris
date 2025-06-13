@@ -115,16 +115,16 @@ export const createAppTheme = (mode = getDefaultMode()) => {
       },
     },
     components: {
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            backgroundColor: vars.buttonBg,
-            "&:hover": {
-              backgroundColor: vars.buttonHover,
-            },
-          },
-        },
-      },
+      // MuiButton: {
+      //   styleOverrides: {
+      //     root: {
+      //       backgroundColor: vars.buttonBg,
+      //       "&:hover": {
+      //         backgroundColor: vars.buttonHover,
+      //       },
+      //     },
+      //   },
+      // },
       MuiPaper: {
         styleOverrides: {
           root: {

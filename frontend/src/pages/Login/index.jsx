@@ -37,7 +37,7 @@ const loginSchema = z.object({
         message: "Must be a valid email or phone number",
       }
     ),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export default function Login() {
@@ -64,7 +64,17 @@ export default function Login() {
         pauseOnHover: false,
       });
     } catch (error) {
-      toast.error(error.message || "Login failed. Please try again.");
+      if (error?.status === 401) {
+        navigate("/verify", {
+          state: {
+            numberOrEmail: data.number_or_email,
+            password: data.password,
+            from: "login", // Indicate this came from login
+          },
+        });
+      } else {
+        toast.error(error || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

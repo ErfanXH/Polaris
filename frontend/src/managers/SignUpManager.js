@@ -6,8 +6,7 @@ const SignUpManager = {
       const response = await api.post("/users/register/", credentials);
       return response.data;
     } catch (error) {
-      console.error(error.response.data);
-      throw error.response?.data || error.message;
+      throw JSON.stringify(error.response?.data) || error.message;
     }
   },
 };
