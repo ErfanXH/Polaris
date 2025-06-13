@@ -143,7 +143,7 @@ class VerificationSerializer(serializers.Serializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["phone_number","email","username","image","is_staff","is_banned","date_joined","allow_usperuser_access"]
+        fields = ["phone_number","email","username","image","is_staff","is_banned","date_joined","allow_admin_access"]
         read_only_fields = ["phone_number","email","is_staff","is_banned","date_joined"]
 
 class ChangePasswordSerializer(serializers.Serializer):
