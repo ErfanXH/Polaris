@@ -20,6 +20,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { isAuthenticated } from "./utils/AuthManager.js";
 import { createAppTheme } from "./utils/ThemeManager.js";
 import { ToastContainer } from "react-toastify";
+import UserLayout from "./pages/UserLayout/index.jsx";
 
 const ProtectedRoute = ({
   isAuthenticated,
@@ -35,7 +36,7 @@ const ProtectedRoute = ({
 
 const router = createBrowserRouter([
   {
-    path: "/landing",
+    path: "/",
     element: <Landing />,
   },
   {
@@ -56,22 +57,24 @@ const router = createBrowserRouter([
   },
   {
     path: "/user",
-  },
-  // Protected routes group
-  {
-    element: <ProtectedRoute isAuthenticated={isAuthenticated} />,
+    element: (
+      <ProtectedRoute isAuthenticated={isAuthenticated}>
+        <UserLayout />
+      </ProtectedRoute>
+    ),
+
     children: [
       {
-        path: "profile",
-        element: <Profile />,
-      },
-      {
-        path: "dashboard",
+        path: "/user/dashboard",
         element: <Dashboard />,
         index: true,
       },
       {
-        path: "map",
+        path: "/user/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/user/map",
         element: <Map />,
       },
     ],
