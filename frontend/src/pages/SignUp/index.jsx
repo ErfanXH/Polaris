@@ -68,11 +68,18 @@ export default function SignUp() {
 
       toast.success("Verification Code Sent", {
         autoClose: 3000,
-        onClose: () => navigate("/verify"),
+        onClose: () =>
+          navigate("/verify", {
+            state: {
+              numberOrEmail: data.email,
+              password: data.password,
+              from: "sign-up", // Indicate this came from signup
+            },
+          }),
         pauseOnHover: false,
       });
     } catch (error) {
-      toast.error(error.message || "Sign up failed. Please try again.");
+      toast.error(error || "Sign up failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -145,16 +152,16 @@ export default function SignUp() {
           Create your account
         </Typography>
 
-        {/* Email Field */}
+        {/* Phone Number Field */}
         <TextField
-          {...register("email")}
-          label="Email Address"
+          {...register("phone_number")}
+          label="Phone Number"
           variant="outlined"
           fullWidth
           margin="normal"
-          autoComplete="email"
-          error={!!errors.email}
-          helperText={errors.email?.message}
+          autoComplete="tel"
+          error={!!errors.phone_number}
+          helperText={errors.phone_number?.message}
           sx={{
             mb: 3,
             "& input:-webkit-autofill": {
@@ -168,16 +175,16 @@ export default function SignUp() {
           }}
         />
 
-        {/* Phone Number Field */}
+        {/* Email Field */}
         <TextField
-          {...register("phone_number")}
-          label="Phone Number"
+          {...register("email")}
+          label="Email Address"
           variant="outlined"
           fullWidth
           margin="normal"
-          autoComplete="tel"
-          error={!!errors.phone_number}
-          helperText={errors.phone_number?.message}
+          autoComplete="email"
+          error={!!errors.email}
+          helperText={errors.email?.message}
           sx={{
             mb: 3,
             "& input:-webkit-autofill": {
@@ -217,6 +224,7 @@ export default function SignUp() {
                   aria-label="toggle password visibility"
                   onClick={togglePasswordVisibility}
                   edge="end"
+                  tabIndex={-1}
                 >
                   {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -254,6 +262,7 @@ export default function SignUp() {
                   aria-label="toggle confirm password visibility"
                   onClick={toggleConfirmPasswordVisibility}
                   edge="end"
+                  tabIndex={-1}
                 >
                   {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
