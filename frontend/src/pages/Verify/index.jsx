@@ -17,6 +17,7 @@ import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import VerifyManager from "../../managers/VerifyManager";
+import { useAuth } from "../../App";
 
 // Zod validation schema for 5-digit code
 const verificationSchema = z.object({
@@ -33,6 +34,7 @@ export default function Verify() {
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const { setAuthentication } = useAuth();
 
   // Get email from location state (where user came from signup)
   const numberOrEmail = location.state?.numberOrEmail || "";
@@ -58,6 +60,7 @@ export default function Verify() {
         password,
         data.verificationCode
       );
+      setAuthentication();
       toast.success("Verification Successful!", {
         autoClose: 3000,
         onClose: () => navigate("/user/dashboard"),

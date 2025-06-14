@@ -20,6 +20,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import LoginManager from "../../managers/LoginManager";
+import { useAuth } from "../../App";
 
 // Zod validation schema
 const loginSchema = z.object({
@@ -45,6 +46,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { setAuthentication } = useAuth();
 
   const {
     register,
@@ -58,6 +60,7 @@ export default function Login() {
     setLoading(true);
     try {
       const response = await LoginManager.login(data);
+      setAuthentication();
       toast.success("Login Successful", {
         autoClose: 3000,
         onClose: () => navigate("/user/dashboard"),
