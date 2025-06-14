@@ -12,6 +12,7 @@ export default defineConfig({
     css: true,
   },
   server: {
+    host: true,
     allowedHosts: true,
     port: 5174,
   },
