@@ -21,7 +21,7 @@ import { isAuthenticated } from "./utils/AuthManager.js";
 import { createAppTheme } from "./utils/ThemeManager.js";
 import { ToastContainer } from "react-toastify";
 import UserLayout from "./pages/UserLayout/index.jsx";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const ProtectedRoute = ({
   isAuthenticated,
   redirectPath = "/login",
@@ -33,6 +33,15 @@ const ProtectedRoute = ({
 
   return children ? children : <Outlet />;
 };
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 2, //retry failed queries twice
+    },
+  },
+});
 
 const router = createBrowserRouter([
   {
@@ -102,20 +111,22 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

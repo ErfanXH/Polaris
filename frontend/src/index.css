@@ -1,1 +1,9 @@
 @import "tailwindcss";
+.leaflet-container {
+  background-color: var(--primary-bg);
+}
+
+.custom-marker {
+  background: transparent;
+  border: none;
+}
