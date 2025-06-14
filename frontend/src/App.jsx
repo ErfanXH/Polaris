@@ -76,6 +76,13 @@ export const ProtectedRoute = ({ children, redirectPath = "/login" }) => {
     return <div>Loading...</div>; // Or your custom loading component
   }
 
+  if (!isAuthenticated) {
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  return children ? children : <Outlet />;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -152,25 +159,24 @@ export default function App() {
   }, []);
 
   return (
-    
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <RouterProvider router={router} />
-          </AuthProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
