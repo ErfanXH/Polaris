@@ -49,7 +49,7 @@ export const createAppTheme = (mode = getDefaultMode()) => {
       error: "#d32f2f",
       tableHeaderBg: "#1e1e1e",
       tableRowHover: "#f0f0f0",
-      navbarBg: "#1e1e1e",
+      navbarBg: "#f5f5f5",
       editorBg: "#ffffff",
       editorOutsideBg: "#eaecf1",
       toolbarBg: "#f0f0f0",
@@ -115,16 +115,16 @@ export const createAppTheme = (mode = getDefaultMode()) => {
       },
     },
     components: {
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            backgroundColor: vars.buttonBg,
-            "&:hover": {
-              backgroundColor: vars.buttonHover,
-            },
-          },
-        },
-      },
+      // MuiButton: {
+      //   styleOverrides: {
+      //     root: {
+      //       backgroundColor: vars.buttonBg,
+      //       "&:hover": {
+      //         backgroundColor: vars.buttonHover,
+      //       },
+      //     },
+      //   },
+      // },
       MuiPaper: {
         styleOverrides: {
           root: {

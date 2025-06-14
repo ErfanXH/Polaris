@@ -20,6 +20,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import LoginManager from "../../managers/LoginManager";
+import { useAuth } from "../../App";
 
 // Zod validation schema
 const loginSchema = z.object({
@@ -37,7 +38,7 @@ const loginSchema = z.object({
         message: "Must be a valid email or phone number",
       }
     ),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export default function Login() {
@@ -45,6 +46,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { setAuthentication } = useAuth();
 
   const {
     register,
@@ -58,13 +60,24 @@ export default function Login() {
     setLoading(true);
     try {
       const response = await LoginManager.login(data);
+      setAuthentication();
       toast.success("Login Successful", {
         autoClose: 3000,
-        onClose: () => navigate("/dashboard"),
+        onClose: () => navigate("/user/dashboard"),
         pauseOnHover: false,
       });
     } catch (error) {
-      toast.error(error.message || "Login failed. Please try again.");
+      if (error?.status === 401) {
+        navigate("/verify", {
+          state: {
+            numberOrEmail: data.number_or_email,
+            password: data.password,
+            from: "login", // Indicate this came from login
+          },
+        });
+      } else {
+        toast.error(error || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

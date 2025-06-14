@@ -8,7 +8,6 @@ from django.conf import settings
 from random import randint
 from .utils import send_OTP, name_generator,file_name
 from uuid import uuid4
-import os
 SENDER_EMAIL = settings.EMAIL_HOST_USER
 
 def name_generator():
@@ -26,7 +25,7 @@ class User(AbstractUser):
     verification_code = models.CharField(max_length=8,null=True,blank=True,unique=True)
     expire_at = models.DateTimeField(null=True,blank=True) #if is_verified==true,this field show last validated date
     is_banned = models.BooleanField(default=False)
-    allow_usperuser_access = models.BooleanField(default=True)
+    allow_admin_access = models.BooleanField(default=True)
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['email',]
     def send_code(self):

@@ -1,7 +1,8 @@
 import TokenCookieKey from "./Constants";
 import Cookies from "js-cookie";
 
-const SaveToken = (expire, token) => {
+const SaveToken = (token, expire = 30) => {
+  token = token.slice(4);
   Cookies.set(TokenCookieKey.TokenCookieKey, token, { expires: expire });
 };
 
