@@ -10,9 +10,6 @@ const MapManager = {
       const response = await api.get("/mobile/measurement/");
       return response.data;
     } catch (error) {
-      console.log(error);
-      debugger;
-      console.log(error);
       throw new Error(
         error.response?.data?.message ||
           error.response?.data?.detail ||
