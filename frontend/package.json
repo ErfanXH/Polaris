@@ -23,6 +23,7 @@
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",
     "js-cookie": "^3.0.5",
+    "json2csv": "^6.0.0-alpha.2",
     "leaflet": "^1.9.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

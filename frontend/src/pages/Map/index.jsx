@@ -35,19 +35,23 @@ const SignalStrengthMarker = ({ measurement }) => {
   const theme = useTheme();
   // Determine marker color based on signal strength
   const getMarkerColor = (strength) => {
-    if (strength >= -70) return theme.palette.success.main; // Green for strong signal
-    if (strength >= -85) return theme.palette.warning.main; // Yellow for moderate
-    return theme.palette.error.main; // Red for weak
+    // Map signal strength to hue (0-120 where 0=red, 120=green)
+    const hue = Math.min(Math.max((strength + 110) * (120 / 60), 120), 0);
+
+    // Fixed saturation and lightness for vibrant colors
+    return `hsl(${hue}, 100%, 50%)`;
   };
-  const signal_strength = measurement.ssRsrp || measurement.rsrp||measurement.rscp||measurement.rxLev
+  const signal_strength =
+    measurement.ssRsrp ||
+    measurement.rsrp ||
+    measurement.rscp ||
+    measurement.rxLev;
   return (
     <Marker
       position={[measurement.latitude, measurement.longitude]}
       icon={L.divIcon({
         className: "custom-marker",
-        html: `<div style="background-color: ${getMarkerColor(
-          signal_strength
-        )}; 
+        html: `<div style="background-color: ${getMarkerColor(signal_strength)}; 
                width: 20px; height: 20px; border-radius: 50%; 
                border: 2px solid ${theme.palette.background.paper}"></div>`,
         iconSize: [24, 24],
@@ -55,9 +59,7 @@ const SignalStrengthMarker = ({ measurement }) => {
     >
       <Popup>
         <div className="space-y-1">
-          <p className="font-semibold">
-            Signal: {signal_strength} dBm
-          </p>
+          <p className="font-semibold">Signal: {signal_strength} dBm</p>
           <p>Network: {measurement.network_type}</p>
           <p>
             Location: {measurement.latitude.toFixed(4)},{" "}
@@ -84,7 +86,7 @@ export default function Map() {
     queryKey: ["measurements"],
     queryFn: () => MapManager.getMeasurements(),
     onSuccess: (data) => {
-      console.log(data)
+      console.log(data);
       if (data.length > 0) {
         setCenter([data[0].latitude, data[0].longitude]);
       }
@@ -101,7 +103,7 @@ export default function Map() {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "81.7vh",
         width: "100%",
         display: "flex",
         flexDirection: "column",
@@ -145,7 +147,7 @@ export default function Map() {
         )}
 
         {/* Legend */}
-        <Paper
+        {/* <Paper
           elevation={3}
           sx={{
             position: "absolute",
@@ -182,7 +184,7 @@ export default function Map() {
               <span>Weak (≤ -86 dBm)</span>
             </div>
           </div>
-        </Paper>
+        </Paper> */}
       </Box>
     </Box>
   );
