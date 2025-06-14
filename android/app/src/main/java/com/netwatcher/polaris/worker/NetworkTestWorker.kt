@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.netwatcher.polaris.AppDatabaseHelper
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
+import com.netwatcher.polaris.di.NetworkModule
 import java.util.concurrent.TimeUnit
 
 class NetworkTestWorker(
@@ -22,6 +23,7 @@ class NetworkTestWorker(
         context = context,
         telephonyManager = telephonyManager,
         networkDataDao = database.networkDataDao(),
+        api = NetworkModule.networkDataApi
     )
 
     override suspend fun doWork(): Result {
