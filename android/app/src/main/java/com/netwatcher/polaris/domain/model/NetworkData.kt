@@ -1,5 +1,6 @@
 package com.netwatcher.polaris.domain.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -29,6 +30,9 @@ data class NetworkData (
     val dnsResponse: Int,
     val webResponse: Long?,
     val smsDeliveryTime: Int,
+    val email: String?,
+    @ColumnInfo(defaultValue = "0") // 0 = not synced, 1 = synced
+    val isSynced: Boolean = false,
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
 ) {

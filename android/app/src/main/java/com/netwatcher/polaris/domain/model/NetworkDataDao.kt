@@ -10,6 +10,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class NetworkDataDao {
+    companion object {
+        private var gmail: String? = ""
+        fun setEmail(userEmail: String?) {
+            gmail = userEmail
+        }
+        fun getEmail(): String? {
+            return gmail
+        }
+    }
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun addNetworkData(networkDataEntity: NetworkData)
 
@@ -22,6 +31,15 @@ abstract class NetworkDataDao {
     @Delete
     abstract suspend fun deleteNetworkData(networkDataEntity: NetworkData)
 
-    @Query("Select * from `networkData-table` where id=:id")
+    @Query("SELECT * FROM `networkData-table` WHERE id=:id")
     abstract fun getNetworkDataById(id: Long): Flow<NetworkData>
+
+    @Query("SELECT * FROM `networkData-table` WHERE isSynced = 0 AND email=:gmail")
+    abstract suspend fun getUnsyncedData(gmail: String?): List<NetworkData>
+
+    @Update
+    abstract suspend fun updateAll(networkData: List<NetworkData>)
+
+    @Query("UPDATE `networkData-table` SET isSynced = 1 WHERE id IN (:ids)")
+    abstract suspend fun markAsSynced(ids: List<Long>)
 }
