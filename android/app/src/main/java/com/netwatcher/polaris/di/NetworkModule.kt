@@ -1,6 +1,7 @@
 package com.netwatcher.polaris.di
 
 import com.netwatcher.polaris.data.remote.AuthApi
+import com.netwatcher.polaris.data.remote.NetworkDataApi
 import com.netwatcher.polaris.data.repository.AuthRepositoryImpl
 import com.netwatcher.polaris.domain.repository.AuthRepository
 import okhttp3.OkHttpClient
@@ -21,7 +22,7 @@ object NetworkModule {
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("http://194.62.43.37/") // Change to your backend URL
+            .baseUrl("http://194.62.43.37/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -33,5 +34,9 @@ object NetworkModule {
 
     val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(authApi)
+    }
+
+    val networkDataApi: NetworkDataApi by lazy {
+        retrofit.create(NetworkDataApi::class.java)
     }
 }
