@@ -4,7 +4,13 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import SignUp from "./pages/SignUp/index";
 import Login from "./pages/Login/index";
@@ -17,22 +23,58 @@ import Profile from "./pages/Profile/index.jsx";
 import NotFound from "./pages/NotFound/index.jsx";
 import "./index.css";
 import "react-toastify/dist/ReactToastify.css";
-import { isAuthenticated } from "./utils/AuthManager.js";
 import { createAppTheme } from "./utils/ThemeManager.js";
 import { ToastContainer } from "react-toastify";
 import UserLayout from "./pages/UserLayout/index.jsx";
+import CookieManager from "./managers/CookieManager.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-const ProtectedRoute = ({
-  isAuthenticated,
-  redirectPath = "/login",
-  children,
-}) => {
-  if (!isAuthenticated) {
-    return <Navigate to={redirectPath} replace />;
-  }
 
-  return children ? children : <Outlet />;
+// Create Auth Context
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [authState, setAuthState] = useState({
+    isAuthenticated: false,
+    isLoading: true,
+  });
+
+  const setAuthentication = useCallback((token) => {
+    setAuthState({
+      isAuthenticated: true,
+      isLoading: false,
+    });
+  }, []);
+
+  const resetAuthentication = useCallback(() => {
+    setAuthState({
+      isAuthenticated: false,
+      isLoading: false,
+    });
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{ ...authState, setAuthentication, resetAuthentication }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+export const ProtectedRoute = ({ children, redirectPath = "/login" }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Or your custom loading component
+  }
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,23 +109,22 @@ const router = createBrowserRouter([
   {
     path: "/user",
     element: (
-      <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <ProtectedRoute>
         <UserLayout />
       </ProtectedRoute>
     ),
-
     children: [
       {
-        path: "/user/dashboard",
+        path: "dashboard",
         element: <Dashboard />,
         index: true,
       },
       {
-        path: "/user/profile",
+        path: "profile",
         element: <Profile />,
       },
       {
-        path: "/user/map",
+        path: "map",
         element: <Map />,
       },
     ],
@@ -111,7 +152,7 @@ export default function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <ToastContainer
@@ -125,8 +166,11 @@ export default function App() {
           pauseOnHover
           theme="colored"
         />
-        <RouterProvider router={router} />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </QueryClientProvider>
       </ThemeProvider>
-    </QueryClientProvider>
   );
 }
