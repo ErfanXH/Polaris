@@ -163,9 +163,6 @@ const SignalStrengthMarker = ({ measurement, config }) => {
   };
 
   let value = measurement[config.metric];
-  const markerColor = getMarkerColor(value);
-  const unit = config.metricCategories[config.metricType].unit;
-
   if (config.metric === "signal_strength") {
     value =
       measurement.ssRsrp ||
@@ -175,7 +172,9 @@ const SignalStrengthMarker = ({ measurement, config }) => {
   } else if (config.metric === "signal_quality") {
     value = measurement.rsrq || measurement.ecIo;
   }
-
+  
+  const markerColor = getMarkerColor(value);
+  const unit = config.metricCategories[config.metricType].unit;
   return (
     <Marker
       position={[measurement.latitude, measurement.longitude]}
