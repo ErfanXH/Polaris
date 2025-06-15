@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.repository.NetworkRepository
+import com.netwatcher.polaris.utils.TimeStampConverter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -20,14 +21,10 @@ class HomeViewModel(
     val uiState = _uiState.asStateFlow()
 
     private fun convertToBackFormat(data: NetworkData): Map<String, Any?> {
-        val inputFormat = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yyyy")
-        val dateTime = LocalDateTime.parse(data.timestamp, inputFormat)
-        val isoTimestamp = dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "Z"
-
         return mapOf(
             "latitude" to data.latitude,
             "longitude" to data.longitude,
-            "timestamp" to isoTimestamp,
+            "timestamp" to TimeStampConverter(data.timestamp),
             "network_type" to data.networkType,
             "tac" to data.tac,
             "lac" to data.lac,
@@ -67,9 +64,9 @@ class HomeViewModel(
         }
     }
 
-//    init {
-//        loadInitialState()
-//    }
+    init {
+        loadInitialState()
+    }
 
     fun loadInitialState() {
         viewModelScope.launch {

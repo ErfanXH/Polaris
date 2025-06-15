@@ -16,6 +16,7 @@ import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.Measurement
 import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkDataDao
+import com.netwatcher.polaris.utils.TimeStampConverter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -78,14 +79,6 @@ class NetworkMonitorWorker(
         }
     }
 
-    private fun formatTimestampToISO8601(inputTimestamp: String): String {
-        val inputFormat = SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault())
-        val date = inputFormat.parse(inputTimestamp)
-        val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        outputFormat.timeZone = TimeZone.getTimeZone("UTC")
-        return date?.let { outputFormat.format(it) } ?: ""
-    }
-
     private suspend fun syncUnsyncedData(): Boolean {
         val token = TokenManager.getToken().firstOrNull() ?: return false
         val unsyncedData = database.networkDataDao().getUnsyncedData(NetworkDataDao.getEmail())
@@ -101,7 +94,7 @@ class NetworkMonitorWorker(
                 Measurement(
                     latitude = item.latitude,
                     longitude = item.longitude,
-                    timestamp = formatTimestampToISO8601(item.timestamp),
+                    timestamp = TimeStampConverter(item.timestamp),
                     network_type = item.networkType,
                     tac = item.tac,
                     lac = item.lac,
