@@ -581,9 +581,7 @@ export default function Dashboard() {
                 <TableBody>
                   {filteredData.slice(0, isMobile ? 5 : 10).map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell>
-                        {new Date(row.timestamp).toLocaleTimeString()}
-                      </TableCell>
+                      <TableCell>{row.timestamp}</TableCell>
                       <TableCell>{row.network_type}</TableCell>
                       {!isMobile && (
                         <>

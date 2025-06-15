@@ -28,13 +28,12 @@ import { ToastContainer } from "react-toastify";
 import UserLayout from "./pages/UserLayout/index.jsx";
 import CookieManager from "./managers/CookieManager.js";
 
-// Create Auth Context
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    isAuthenticated: false,
-    isLoading: true,
+    isAuthenticated: CookieManager.LoadToken() ? true : false,
+    isLoading: false,
   });
 
   const setAuthentication = useCallback((token) => {
@@ -70,9 +69,11 @@ export const useAuth = () => {
 
 export const ProtectedRoute = ({ children, redirectPath = "/login" }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  console.log(isAuthenticated);
+  console.log(isLoading);
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or your custom loading component
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
@@ -82,6 +83,18 @@ export const ProtectedRoute = ({ children, redirectPath = "/login" }) => {
   return children ? children : <Outlet />;
 };
 
+<<<<<<< Updated upstream
+=======
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 2,
+    },
+  },
+});
+
+>>>>>>> Stashed changes
 const router = createBrowserRouter([
   {
     path: "/",
