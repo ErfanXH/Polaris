@@ -8,7 +8,6 @@ const MapManager = {
   getMeasurements: async () => {
     try {
       const response = await api.get("/mobile/measurement/");
-      console.log(response.data)
       return response.data;
     } catch (error) {
       throw new Error(

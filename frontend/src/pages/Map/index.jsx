@@ -24,7 +24,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import MapManager from "../../managers/MapManager";
 import { toast } from "react-toastify";
-import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsIcon from "@mui/icons-material/Settings";
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -36,16 +36,18 @@ L.Icon.Default.mergeOptions({
 
 // Default configuration
 const DEFAULT_CONFIG = {
-  metric: "rsrp",
+  metric: "signal_strength",
   metricType: "signal_strength",
   thresholds: {
     // Signal Strength
+    signal_strength: { min: -120, mid: -85, max: -50 },
     ssRsrp: { min: -120, mid: -90, max: -70 },
     rsrp: { min: -110, mid: -85, max: -50 },
     rscp: { min: -110, mid: -85, max: -60 },
     rxLev: { min: -100, mid: -75, max: -50 },
 
     // Signal Quality
+    signal_quality: { min: -20, mid: -12, max: -5 },
     rsrq: { min: -19, mid: -12, max: -5 },
     ecIo: { min: -20, mid: -12, max: -5 },
 
@@ -69,14 +71,14 @@ const DEFAULT_CONFIG = {
   metricCategories: {
     signal_strength: {
       name: "Signal Strength",
-      metrics: ["ssRsrp", "rsrp", "rscp", "rxLev"],
-      default: "rsrp",
+      metrics: ["signal_strength", "ssRsrp", "rsrp", "rscp", "rxLev"],
+      default: "signal_strength",
       unit: "dBm",
     },
     signal_quality: {
       name: "Signal Quality",
-      metrics: ["rsrq", "ecIo"],
-      default: "rsrq",
+      metrics: ["signal_quality", "rsrq", "ecIo"],
+      default: "signal_quality",
       unit: "dB",
     },
     throughput: {
@@ -114,14 +116,15 @@ const SignalStrengthMarker = ({ measurement, config }) => {
   const theme = useTheme();
 
   const getMarkerColor = (value) => {
-    if (value === undefined || value === null) return config.colorSpectrum.mid;
+    const failed_color =theme.palette.mode ==='dark' ?  '#FFFFFF' : '#000000'
+    if (value === undefined || value === null) return  failed_color;
 
     const { min, mid, max } = config.thresholds[config.metric];
     let ratio;
 
     // Handle SMS failure case (-1)
     if (config.metric === "sms_delivery_time" && value === -1) {
-      return "#000000"; // Black for failed SMS
+      return failed_color;
     }
 
     if (value <= mid) {
@@ -159,9 +162,19 @@ const SignalStrengthMarker = ({ measurement, config }) => {
       .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   };
 
-  const value = measurement[config.metric];
+  let value = measurement[config.metric];
   const markerColor = getMarkerColor(value);
   const unit = config.metricCategories[config.metricType].unit;
+
+  if (config.metric === "signal_strength") {
+    value =
+      measurement.ssRsrp ||
+      measurement.rsrp ||
+      measurement.rscp ||
+      measurement.rxLev;
+  } else if (config.metric === "signal_quality") {
+    value = measurement.rsrq || measurement.ecIo;
+  }
 
   return (
     <Marker
@@ -176,7 +189,7 @@ const SignalStrengthMarker = ({ measurement, config }) => {
     >
       <Popup>
         <div className="space-y-1">
-          <p className="font-semibold">
+          <h1 className="font-black">
             {config.metric}: {value} {unit}
             <span
               style={{
@@ -188,13 +201,30 @@ const SignalStrengthMarker = ({ measurement, config }) => {
                 borderRadius: "50%",
               }}
             ></span>
-          </p>
-          <p>Network: {measurement.network_type}</p>
+          </h1>
+          <p>Time: {new Date(measurement.timestamp).toLocaleString()}</p>
           <p>
             Location: {measurement.latitude.toFixed(4)},{" "}
             {measurement.longitude.toFixed(4)}
           </p>
-          <p>Time: {new Date(measurement.timestamp).toLocaleString()}</p>
+          <hr />
+          <p className="font-black">Cell info</p>
+          <p>LAC/TAC: {measurement.tac || measurement.lac}</p>
+          <p>RAC: {measurement.rac || "-"}</p>
+          <p>plmn-id: {measurement.plmn_id}</p>
+          <p>Cell-id: {measurement.cell_id}</p>
+          <p>Network: {measurement.network_type}</p>
+          <hr />
+          <p className="font-black">signaling info</p>
+          <p>Band: {measurement.frequency_band}</p>
+          <p>ARFCN: {measurement.arfcn}</p>
+          <p>Frequency: {measurement.frequency}</p>
+          <p>Power:{measurement.ssRsrp ||
+                    measurement.rsrp ||
+                    measurement.rscp ||
+                    measurement.rxLev}
+          </p>
+          <p>Quality: {measurement.rsrq || measurement.ecIo}</p>
         </div>
       </Popup>
     </Marker>
@@ -303,14 +333,19 @@ export default function Map() {
     >
       {/* Settings Button */}
       <Box
-        sx={{ position: "absolute", top: "60%", right: "60%", zIndex: 1000 }}
+        sx={{ position: "absolute", top: "7rem", right: "3rem", zIndex: 1000 }}
       >
         <IconButton
           aria-label="settings"
-          sx={{ backgroundColor: theme.palette.primary.main ,borderRadius:'20%'}}
+          sx={{
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: "20%",
+          }}
           variant="contained"
           onClick={() => setSettingsOpen(true)}
-        ><SettingsIcon/></IconButton>
+        >
+          <SettingsIcon />
+        </IconButton>
       </Box>
 
       {/* Map Container */}
@@ -330,14 +365,18 @@ export default function Map() {
           <MapContainer
             center={center}
             zoom={13}
+            zoomControl={false}
             style={{ height: "100%", width: "100%" }}
             whenCreated={(map) => {
               mapRef.current = map;
             }}
           >
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url={
+                theme.palette.mode === "dark"
+                  ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              }
             />
             <MapCenterController center={center} />
             {measurements?.map((measurement) => (
