@@ -116,8 +116,8 @@ const SignalStrengthMarker = ({ measurement, config }) => {
   const theme = useTheme();
 
   const getMarkerColor = (value) => {
-    const failed_color =theme.palette.mode ==='dark' ?  '#FFFFFF' : '#000000'
-    if (value === undefined || value === null) return  failed_color;
+    const failed_color = theme.palette.mode === "dark" ? "#FFFFFF" : "#000000";
+    if (value === undefined || value === null) return failed_color;
 
     const { min, mid, max } = config.thresholds[config.metric];
     let ratio;
@@ -172,7 +172,7 @@ const SignalStrengthMarker = ({ measurement, config }) => {
   } else if (config.metric === "signal_quality") {
     value = measurement.rsrq || measurement.ecIo;
   }
-  
+
   const markerColor = getMarkerColor(value);
   const unit = config.metricCategories[config.metricType].unit;
   return (
@@ -218,10 +218,12 @@ const SignalStrengthMarker = ({ measurement, config }) => {
           <p>Band: {measurement.frequency_band}</p>
           <p>ARFCN: {measurement.arfcn}</p>
           <p>Frequency: {measurement.frequency}</p>
-          <p>Power:{measurement.ssRsrp ||
-                    measurement.rsrp ||
-                    measurement.rscp ||
-                    measurement.rxLev}
+          <p>
+            Power:
+            {measurement.ssRsrp ||
+              measurement.rsrp ||
+              measurement.rscp ||
+              measurement.rxLev}
           </p>
           <p>Quality: {measurement.rsrq || measurement.ecIo}</p>
         </div>
@@ -238,7 +240,7 @@ export default function Map() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [currentColor, setCurrentColor] = useState("low");
-
+  const isDarkMode = theme.palette.mode === "dark";
   // Fetch measurements data
   const {
     data: measurements,
@@ -260,6 +262,16 @@ export default function Map() {
       toast.error("Failed to load measurement data");
     }
   }, [error]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    else {
+      const filter = isDarkMode
+        ? "invert(100%) saturate(10%) brightness(95%) contrast(80%)"
+        : "invert(0%) saturate(10%) brightness(95%) contrast(80%)";
+      mapRef.current.style.filter = filter;
+    }
+  }, [isDarkMode]);
 
   // Handle metric category change
   const handleMetricTypeChange = (event) => {
@@ -370,13 +382,7 @@ export default function Map() {
               mapRef.current = map;
             }}
           >
-            <TileLayer
-              url={
-                theme.palette.mode === "dark"
-                  ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              }
-            />
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapCenterController center={center} />
             {measurements?.map((measurement) => (
               <SignalStrengthMarker
