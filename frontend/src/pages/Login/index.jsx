@@ -20,7 +20,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import LoginManager from "../../managers/LoginManager";
-import { useAuth } from "../../App";
+import { useAuth } from "../../context/Authorization";
 
 // Zod validation schema
 const loginSchema = z.object({
