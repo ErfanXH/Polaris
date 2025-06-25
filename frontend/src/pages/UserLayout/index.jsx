@@ -26,7 +26,7 @@ import {
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import CookieManager from "../../managers/CookieManager";
-import { useAuth } from "../../App";
+import { useAuth } from "../../context/Authorization";
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 72;
