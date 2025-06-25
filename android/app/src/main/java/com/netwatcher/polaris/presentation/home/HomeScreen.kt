@@ -1,8 +1,10 @@
 package com.netwatcher.polaris.presentation.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+//import androidx.compose.foundation.layout.FlowColumnScopeInstance.weight
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,11 +19,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.presentation.home.components.KeyValueRow
 import com.netwatcher.polaris.presentation.home.components.NetworkInfoCard
@@ -32,6 +37,9 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onProfileClick: () -> Unit = {}
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.loadInitialState()
+    }
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -80,52 +88,38 @@ private fun HomeContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        IconButton(
-            onClick = onProfileClick,
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Profile"
-            )
-        }
+        RunTestButton(
+            onClick = onRunTest,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            RunTestButton(
-                onClick = onRunTest,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+        Spacer(modifier = Modifier.height(32.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Last Test Results",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        )
 
-            Text(
-                text = "Last Test Results",
-                style = MaterialTheme.typography.titleMedium
-            )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            NetworkResults(networkData = networkData)
-        }
+        NetworkResults(networkData = networkData)
     }
 }
 @Composable
 private fun NetworkResults(networkData: NetworkData) {
     val sections = listOf(
-        Triple("User Location", listOf(
+        Triple("User Info", listOf(
             "Latitude" to networkData.latitude.toString(),
             "Longitude" to networkData.longitude.toString(),
             "Date Time" to networkData.timestamp
         )) { _: NetworkData -> /* No special handling */ },
 
-        Triple("Cell Technology", when (networkData.networkType) {
+        Triple("Cell Info", when (networkData.networkType) {
             "LTE", "5G" -> listOf(
             "Technology" to networkData.networkType,
             "TAC" to (networkData.tac ?: "N/A"),
@@ -150,7 +144,6 @@ private fun NetworkResults(networkData: NetworkData) {
             "LTE" -> listOf(
                 "RSRP" to "${networkData.rsrp} dBm",
                 "RSRQ" to "${networkData.rsrq} dB",
-//                "SINR" to (networkData.sinr?.toString() ?: "N/A")
             )
             "WCDMA", "HSPA", "HSPA+" -> listOf(
                 "RSCP" to "${networkData.rscp} dBm",
@@ -161,7 +154,6 @@ private fun NetworkResults(networkData: NetworkData) {
             )
             "5G" -> listOf(
                 "SS-RSRP" to (networkData.ssRsrp?.toString() ?: "N/A"),
-//                "SS-SINR" to (networkData.ssSinr?.toString() ?: "N/A")
             )
             else -> emptyList()
         }) { _: NetworkData -> /* No special handling */ },
@@ -177,8 +169,9 @@ private fun NetworkResults(networkData: NetworkData) {
     )
 
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.background),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         sections.forEach { (title, items, _) ->
             item(key = title) {  // Added key parameter

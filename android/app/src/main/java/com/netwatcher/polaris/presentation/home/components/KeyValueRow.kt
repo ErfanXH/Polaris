@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun KeyValueRow(
@@ -22,7 +23,7 @@ fun KeyValueRow(
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = key, fontWeight = FontWeight.Bold)
-        Text(text = value)
+        Text(text = key, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text(text = value, fontSize = 11.sp)
     }
 }

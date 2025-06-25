@@ -14,17 +14,22 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.netwatcher.polaris.data.remote.NetworkDataApi
+import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.DnsUtility
+import com.netwatcher.polaris.utils.HttpDownloadUtility
+import com.netwatcher.polaris.utils.HttpUploadUtility
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.PingUtility
-import com.netwatcher.polaris.utils.ThroughputUtility
 import com.netwatcher.polaris.utils.WebTestUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import okhttp3.RequestBody
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.Continuation
@@ -34,7 +39,8 @@ import kotlin.coroutines.suspendCoroutine
 class NetworkRepositoryImpl(
     private val context: Context,
     private val telephonyManager: TelephonyManager,
-    private val networkDataDao: NetworkDataDao
+    private val networkDataDao: NetworkDataDao,
+    private val api: NetworkDataApi
 ) : NetworkRepository {
 
     private val fusedLocationClient by lazy {
@@ -43,6 +49,7 @@ class NetworkRepositoryImpl(
 
 //    private val smsTestUtility = SmsTestUtility(context)
 
+    // Local Database
     override suspend fun addNetworkData(networkData: NetworkData) {
         networkDataDao.addNetworkData(networkData)
     }
@@ -54,6 +61,51 @@ class NetworkRepositoryImpl(
     }
     override suspend fun deleteNetworkData(networkData: NetworkData) {
         networkDataDao.deleteNetworkData(networkData)
+    }
+
+    // Server Database
+    override suspend fun uploadNetworkData(data: Any): Result<Unit> {
+        return try {
+            val response = api.uploadNetworkData(token = getAuthToken().toString(), data = data)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    override suspend fun uploadNetworkDataBatch(data: RequestBody): Result<Unit> {
+        return try {
+            val response = api.uploadNetworkDataBatch(token = getAuthToken().toString(), data = data)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    override suspend fun getUserInfo(): Result<Unit> {
+        return try {
+            val response = api.getUserInfo(token = getAuthToken().toString())
+            if (response.isSuccessful) {
+                NetworkDataDao.setEmail(response.body()?.email)
+                Result.success(Unit)
+            } else {
+                val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    private suspend fun getAuthToken(): String? {
+        return TokenManager.getToken().firstOrNull()
     }
 
     @SuppressLint("MissingPermission")
@@ -134,14 +186,18 @@ class NetworkRepositoryImpl(
     }
 
     override suspend fun measureUploadThroughput(): Double? {
-        return ThroughputUtility.measureUploadThroughput()
+        return HttpUploadUtility.measureUploadThroughput()
+    }
+
+    override suspend fun measureDownloadThroughput(): Double? {
+        return HttpDownloadUtility.measureDownloadThroughput()
     }
 
     override suspend fun measureWebResponseTime(): Long? = withContext(Dispatchers.IO) {
         val testUrls = listOf(
             "https://www.google.com",
             "https://www.cloudflare.com",
-//            "https://quera.org"
+            "https://quera.org"
         )
 
         val results = mutableListOf<Long>()
@@ -150,7 +206,7 @@ class NetworkRepositoryImpl(
             try {
                 val time = WebTestUtility.measureWebResponseTime(url)
                 time?.let { results.add(it) }
-                if (results.size >= 1) break
+                if (results.size >= 2) break
             } catch (e: Exception) {
                 Log.e("NetworkRepository", "Error measuring web response for $url: ${e.message}")
             }
@@ -173,6 +229,7 @@ class NetworkRepositoryImpl(
         val pingTime = pingTest() ?: 0.0
         val dnsTime = dnsTest()?.toInt() ?: 0
         val uploadThroughput = measureUploadThroughput() ?: 0.0
+        val downloadThroughput = measureDownloadThroughput() ?: 0.0
         val webResponseTime = measureWebResponseTime()
 //        val smsDeliveryTime = measureSmsDeliveryTime()?.toInt() ?: -1
 
@@ -196,14 +253,13 @@ class NetworkRepositoryImpl(
             getRxLev(cellInfo),
             getSsRsrp(cellInfo),
             uploadThroughput,
-//            downloadThroughput,
-            -1.0,
+            downloadThroughput,
             pingTime,
             dnsTime,
             webResponseTime,
 //            smsDeliveryTime
-            -1
-//            -1.0,-1.0,-1,-1,-1
+            -1,
+            NetworkDataDao.getEmail()
         )
 
         addNetworkData(networkData)

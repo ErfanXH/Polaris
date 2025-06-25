@@ -1,5 +1,6 @@
 package com.netwatcher.polaris.presentation.home.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -29,8 +31,8 @@ fun RunTestButton(
             ),
         shape = CircleShape,
         colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = Color.Black  // needs to be dynamic
         ),
         elevation = ButtonDefaults.elevatedButtonElevation(
             defaultElevation = 8.dp,
@@ -40,7 +42,7 @@ fun RunTestButton(
     ) {
         Icon(
             imageVector = Icons.Default.PlayArrow,
-            contentDescription = "Run Test",
+            contentDescription = "Run Tests",
             modifier = Modifier.size(40.dp)
         )
     }

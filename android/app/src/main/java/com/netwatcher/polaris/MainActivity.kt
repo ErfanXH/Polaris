@@ -34,7 +34,7 @@ import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.LocationUtility
-import com.netwatcher.polaris.worker.NetworkTestWorker
+import com.netwatcher.polaris.worker.NetworkMonitorWorker
 
 class MainActivity : ComponentActivity() {
 
@@ -123,14 +123,6 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
 
-//        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            basePermissionsGranted && REQUIRED_PERMISSIONS_API_29.all {
-//                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-//            }
-//        } else {
-//            basePermissionsGranted
-//        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
@@ -164,7 +156,9 @@ class MainActivity : ComponentActivity() {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 checkBatteryOptimizations()
-                NetworkTestWorker.schedule(this)
+//                NetworkTestWorker.schedule(this)
+//                SyncWorker.schedule(this)
+                NetworkMonitorWorker.schedule(this)
                 checkLocationAndSetContent()
             } else {
                 Toast.makeText(
@@ -191,7 +185,8 @@ fun PolarisNav(mainActivity: MainActivity) {
             NetworkRepositoryImpl(
                 context = mainActivity,
                 telephonyManager = telephonyManager,
-                networkDataDao = database.networkDataDao()
+                networkDataDao = database.networkDataDao(),
+                api = NetworkModule.networkDataApi
             )
         )
     }
