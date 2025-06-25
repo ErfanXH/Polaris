@@ -16,7 +16,7 @@ import { saveAs } from "file-saver";
 
 export function DashboardTable({ data, isMobile }) {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 10 : 20);
+  const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);

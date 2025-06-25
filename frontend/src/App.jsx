@@ -9,13 +9,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/Authorization";
 import { router } from "./router";
 
-  if (!isAuthenticated) {
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  return children ? children : <Outlet />;
-};
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
