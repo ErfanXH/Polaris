@@ -4,11 +4,11 @@ import java.net.InetAddress
 import java.net.UnknownHostException
 
 object DnsUtility {
-    fun measureDnsResolution(hostname: String = "google.com"): Long? {
+    fun measureDnsResolution(hostname: String = "google.com"): Double? {
         return try {
             val startTime = System.currentTimeMillis()
             InetAddress.getAllByName(hostname)
-            System.currentTimeMillis() - startTime
+            (System.currentTimeMillis() - startTime).toDouble()
         } catch (e: UnknownHostException) {
             null
         } catch (e: SecurityException) {
@@ -21,7 +21,7 @@ object DnsUtility {
     fun measureDnsResolutionWithRetry(
         hostname: String = "google.com",
         retries: Int = 3
-    ): Long? {
+    ): Double? {
         var lastError: Exception? = null
         repeat(retries) {
             try {
