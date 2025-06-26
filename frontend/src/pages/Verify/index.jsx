@@ -17,7 +17,7 @@ import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import VerifyManager from "../../managers/VerifyManager";
-import { useAuth } from "../../App";
+import { useAuth } from "../../context/Authorization";
 
 // Zod validation schema for 5-digit code
 const verificationSchema = z.object({

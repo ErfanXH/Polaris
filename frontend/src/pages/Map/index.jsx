@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -25,6 +25,14 @@ import { useQuery } from "@tanstack/react-query";
 import MapManager from "../../managers/MapManager";
 import { toast } from "react-toastify";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SignalStrengthMarker from "./SignalStrengthMarker";
+import {
+  getMinRange,
+  getMaxRange,
+  getStepSize,
+  getContrastColor,
+} from "../../utils/MapUtils";
+
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -40,7 +48,7 @@ const DEFAULT_CONFIG = {
   metricType: "signal_strength",
   thresholds: {
     // Signal Strength
-    signal_strength: { min: -120, mid: -85, max: -50 },
+    signal_strength: { min: -120, mid: -90, max: -70 },
     ssRsrp: { min: -120, mid: -90, max: -70 },
     rsrp: { min: -110, mid: -85, max: -50 },
     rscp: { min: -110, mid: -85, max: -60 },
@@ -52,13 +60,13 @@ const DEFAULT_CONFIG = {
     ecIo: { min: -20, mid: -12, max: -5 },
 
     // Throughput
-    http_upload: { min: 0.1, mid: 5, max: 50 },
-    http_download: { min: 0.1, mid: 10, max: 100 },
+    http_upload: { min: 0.1, mid: 4, max: 8 },
+    http_download: { min: 0.1, mid: 30, max: 60 },
 
     // Latency
-    ping_time: { min: 100, mid: 50, max: 10 },
-    dns_response: { min: 100, mid: 50, max: 10 },
-    web_response: { min: 3000, mid: 1500, max: 500 },
+    ping_time: { min: 140, mid: 70, max: 20 },
+    dns_response: { min: 80, mid: 50, max: 10 },
+    web_response: { min: 1500, mid: 1000, max: 500 },
 
     // SMS
     sms_delivery_time: { min: 5000, mid: 2000, max: 500 },
@@ -110,124 +118,6 @@ const MapCenterController = ({ center }) => {
     }
   }, [center, map]);
   return null;
-};
-
-const SignalStrengthMarker = ({ measurement, config }) => {
-  const theme = useTheme();
-
-  const getMarkerColor = (value) => {
-    const failed_color =theme.palette.mode ==='dark' ?  '#FFFFFF' : '#000000'
-    if (value === undefined || value === null) return  failed_color;
-
-    const { min, mid, max } = config.thresholds[config.metric];
-    let ratio;
-
-    // Handle SMS failure case (-1)
-    if (config.metric === "sms_delivery_time" && value === -1) {
-      return failed_color;
-    }
-
-    if (value <= mid) {
-      ratio = Math.min(Math.max((value - min) / (mid - min), 1), 0);
-      return interpolateColor(
-        config.colorSpectrum.low,
-        config.colorSpectrum.mid,
-        ratio
-      );
-    } else {
-      ratio = Math.min(Math.max((value - mid) / (max - mid), 0), 1);
-      return interpolateColor(
-        config.colorSpectrum.mid,
-        config.colorSpectrum.high,
-        ratio
-      );
-    }
-  };
-
-  const interpolateColor = (color1, color2, ratio) => {
-    const r1 = parseInt(color1.substring(1, 3), 16);
-    const g1 = parseInt(color1.substring(3, 5), 16);
-    const b1 = parseInt(color1.substring(5, 7), 16);
-
-    const r2 = parseInt(color2.substring(1, 3), 16);
-    const g2 = parseInt(color2.substring(3, 5), 16);
-    const b2 = parseInt(color2.substring(5, 7), 16);
-
-    const r = Math.round(r1 + (r2 - r1) * ratio);
-    const g = Math.round(g1 + (g2 - g1) * ratio);
-    const b = Math.round(b1 + (b2 - b1) * ratio);
-
-    return `#${r.toString(16).padStart(2, "0")}${g
-      .toString(16)
-      .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-  };
-
-  let value = measurement[config.metric];
-  if (config.metric === "signal_strength") {
-    value =
-      measurement.ssRsrp ||
-      measurement.rsrp ||
-      measurement.rscp ||
-      measurement.rxLev;
-  } else if (config.metric === "signal_quality") {
-    value = measurement.rsrq || measurement.ecIo;
-  }
-  
-  const markerColor = getMarkerColor(value);
-  const unit = config.metricCategories[config.metricType].unit;
-  return (
-    <Marker
-      position={[measurement.latitude, measurement.longitude]}
-      icon={L.divIcon({
-        className: "custom-marker",
-        html: `<div style="background-color: ${markerColor}; 
-               width: 20px; height: 20px; border-radius: 50%; 
-               border: 2px solid ${theme.palette.background.paper}"></div>`,
-        iconSize: [24, 24],
-      })}
-    >
-      <Popup>
-        <div className="space-y-1">
-          <h1 className="font-black">
-            {config.metric}: {value} {unit}
-            <span
-              style={{
-                display: "inline-block",
-                width: "10px",
-                height: "10px",
-                backgroundColor: markerColor,
-                marginLeft: "5px",
-                borderRadius: "50%",
-              }}
-            ></span>
-          </h1>
-          <p>Time: {new Date(measurement.timestamp).toLocaleString()}</p>
-          <p>
-            Location: {measurement.latitude.toFixed(4)},{" "}
-            {measurement.longitude.toFixed(4)}
-          </p>
-          <hr />
-          <p className="font-black">Cell info</p>
-          <p>LAC/TAC: {measurement.tac || measurement.lac}</p>
-          <p>RAC: {measurement.rac || "-"}</p>
-          <p>plmn-id: {measurement.plmn_id}</p>
-          <p>Cell-id: {measurement.cell_id}</p>
-          <p>Network: {measurement.network_type}</p>
-          <hr />
-          <p className="font-black">signaling info</p>
-          <p>Band: {measurement.frequency_band}</p>
-          <p>ARFCN: {measurement.arfcn}</p>
-          <p>Frequency: {measurement.frequency}</p>
-          <p>Power:{measurement.ssRsrp ||
-                    measurement.rsrp ||
-                    measurement.rscp ||
-                    measurement.rxLev}
-          </p>
-          <p>Quality: {measurement.rsrq || measurement.ecIo}</p>
-        </div>
-      </Popup>
-    </Marker>
-  );
 };
 
 export default function Map() {
@@ -319,7 +209,7 @@ export default function Map() {
   const currentThresholds = config.thresholds[config.metric];
   const currentCategory = config.metricCategories[config.metricType];
   const currentUnit = currentCategory.unit;
-
+  const isLatency = ["latency", "sms"].includes(config.metricType);
   return (
     <Box
       sx={{
@@ -339,6 +229,9 @@ export default function Map() {
           sx={{
             backgroundColor: theme.palette.primary.main,
             borderRadius: "20%",
+            "&:hover": {
+              backgroundColor: "primary.dark",
+            },
           }}
           variant="contained"
           onClick={() => setSettingsOpen(true)}
@@ -370,13 +263,7 @@ export default function Map() {
               mapRef.current = map;
             }}
           >
-            <TileLayer
-              url={
-                theme.palette.mode === "dark"
-                  ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              }
-            />
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapCenterController center={center} />
             {measurements?.map((measurement) => (
               <SignalStrengthMarker
@@ -409,7 +296,13 @@ export default function Map() {
                 className="w-4 h-4 rounded-full mr-2"
                 style={{ backgroundColor: config.colorSpectrum.high }}
               />
-              <span>Excellent (≥ {currentThresholds.max})</span>
+              <span>
+                Excellent (
+                {isLatency
+                  ? "≤"
+                  : "≥"}{" "}
+                {currentThresholds.max})
+              </span>
             </div>
             <div className="flex items-center">
               <div
@@ -417,7 +310,7 @@ export default function Map() {
                 style={{ backgroundColor: config.colorSpectrum.mid }}
               />
               <span>
-                Moderate ({currentThresholds.mid} to {currentThresholds.max})
+                Moderate ({currentThresholds.min} to {currentThresholds.max})
               </span>
             </div>
             <div className="flex items-center">
@@ -425,7 +318,13 @@ export default function Map() {
                 className="w-4 h-4 rounded-full mr-2"
                 style={{ backgroundColor: config.colorSpectrum.low }}
               />
-              <span>Poor (≤ {currentThresholds.mid})</span>
+              <span>
+                Poor (
+                {isLatency
+                  ? "≥"
+                  : "≤"}{" "}
+                {currentThresholds.min})
+              </span>
             </div>
             {config.metric === "sms_delivery_time" && (
               <div className="flex items-center">
@@ -486,13 +385,15 @@ export default function Map() {
           </Typography>
 
           <Typography gutterBottom sx={{ mt: 2 }}>
-            Minimum (Poor)
+            {isLatency
+              ? "Maximum (Poor)"
+              : "Minimum (Poor)"}
           </Typography>
           <Slider
             value={currentThresholds.min}
             onChange={(e, value) => handleThresholdChange("min", value)}
-            min={getMinRange(config.metric)}
-            max={currentThresholds.mid}
+            min={isLatency ? currentThresholds.mid : getMinRange(config.metric)}
+            max={isLatency ? getMinRange(config.metric) : currentThresholds.mid}
             step={getStepSize(config.metric)}
             valueLabelDisplay="auto"
           />
@@ -501,22 +402,23 @@ export default function Map() {
             Moderate Threshold
           </Typography>
           <Slider
-            value={currentThresholds.mid}
-            onChange={(e, value) => handleThresholdChange("mid", value)}
-            min={currentThresholds.min}
-            max={currentThresholds.max}
-            step={getStepSize(config.metric)}
-            valueLabelDisplay="auto"
-          />
-
+              value={currentThresholds.mid}
+              onChange={(e, value) => handleThresholdChange("mid", value)}
+              min={isLatency ? currentThresholds.max : currentThresholds.min}
+              max={isLatency ? currentThresholds.min : currentThresholds.max}
+              step={getStepSize(config.metric)}
+              valueLabelDisplay="auto"
+            />
           <Typography gutterBottom sx={{ mt: 2 }}>
-            Maximum (Excellent)
+            {isLatency
+              ? "Minimum (Excellent)"
+              : "Maximum (Excellent)"}
           </Typography>
           <Slider
             value={currentThresholds.max}
             onChange={(e, value) => handleThresholdChange("max", value)}
-            min={currentThresholds.mid}
-            max={getMaxRange(config.metric)}
+            min={isLatency ? getMaxRange(config.metric) : currentThresholds.mid}
+            max={isLatency ? currentThresholds.mid : getMaxRange(config.metric)}
             step={getStepSize(config.metric)}
             valueLabelDisplay="auto"
           />
@@ -623,53 +525,4 @@ export default function Map() {
       </Dialog>
     </Box>
   );
-}
-
-// Helper functions
-function getContrastColor(hexColor) {
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? "#000000" : "#FFFFFF";
-}
-
-function getMinRange(metric) {
-  const ranges = {
-    ssRsrp: -140,
-    rsrp: -140,
-    rscp: -140,
-    rxLev: -120,
-    rsrq: -30,
-    ecIo: -30,
-    http_upload: 0,
-    http_download: 0,
-    ping_time: 0,
-    dns_response: 0,
-    web_response: 0,
-    sms_delivery_time: 0,
-  };
-  return ranges[metric] || 0;
-}
-
-function getMaxRange(metric) {
-  const ranges = {
-    ssRsrp: -50,
-    rsrp: -50,
-    rscp: -50,
-    rxLev: -50,
-    rsrq: 0,
-    ecIo: 0,
-    http_upload: 100,
-    http_download: 200,
-    ping_time: 500,
-    dns_response: 500,
-    web_response: 10000,
-    sms_delivery_time: 10000,
-  };
-  return ranges[metric] || 100;
-}
-
-function getStepSize(metric) {
-  return ["http_upload", "http_download"].includes(metric) ? 0.1 : 1;
 }

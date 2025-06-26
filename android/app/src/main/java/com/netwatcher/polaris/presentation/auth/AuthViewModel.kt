@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.netwatcher.polaris.domain.model.LoginRequest
 import com.netwatcher.polaris.domain.model.LoginResult
+import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.SignUpRequest
 import com.netwatcher.polaris.domain.model.VerificationRequest
 import com.netwatcher.polaris.domain.model.VerificationRetryRequest
@@ -17,6 +18,7 @@ class AuthViewModel(
 ) : ViewModel() {
 
     private val _authUiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
+    private val _userInfo = MutableStateFlow<NetworkData?>(null)
     val authUiState: StateFlow<AuthUiState> = _authUiState
 
     fun signUp(request: SignUpRequest) {
@@ -36,7 +38,9 @@ class AuthViewModel(
 
             when (val result = repository.login(request)) {
                 is LoginResult.Success -> _authUiState.value = AuthUiState.Success
-                is LoginResult.RequiresVerification -> _authUiState.value = AuthUiState.RequiresVerification
+                is LoginResult.RequiresVerification -> _authUiState.value =
+                    AuthUiState.RequiresVerification
+
                 is LoginResult.Error -> _authUiState.value = AuthUiState.Error(result.message)
             }
         }

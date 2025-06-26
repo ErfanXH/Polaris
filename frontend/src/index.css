@@ -7,3 +7,9 @@
   background: transparent;
   border: none;
 }
+
+.leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  filter: invert(100%) saturate(10%) brightness(95%) contrast(80%);
+}
