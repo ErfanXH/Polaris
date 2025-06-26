@@ -25,20 +25,8 @@ abstract class NetworkDataDao {
     @Query("Select * from `networkData-table`")
     abstract fun getAllNetworkData(): Flow<List<NetworkData>>
 
-    @Update
-    abstract suspend fun updateNetworkData(networkDataEntity: NetworkData)
-
-    @Delete
-    abstract suspend fun deleteNetworkData(networkDataEntity: NetworkData)
-
-    @Query("SELECT * FROM `networkData-table` WHERE id=:id")
-    abstract fun getNetworkDataById(id: Long): Flow<NetworkData>
-
     @Query("SELECT * FROM `networkData-table` WHERE isSynced = 0 AND email=:gmail")
     abstract suspend fun getUnsyncedData(gmail: String?): List<NetworkData>
-
-    @Update
-    abstract suspend fun updateAll(networkData: List<NetworkData>)
 
     @Query("UPDATE `networkData-table` SET isSynced = 1 WHERE id IN (:ids)")
     abstract suspend fun markAsSynced(ids: List<Long>)
