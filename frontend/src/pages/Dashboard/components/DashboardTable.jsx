@@ -11,8 +11,10 @@ import {
   Paper,
   Button,
   TablePagination,
+  Stack,
 } from "@mui/material";
 import { saveAs } from "file-saver";
+import { formatDateTime } from "../../../utils/FormatDatetime";
 
 export function DashboardTable({ data, isMobile }) {
   const [page, setPage] = useState(0);
@@ -53,7 +55,7 @@ export function DashboardTable({ data, isMobile }) {
       "SMS",
     ];
     const rows = data.map((row) => [
-      row.created_at,
+      row.timestamp,
       `${row.latitude?.toFixed(4)}, ${row.longitude?.toFixed(4)}`,
       row.network_type,
       row.frequency_band,
@@ -112,7 +114,7 @@ export function DashboardTable({ data, isMobile }) {
     ];
 
     const rows = data.map((row) => [
-      row.created_at,
+      row.timestamp,
       `${row.latitude?.toFixed(4)}, ${row.longitude?.toFixed(4)}`,
       row.network_type,
       row.frequency_band,
@@ -182,19 +184,17 @@ export function DashboardTable({ data, isMobile }) {
         }}
       >
         <Typography variant="h6">Measurement Data</Typography>
-        <Box>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={exportCSV}
-            sx={{ mr: 1 }}
-          >
+        <Stack
+          direction={isMobile ? "column" : "row"}
+          gap={isMobile ? "0.1rem" : "0.5rem"}
+        >
+          <Button variant="outlined" size="small" onClick={exportCSV}>
             Export CSV
           </Button>
           <Button variant="outlined" size="small" onClick={exportKML}>
             Export KML
           </Button>
-        </Box>
+        </Stack>
       </Box>
 
       <TableContainer component={Paper}>
@@ -211,24 +211,24 @@ export function DashboardTable({ data, isMobile }) {
               <TableCell>LAC</TableCell>
               <TableCell>RAC</TableCell>
               <TableCell>Cell Id</TableCell>
-              <TableCell>Frequency</TableCell>
+              <TableCell>Frequency(MHz)</TableCell>
               <TableCell>RSRP</TableCell>
               <TableCell>RSRQ</TableCell>
               <TableCell>RSCP</TableCell>
               <TableCell>EC/N0</TableCell>
               <TableCell>RxLev</TableCell>
-              <TableCell>Download</TableCell>
-              <TableCell>Upload</TableCell>
-              <TableCell>Ping</TableCell>
-              <TableCell>DNS</TableCell>
-              <TableCell>Web</TableCell>
-              <TableCell>SMS</TableCell>
+              <TableCell>Download(Mbps)</TableCell>
+              <TableCell>Upload(Mbps)</TableCell>
+              <TableCell>Ping(ms)</TableCell>
+              <TableCell>DNS(ms)</TableCell>
+              <TableCell>Web(ms)</TableCell>
+              <TableCell>SMS(ms)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedData.map((row) => (
               <TableRow key={row.id}>
-                <TableCell>{row.timestamp}</TableCell>
+                <TableCell>{formatDateTime(row.timestamp)}</TableCell>
                 <TableCell>
                   {row.latitude?.toFixed(4)}, {row.longitude?.toFixed(4)}
                 </TableCell>
@@ -240,31 +240,19 @@ export function DashboardTable({ data, isMobile }) {
                 <TableCell>{row.lac || "-"}</TableCell>
                 <TableCell>{row.rac || "-"}</TableCell>
                 <TableCell>{row.cell_id || "-"}</TableCell>
-                <TableCell>
-                  {row.frequency ? `${row.frequency} MHz` : "-"}
-                </TableCell>
+                <TableCell>{row.frequency?.toFixed(3) || "-"}</TableCell>
                 <TableCell>{row.rsrp || "-"}</TableCell>
                 <TableCell>{row.rsrq || "-"}</TableCell>
                 <TableCell>{row.rscp || "-"}</TableCell>
                 <TableCell>{row.ecIo || "-"}</TableCell>
                 <TableCell>{row.rxLev || "-"}</TableCell>
+                <TableCell>{row.http_download?.toFixed(3) || "-"}</TableCell>
+                <TableCell>{row.http_upload?.toFixed(3) || "-"}</TableCell>
+                <TableCell>{row.ping_time?.toFixed(3) || "-"}</TableCell>
+                <TableCell>{row.dns_response?.toFixed(3) || "-"}</TableCell>
+                <TableCell>{row.web_response?.toFixed(3) || "-"}</TableCell>
                 <TableCell>
-                  {row.http_download ? `${row.http_download} Mbps` : "-"}
-                </TableCell>
-                <TableCell>
-                  {row.http_upload ? `${row.http_upload} Mbps` : "-"}
-                </TableCell>
-                <TableCell>
-                  {row.ping_time ? `${row.ping_time} ms` : "-"}
-                </TableCell>
-                <TableCell>
-                  {row.dns_response ? `${row.dns_response} ms` : "-"}
-                </TableCell>
-                <TableCell>
-                  {row.web_response ? `${row.web_response} ms` : "-"}
-                </TableCell>
-                <TableCell>
-                  {row.sms_delivery_time ? `${row.sms_delivery_time} ms` : "-"}
+                  {row.sms_delivery_time?.toFixed(3) || "-"}
                 </TableCell>
               </TableRow>
             ))}
@@ -279,7 +267,7 @@ export function DashboardTable({ data, isMobile }) {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[10, 20, 50]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
       />
     </Box>
   );

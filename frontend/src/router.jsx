@@ -13,23 +13,24 @@ import UserLayout from "./pages/UserLayout";
 import { ProtectedRoute } from "./context/Authorization";
 
 export const router = createBrowserRouter([
-  { path: "/", element: <Landing /> },
-  { path: "/login", element: <Login /> },
-  { path: "/sign-up", element: <SignUp /> },
-  { path: "/reset-password", element: <ResetPassword /> },
-  { path: "/verify", element: <Verify /> },
   {
-    path: "/user",
+    path: "/",
     element: (
       <ProtectedRoute>
         <UserLayout />
       </ProtectedRoute>
     ),
     children: [
-      { path: "dashboard", element: <Dashboard />, index: true },
+      { index: true, element: <Dashboard /> },
+      { path: "dashboard", element: <Dashboard /> },
       { path: "profile", element: <Profile /> },
       { path: "map", element: <Map /> },
     ],
   },
+  // { path: "/", element: <Landing /> },
+  { path: "/login", element: <Login /> },
+  { path: "/sign-up", element: <SignUp /> },
+  { path: "/reset-password", element: <ResetPassword /> },
+  { path: "/verify", element: <Verify /> },
   { path: "*", element: <NotFound /> },
 ]);

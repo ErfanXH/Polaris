@@ -1,3 +1,5 @@
+import { formatDateTime } from "../../../utils/FormatDatetime";
+
 function getColorForNetworkType(networkType, theme) {
   const colors = {
     GSM: theme.palette.error.main,
@@ -18,149 +20,137 @@ function getColorForArfcn(arfcn) {
   return `hsl(${hue}, 70%, 65%)`;
 }
 
-function getNetworkTechOption(data, theme) {
-  const counts = data.reduce((acc, curr) => {
-    acc[curr.network_type] = (acc[curr.network_type] || 0) + 1;
+export function getNetworkTechPieOption(data, theme) {
+  const counts = data.reduce((acc, item) => {
+    const type = item.network_type || "Unknown";
+    acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {});
+
   return {
-    title: { text: "Network Technology" },
+    title: { text: "Network Types", left: "center" },
     tooltip: { trigger: "item" },
-    legend: { orient: "vertical", left: "left" },
+    grid: { top: "30%" },
     series: [
       {
-        name: "Technology",
+        name: "Network Type",
         type: "pie",
-        roseType: "radius",
-        data: Object.entries(counts).map(([name, value]) => ({
-          name,
-          value,
-          itemStyle: { color: getColorForNetworkType(name, theme) },
-        })),
+        // radius: "50%",
+        center: ["50%", "55%"],
+        data: Object.entries(counts).map(([name, value]) => ({ name, value })),
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: "rgba(0, 0, 0, 0.5)",
+          },
+        },
       },
     ],
+    // toolbox: {
+    //   show: true,
+    //   feature: {
+    //     dataZoom: {
+    //       yAxisIndex: "none",
+    //     },
+    //     dataView: { readOnly: true },
+    //     restore: {},
+    //     saveAsImage: {},
+    //   },
+    // },
   };
 }
 
-function getArfcnOption(data, theme) {
-  const arfcnData = data
-    .filter((d) => d.network_type === "LTE")
-    .reduce((acc, d) => {
-      const arfcn = d.arfcn || "Unknown";
-      const existing = acc.find((a) => a.name === arfcn);
-      if (existing) existing.value++;
-      else
-        acc.push({
-          name: arfcn,
-          value: 1,
-          itemStyle: { color: getColorForArfcn(arfcn) },
-        });
-      return acc;
-    }, []);
+// 2. ARFCN Pie Chart
+export function getArfcnPieOption(data, theme) {
+  const counts = data.reduce((acc, item) => {
+    const arfcn = item.arfcn || "Unknown";
+    acc[arfcn] = (acc[arfcn] || 0) + 1;
+    return acc;
+  }, {});
+
   return {
-    title: { text: "ARFCN Distribution (4G)", left: "center" },
+    title: { text: "ARFCN Distribution", left: "center" },
+    tooltip: { trigger: "item" },
     series: [
       {
         name: "ARFCN",
         type: "pie",
-        data: arfcnData,
+        // radius: "50%",
+        center: ["50%", "55%"],
+        data: Object.entries(counts).map(([name, value]) => ({ name, value })),
       },
     ],
   };
 }
 
-function getPingLineOption(data, theme) {
-  const sorted = [...data].sort(
-    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-  );
+export function getFrequencyBandBarOption(data, theme) {
+  const counts = data.reduce((acc, item) => {
+    const band = item.frequency_band || "Unknown";
+    acc[band] = (acc[band] || 0) + 1;
+    return acc;
+  }, {});
+
   return {
-    title: { text: "Ping Time Trend" },
-    tooltip: { trigger: "axis" },
+    title: { text: "Frequency Band Usage", left: "center" },
+    tooltip: {},
     xAxis: {
       type: "category",
-      data: sorted.map((m) => m.timestamp),
+      data: Object.keys(counts),
+      axisLabel: { rotate: 45 },
     },
-    yAxis: { type: "value", name: "Ping (ms)" },
+    yAxis: { type: "value" },
     series: [
       {
-        name: "Ping Time",
-        type: "line",
-        smooth: true,
-        data: sorted.map((m) => m.ping_time),
-        itemStyle: { color: theme.palette.primary.main },
-      },
-    ],
-  };
-}
-
-function getBoxplotOption(data, theme) {
-  const stats = (arr) => {
-    if (!arr.length) return [0, 0, 0, 0, 0];
-    const sorted = [...arr].filter((n) => n != null).sort((a, b) => a - b);
-    const q1 = sorted[Math.floor(sorted.length * 0.25)] || 0;
-    const median = sorted[Math.floor(sorted.length * 0.5)] || 0;
-    const q3 = sorted[Math.floor(sorted.length * 0.75)] || 0;
-    const iqr = q3 - q1;
-    const lower = Math.max(sorted[0], q1 - 1.5 * iqr);
-    const upper = Math.min(sorted[sorted.length - 1], q3 + 1.5 * iqr);
-    return [lower, q1, median, q3, upper];
-  };
-
-  return {
-    title: { text: "Latency Statistics", left: "center" },
-    xAxis: { type: "category", data: ["Ping", "DNS", "Web", "SMS"] },
-    yAxis: { type: "value", name: "Time (ms)" },
-    series: [
-      {
-        name: "boxplot",
-        type: "boxplot",
-        data: [
-          stats(data.map((m) => m.ping_time)),
-          stats(data.map((m) => m.dns_response)),
-          stats(data.map((m) => m.web_response)),
-          stats(data.map((m) => m.sms_delivery_time)),
-        ],
-      },
-    ],
-  };
-}
-
-function getGaussianOption(data, theme) {
-  const values = data.map((m) => m.ping_time).filter((v) => v != null);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const step = (max - min) / 10 || 1;
-
-  const buckets = {};
-  for (let i = 0; i <= 10; i++) {
-    const key = (min + i * step).toFixed(2);
-    buckets[key] = 0;
-  }
-
-  values.forEach((v) => {
-    const idx = Math.floor((v - min) / step);
-    const key = (min + idx * step).toFixed(2);
-    if (buckets[key] !== undefined) buckets[key]++;
-  });
-
-  return {
-    title: { text: "Ping Time Distribution", left: "center" },
-    xAxis: { type: "category", data: Object.keys(buckets) },
-    yAxis: { type: "value", name: "Count" },
-    series: [
-      {
+        data: Object.values(counts),
         type: "bar",
-        data: Object.values(buckets),
-        itemStyle: { color: theme.palette.secondary.main },
+        itemStyle: {
+          color: theme.palette.primary.main,
+        },
       },
     ],
   };
 }
 
-export {
-  getNetworkTechOption,
-  getArfcnOption,
-  getPingLineOption,
-  getBoxplotOption,
-  getGaussianOption,
-};
+export function getRsrpRsrqScatterOption(data, theme) {
+  const points = data
+    .filter((item) => item.rsrp && item.rsrq)
+    .map((item) => [item.rsrp, item.rsrq]);
+
+  return {
+    title: { text: "RSRP vs RSRQ", left: "center" },
+    tooltip: {
+      trigger: "item",
+      formatter: function (params) {
+        const [rsrp, rsrq] = params.value;
+        return `RSRP: ${rsrp}<br/>RSRQ: ${rsrq}`;
+      },
+    },
+    xAxis: {
+      name: "RSRP",
+      nameLocation: "middle",
+      nameGap: 25,
+      type: "value",
+    },
+    yAxis: {
+      name: "RSRQ",
+      nameLocation: "middle",
+      nameGap: 30,
+      type: "value",
+    },
+    grid: {
+      left: 45,
+      right: 20,
+    },
+    series: [
+      {
+        symbolSize: 8,
+        data: points,
+        type: "scatter",
+        itemStyle: {
+          color: theme.palette.secondary.main,
+        },
+      },
+    ],
+  };
+}
