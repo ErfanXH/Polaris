@@ -4,7 +4,7 @@ data class Measurement(
     val latitude: Double?,
     val longitude: Double?,
     val timestamp: String,
-    val network_type: String,
+    val network_type: String?,
     val tac: String?,
     val lac: String?,
     val rac: String?,
@@ -19,12 +19,12 @@ data class Measurement(
     val ecIo: Int?,
     val rxLev: Int?,
     val ssRsrp: Int?,
-    val http_upload: Double,
-    val http_download: Double,
-    val ping_time: Double,
-    val dns_response: Int,
-    val web_response: Long?,
-    val sms_delivery_time: Int
+    val http_upload: Double?,
+    val http_download: Double?,
+    val ping_time: Double?,
+    val dns_response: Double?,
+    val web_response: Double?,
+    val sms_delivery_time: Double?
 )
 
 data class MeasurementRequest(

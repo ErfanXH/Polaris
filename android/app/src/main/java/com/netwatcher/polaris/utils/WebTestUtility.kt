@@ -16,7 +16,7 @@ object WebTestUtility {
         .writeTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    suspend fun measureWebResponseTime(url: String = "https://www.google.com"): Long? {
+    suspend fun measureWebResponseTime(url: String = "https://www.google.com"): Double? {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Starting web response measurement for $url")
@@ -36,7 +36,7 @@ object WebTestUtility {
                 val time = System.currentTimeMillis() - startTime
 
                 Log.d(TAG, "Successfully measured web response time: ${time}ms")
-                time
+                time.toDouble()
             } catch (e: Exception) {
                 Log.e(TAG, "Error measuring web response time: ${e.message}", e)
                 null
