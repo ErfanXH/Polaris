@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useCallback } from "react";
 import CookieManager from "../managers/CookieManager";
+import { Navigate } from "react-router-dom";
 
 const AuthContext = createContext();
 

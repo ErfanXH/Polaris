@@ -1,21 +1,39 @@
-import { Box, Typography, CircularProgress, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  useTheme,
+  Tabs,
+  Tab,
+} from "@mui/material";
 import { useMediaQuery } from "@mui/material";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useDashboardData } from "../../hooks/useDashboardData";
 import {
   NetworkTechnologyChart,
   ArfcnDistributionChart,
-  PingTrendChart,
-  PingBoxplotChart,
-  PingDistributionChart,
+  FrequencyBandChart,
+  RsrpRsrqScatterChart,
 } from "./components/DashboardCharts";
 import { DashboardFilters } from "./components/DashboardFilters";
 import { DashboardTable } from "./components/DashboardTable";
+
+const tabLabels = [
+  "Overview",
+  "Measurements",
+  "SMS",
+  "Web",
+  "Upload",
+  "Download",
+  "Ping",
+  "DNS",
+];
 
 export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const chartRefs = useRef([]);
+  const [activeTab, setActiveTab] = useState(0);
 
   const {
     loading,
@@ -26,6 +44,10 @@ export default function Dashboard() {
     setDateRange,
     chartOptions,
   } = useDashboardData();
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   return (
     <Box sx={{ p: isMobile ? 1 : 3 }}>
@@ -41,34 +63,52 @@ export default function Dashboard() {
         setDateRange={setDateRange}
       />
 
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{ my: 2 }}
+      >
+        {tabLabels.map((label, index) => (
+          <Tab key={index} label={label} />
+        ))}
+      </Tabs>
+
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
         </Box>
       ) : (
         <>
-          <NetworkTechnologyChart
-            option={chartOptions.networkTechOption}
-            chartRef={(el) => (chartRefs.current[0] = el)}
-          />
-          <ArfcnDistributionChart
-            option={chartOptions.arfcnLifetimeOption}
-            chartRef={(el) => (chartRefs.current[1] = el)}
-          />
-          <PingTrendChart
-            option={chartOptions.pingLineChartOption}
-            chartRef={(el) => (chartRefs.current[2] = el)}
-          />
-          <PingBoxplotChart
-            option={chartOptions.pingBoxplotOption}
-            chartRef={(el) => (chartRefs.current[3] = el)}
-          />
-          <PingDistributionChart
-            option={chartOptions.pingGaussianOption}
-            chartRef={(el) => (chartRefs.current[4] = el)}
-          />
+          {activeTab === 0 && (
+            <>
+              <NetworkTechnologyChart
+                option={chartOptions.networkTechOption}
+                chartRef={(el) => (chartRefs.current[0] = el)}
+              />
+              <ArfcnDistributionChart
+                option={chartOptions.arfcnOption}
+                chartRef={(el) => (chartRefs.current[1] = el)}
+              />
+              <FrequencyBandChart
+                option={chartOptions.frequencyBandOption}
+                chartRef={(el) => (chartRefs.current[2] = el)}
+              />
+              <RsrpRsrqScatterChart
+                option={chartOptions.rsrpRsrqScatterOption}
+                chartRef={(el) => (chartRefs.current[3] = el)}
+              />
+              <DashboardTable data={filteredData} isMobile={isMobile} />
+            </>
+          )}
 
-          <DashboardTable data={filteredData} isMobile={isMobile} />
+          {/* Placeholder for future tabs */}
+          {activeTab !== 0 && (
+            <Typography sx={{ mt: 4 }}>
+              Charts for "{tabLabels[activeTab]}" will be implemented soon.
+            </Typography>
+          )}
         </>
       )}
     </Box>

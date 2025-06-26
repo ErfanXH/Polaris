@@ -79,7 +79,7 @@ export default function UserLayout() {
           display: "flex",
           alignItems: "center",
           justifyContent: collapsed ? "center" : "flex-start",
-          p: collapsed ? 2 : 3,
+          p: 2,
           borderBottom: `1px solid ${theme.palette.custom.border}`,
           minHeight: 64, // Fixed height for logo area
         }}
@@ -90,7 +90,7 @@ export default function UserLayout() {
           alt="Company Logo"
           sx={{
             width: collapsed ? 40 : "auto",
-            height: collapsed ? 40 : 48,
+            height: 30,
             maxWidth: collapsed ? "100%" : 120,
             objectFit: "contain",
             mr: collapsed ? 0 : 2,

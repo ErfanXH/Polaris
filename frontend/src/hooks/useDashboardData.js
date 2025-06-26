@@ -4,12 +4,12 @@ import { useTheme } from "@mui/material";
 import DashboardManager from "../managers/DashboardManager";
 import { toast } from "react-toastify";
 import {
-  getNetworkTechOption,
-  getArfcnOption,
-  getPingLineOption,
-  getBoxplotOption,
-  getGaussianOption,
+  getNetworkTechPieOption,
+  getArfcnPieOption,
+  getFrequencyBandBarOption,
+  getRsrpRsrqScatterOption,
 } from "../pages/Dashboard/components/DashboardConfig";
+import { formatDateTime } from "../utils/FormatDatetime";
 
 export const useDashboardData = () => {
   const theme = useTheme();
@@ -27,6 +27,7 @@ export const useDashboardData = () => {
       }
     },
     refetchOnWindowFocus: false,
+    refetchInterval: 60000,
   });
 
   const filteredData = useMemo(() => {
@@ -48,11 +49,10 @@ export const useDashboardData = () => {
 
   const chartOptions = useMemo(() => {
     return {
-      networkTechOption: getNetworkTechOption(filteredData, theme),
-      arfcnLifetimeOption: getArfcnOption(filteredData, theme),
-      pingLineChartOption: getPingLineOption(filteredData, theme),
-      pingBoxplotOption: getBoxplotOption(filteredData, theme),
-      pingGaussianOption: getGaussianOption(filteredData, theme),
+      networkTechOption: getNetworkTechPieOption(filteredData, theme),
+      arfcnOption: getArfcnPieOption(filteredData, theme),
+      frequencyBandOption: getFrequencyBandBarOption(filteredData, theme),
+      rsrpRsrqScatterOption: getRsrpRsrqScatterOption(filteredData, theme),
     };
   }, [filteredData, theme]);
 

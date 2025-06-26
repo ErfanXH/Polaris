@@ -63,7 +63,7 @@ export default function Verify() {
       setAuthentication();
       toast.success("Verification Successful!", {
         autoClose: 3000,
-        onClose: () => navigate("/user/dashboard"),
+        onClose: () => navigate("/dashboard"),
         pauseOnHover: false,
       });
     } catch (error) {
