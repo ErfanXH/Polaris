@@ -72,6 +72,8 @@ class MainActivity : ComponentActivity() {
         if (!hasAllPermissions()) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE)
         } else {
+            checkBatteryOptimizations() // <--- Add this
+            NetworkMonitorWorker.schedule(this) // <--- Also make sure you reschedule here
             checkLocationAndSetContent()
         }
     }
@@ -156,8 +158,6 @@ class MainActivity : ComponentActivity() {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 checkBatteryOptimizations()
-//                NetworkTestWorker.schedule(this)
-//                SyncWorker.schedule(this)
                 NetworkMonitorWorker.schedule(this)
                 checkLocationAndSetContent()
             } else {
