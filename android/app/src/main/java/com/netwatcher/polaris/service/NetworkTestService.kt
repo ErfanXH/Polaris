@@ -42,7 +42,7 @@ class NetworkTestService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Network Watcher")
             .setContentText("Running periodic network tests")
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }

@@ -1,10 +1,14 @@
 package com.netwatcher.polaris.worker
 
 import android.content.Context
+import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -16,17 +20,15 @@ import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.Measurement
 import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkDataDao
+import com.netwatcher.polaris.presentation.home.HomeUiState
+import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.utils.TimeStampConverter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 import java.util.concurrent.TimeUnit
-
 
 class NetworkMonitorWorker(
     context: Context,
@@ -42,6 +44,7 @@ class NetworkMonitorWorker(
         api = NetworkModule.networkDataApi
     )
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Log.d("NetworkMonitor", "Worker started at ${System.currentTimeMillis()}")
 
@@ -149,19 +152,41 @@ class NetworkMonitorWorker(
         private const val WORK_NAME = "network_monitor_worker"
         private const val WORK_INTERVAL_MINUTES = 15L
 
+//        fun schedule(context: Context) {
+//            Log.d("NetworkMonitorWorker", "Scheduling worker...")
+//
+//            val workRequest = PeriodicWorkRequestBuilder<NetworkMonitorWorker>(
+//                WORK_INTERVAL_MINUTES,
+//                TimeUnit.MINUTES
+//            )
+//                .setInitialDelay(1, TimeUnit.MINUTES) // Start after 1 minute
+//                .build()
+//
+//            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+//                WORK_NAME,
+//                ExistingPeriodicWorkPolicy.REPLACE, // Replace existing work
+//                workRequest
+//            )
+//        }
+
         fun schedule(context: Context) {
             Log.d("NetworkMonitorWorker", "Scheduling worker...")
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
 
             val workRequest = PeriodicWorkRequestBuilder<NetworkMonitorWorker>(
                 WORK_INTERVAL_MINUTES,
                 TimeUnit.MINUTES
             )
-                .setInitialDelay(1, TimeUnit.MINUTES) // Start after 1 minute
+                .setInitialDelay(1, TimeUnit.MINUTES)
+                .setConstraints(constraints)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.REPLACE, // Replace existing work
+                ExistingPeriodicWorkPolicy.REPLACE,
                 workRequest
             )
         }
