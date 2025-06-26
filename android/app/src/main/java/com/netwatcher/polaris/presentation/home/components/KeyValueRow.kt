@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,7 +24,7 @@ fun KeyValueRow(
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = key, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-        Text(text = value, fontSize = 11.sp)
+        Text(text = key, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.Black)
+        Text(text = value, fontSize = 11.sp, color = Color.Black)
     }
 }

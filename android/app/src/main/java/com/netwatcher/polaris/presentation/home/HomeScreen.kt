@@ -43,7 +43,11 @@ fun HomeScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         when (val state = uiState) {
             is HomeUiState.Loading -> {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -51,17 +55,24 @@ fun HomeScreen(
             is HomeUiState.Error -> {
                 Text(
                     text = state.message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .background(MaterialTheme.colorScheme.background),
                 )
             }
             is HomeUiState.Empty -> {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("No test data available")
+                    Text("No Test Data Available",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     RunTestButton(onClick = { viewModel.runNetworkTest() })
                 }
             }
@@ -78,7 +89,6 @@ fun HomeScreen(
         }
     }
 }
-
 @Composable
 private fun HomeContent(
     networkData: NetworkData,
@@ -88,7 +98,8 @@ private fun HomeContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         RunTestButton(
@@ -102,7 +113,8 @@ private fun HomeContent(
             text = "Last Test Results",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            fontSize = 15.sp
+            fontSize = 15.sp,
+            color = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -116,56 +128,70 @@ private fun NetworkResults(networkData: NetworkData) {
         Triple("User Info", listOf(
             "Latitude" to networkData.latitude.toString(),
             "Longitude" to networkData.longitude.toString(),
-            "Date Time" to networkData.timestamp
-        )) { _: NetworkData -> /* No special handling */ },
+            "Time" to networkData.timestamp
+        )) { _: NetworkData -> },
 
         Triple("Cell Info", when (networkData.networkType) {
             "LTE", "5G" -> listOf(
-            "Technology" to networkData.networkType,
-            "TAC" to (networkData.tac ?: "N/A"),
-            "Cell ID" to (networkData.cellId ?: "N/A"),
-            "PLMN ID" to (networkData.plmnId ?: "N/A"),
-            "ARFCN" to "${networkData.arfcn} (${networkData.frequency} MHz)",
-            "Frequency Band" to (networkData.frequencyBand ?: "N/A")
+                "Technology" to (networkData.networkType),
+                "TAC" to (networkData.tac ?: "N/A"),
+                "Cell ID" to (networkData.cellId ?: "N/A"),
+                "PLMN ID" to (networkData.plmnId ?: "N/A"),
+                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
-            "WCDMA", "HSPA", "HSPA+", "GSM", "GPRS", "EDGE" -> listOf(
-                "Technology" to networkData.networkType,
+            "WCDMA", "HSPA", "HSPA+" -> listOf(
+                "Technology" to (networkData.networkType),
                 "LAC" to (networkData.lac ?: "N/A"),
                 "RAC" to (networkData.rac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
-                "ARFCN" to "${networkData.arfcn} (${networkData.frequency} MHz)",
+                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "Frequency Band" to (networkData.frequencyBand ?: "N/A")
+            )
+            "GSM", "GPRS", "EDGE" -> listOf(
+                "Technology" to (networkData.networkType),
+                "LAC" to (networkData.lac ?: "N/A"),
+                "RAC" to (networkData.rac ?: "N/A"),
+                "Cell ID" to (networkData.cellId ?: "N/A"),
+                "PLMN ID" to (networkData.plmnId ?: "N/A"),
+                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
             else -> emptyList()
-        }) { _: NetworkData -> /* No special handling */ },
+        }) { _: NetworkData -> },
 
         Triple("Signal Quality", when (networkData.networkType) {
             "LTE" -> listOf(
-                "RSRP" to "${networkData.rsrp} dBm",
-                "RSRQ" to "${networkData.rsrq} dB",
+                "RSRP" to (networkData.rsrp?.let { String.format("%01d dBm", it) } ?: "N/A"),
+                "RSRQ" to (networkData.rsrq?.let { String.format("%01d dB", it) } ?: "N/A"),
             )
             "WCDMA", "HSPA", "HSPA+" -> listOf(
-                "RSCP" to "${networkData.rscp} dBm",
-                "Ec/Io" to (networkData.ecIo?.toString() ?: "N/A")
+                "RSCP" to (networkData.rscp?.let { String.format("%01d dBm", it) } ?: "N/A"),
+                "Ec/N0" to (networkData.ecIo?.let { String.format("%01d dBm", it) } ?: "N/A")
             )
             "GSM", "GPRS", "EDGE" -> listOf(
-                "RxLev" to "${networkData.rxLev} dBm"
+                "RxLev" to (networkData.rxLev?.let { String.format("%01d dBm", it) } ?: "N/A")
             )
             "5G" -> listOf(
-                "SS-RSRP" to (networkData.ssRsrp?.toString() ?: "N/A"),
+                "SS-RSRP" to (networkData.ssRsrp?.let { String.format("%01d dBm", it) } ?: "N/A"),
             )
             else -> emptyList()
-        }) { _: NetworkData -> /* No special handling */ },
+        }) { _: NetworkData -> },
 
         Triple("Functional Tests", listOf(
-            "HTTP Upload Throughput" to "${String.format("%.2f", networkData.httpUploadThroughput)} Mbps",
-            "HTTP Download Throughput" to "${String.format("%.2f", networkData.httpDownloadThroughput)} Mbps",
-            "Ping" to "${networkData.pingTime} ms",
-            "DNS Response Time" to "${networkData.dnsResponse} ms",
-            "Web Response Time" to "${networkData.webResponse} ms",
-            "SMS Delivery Time" to "${networkData.smsDeliveryTime} ms"
-        )) { _: NetworkData -> /* No special handling */ }
+            "HTTP Upload Throughput" to (
+                    networkData.httpUploadThroughput?.let { String.format("%.2f Mbps", it) } ?: "failed"
+                    ),
+            "HTTP Download Throughput" to (
+                    networkData.httpDownloadThroughput?.let { String.format("%.2f Mbps", it) } ?: "failed"
+                    ),
+            "Ping Time" to  (networkData.pingTime?.let { "$it ms" } ?: "failed"),
+            "DNS Response Time" to (networkData.dnsResponse?.let { "$it ms" } ?: "failed"),
+            "Web Response Time" to (networkData.webResponse?.let { "$it ms" } ?: "failed"),
+            "SMS Response Time" to (networkData.smsDeliveryTime?.let { "$it ms" } ?: "failed")
+        )) { _: NetworkData -> }
     )
 
     LazyColumn(
@@ -174,7 +200,7 @@ private fun NetworkResults(networkData: NetworkData) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         sections.forEach { (title, items, _) ->
-            item(key = title) {  // Added key parameter
+            item(key = title) {
                 NetworkInfoCard(title = title) {
                     Column {
                         items.forEach { (key, value) ->
@@ -189,3 +215,4 @@ private fun NetworkResults(networkData: NetworkData) {
         }
     }
 }
+

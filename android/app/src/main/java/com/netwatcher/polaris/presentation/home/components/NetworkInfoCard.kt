@@ -31,16 +31,15 @@ fun NetworkInfoCard(
         ),
     ) {
         Column(
-            modifier = Modifier
-                    .padding(16.dp)
-
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = title,
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize = 15.sp,
+                color = Color.Black
             )
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
