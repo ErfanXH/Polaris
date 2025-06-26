@@ -22,16 +22,8 @@ interface NetworkDataApi {
         @Body data: RequestBody
     ): Response<Unit>
 
-    @PUT("api/mobile/network-data/sync-status/")
-    suspend fun updateSyncStatus(
-        @Header("Authorization") token: String,
-        @Body syncRequest: SyncStatusRequest
-    ): Response<Unit>
-
     @GET("api/users/profile/")
     suspend fun getUserInfo(
         @Header("Authorization") token: String
     ): Response<User>
 }
-
-data class SyncStatusRequest(val syncedIds: List<Long>)
