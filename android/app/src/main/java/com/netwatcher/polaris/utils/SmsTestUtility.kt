@@ -17,11 +17,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class SmsTestUtility(private val context: Context) {
-    private var smsContinuation: Continuation<Long>? = null
-    private var smsStartTime: Long = 0
+    private var smsContinuation: Continuation<Double>? = null
+    private var smsStartTime: Double = 0.0
     private val smsSentAction = "${context.packageName}.SMS_SENT_ACTION"
     private val smsDeliveredAction = "${context.packageName}.SMS_DELIVERED_ACTION"
-    private val testPhoneNumber = "+989024004546"
+    private val testPhoneNumber = "+989012571580"
 
     private val smsSentReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -52,11 +52,11 @@ class SmsTestUtility(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun measureSmsDeliveryTime(): Long? = suspendCoroutine { cont ->
+    suspend fun measureSmsDeliveryTime(): Double? = suspendCoroutine { cont ->
         try {
             registerReceivers()
             smsContinuation = cont
-            smsStartTime = System.currentTimeMillis()
+            smsStartTime = System.currentTimeMillis().toDouble()
 
             val sentIntent = createPendingIntent(smsSentAction)
             val deliveredIntent = createPendingIntent(smsDeliveredAction)
@@ -64,7 +64,7 @@ class SmsTestUtility(private val context: Context) {
             getSmsManager().sendTextMessage(
                 testPhoneNumber,
                 null,
-                "Network test SMS",
+                "This is a test for SMS delivery time from POLARIS...",
                 sentIntent,
                 deliveredIntent
             )
@@ -127,7 +127,7 @@ class SmsTestUtility(private val context: Context) {
         }, 10000)
     }
 
-    private fun completeWithSuccess(deliveryTime: Long) {
+    private fun completeWithSuccess(deliveryTime: Double) {
         smsContinuation?.resume(deliveryTime)
         smsContinuation = null
         cleanup()
@@ -135,7 +135,7 @@ class SmsTestUtility(private val context: Context) {
 
     private fun completeWithError(errorMessage: String) {
         Log.e("SmsTestUtility", errorMessage)
-        smsContinuation?.resume(-1)
+        smsContinuation?.resume(-1.0)
         smsContinuation = null
         cleanup()
     }

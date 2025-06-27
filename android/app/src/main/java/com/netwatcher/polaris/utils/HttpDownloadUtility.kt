@@ -82,7 +82,7 @@ object HttpDownloadUtility {
             throughputMbps
         } catch (e: Exception) {
             println("[ERROR] Unexpected error: ${e.javaClass.simpleName} - ${e.message}")
-            0.0
+            -1.0
         }
     }
 }

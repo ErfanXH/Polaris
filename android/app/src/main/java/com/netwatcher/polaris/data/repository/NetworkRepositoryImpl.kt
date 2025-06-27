@@ -35,16 +35,9 @@ import kotlin.coroutines.suspendCoroutine
 class NetworkRepositoryImpl(
     private val context: Context,
     private val telephonyManager: TelephonyManager,
-    private val networkDataDao: NetworkDataDao,
+    val networkDataDao: NetworkDataDao,
     private val api: NetworkDataApi
 ) : NetworkRepository {
-
-    private val fusedLocationClient by lazy {
-        LocationServices.getFusedLocationProviderClient(context)
-    }
-
-//    private val smsTestUtility = SmsTestUtility(context)
-
     // Local Database
     override suspend fun addNetworkData(networkData: NetworkData) {
         networkDataDao.addNetworkData(networkData)
@@ -98,6 +91,9 @@ class NetworkRepositoryImpl(
         return TokenManager.getToken().firstOrNull()
     }
 
+    private val fusedLocationClient by lazy {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine { cont ->
         if (!LocationUtility.isLocationEnabled(context)) {
@@ -175,11 +171,11 @@ class NetworkRepositoryImpl(
         }
     }
 
-    override suspend fun measureUploadThroughput(): Double? {
+    override suspend fun measureUploadThroughput(): Double {
         return HttpUploadUtility.measureUploadThroughput()
     }
 
-    override suspend fun measureDownloadThroughput(): Double? {
+    override suspend fun measureDownloadThroughput(): Double {
         return HttpDownloadUtility.measureDownloadThroughput()
     }
 
@@ -204,6 +200,7 @@ class NetworkRepositoryImpl(
         results.takeIf { it.isNotEmpty() }?.average()?.toDouble()
     }
 
+//    private val smsTestUtility = SmsTestUtility(context)
 //    @SuppressLint("MissingPermission")
 //    suspend fun measureSmsDeliveryTime(): Long? = withContext(Dispatchers.IO) {
 //        smsTestUtility.measureSmsDeliveryTime()
@@ -216,14 +213,7 @@ class NetworkRepositoryImpl(
         val cellInfo = telephonyManager.allCellInfo.firstOrNull { it.isRegistered }
         val netType = getNetworkType(cellInfo)
 
-        val pingTime = pingTest() ?: -1.0
-        val dnsTime = dnsTest()
-        val uploadThroughput = measureUploadThroughput() ?: -1.0
-        val downloadThroughput = measureDownloadThroughput() ?: -1.0
-        val webResponseTime = measureWebResponseTime()
-//        val smsDeliveryTime = measureSmsDeliveryTime()?.toInt() ?: -1
-
-        Log.d("Network Type", "Network Type is ${telephonyManager.getDataNetworkType()}")
+        Log.d("Network Type", "Get data network Type:: ${telephonyManager.dataNetworkType}")
 
         val networkData = NetworkData(
             location?.latitude ?: -1.0,
@@ -244,18 +234,29 @@ class NetworkRepositoryImpl(
             getEcIo(cellInfo),
             getRxLev(cellInfo),
             getSsRsrp(cellInfo),
-            uploadThroughput,
-            downloadThroughput,
-            pingTime,
-            dnsTime,
-            webResponseTime,
-//            smsDeliveryTime
+            measureUploadThroughput() ?: -1.0,
+            measureDownloadThroughput() ?: -1.0,
+            pingTest() ?: -1.0,
+            dnsTest() ?: -1.0,
+            measureWebResponseTime() ?: -1.0,
+//            measureSmsDeliveryTime() ?: -1.0
             -1.0,
             NetworkDataDao.getEmail()
         )
 
-        addNetworkData(networkData)
+        if (isValidNetworkData(networkData, cellInfo)) {
+            addNetworkData(networkData)
+//            return networkData
+        }
 
         return networkData
+    }
+
+    private fun isValidNetworkData(networkData: NetworkData?, cellInfo: CellInfo?) : Boolean {
+        return !(cellInfo == null ||
+                networkData == null ||
+                networkData.latitude == -1.0 ||
+                networkData.longitude == -1.0 ||
+                networkData.networkType == "UNKNOWN")
     }
 }
