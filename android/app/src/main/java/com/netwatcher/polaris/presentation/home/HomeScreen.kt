@@ -187,10 +187,10 @@ private fun NetworkResults(networkData: NetworkData) {
             "HTTP Download Throughput" to (
                     networkData.httpDownloadThroughput?.let { String.format("%.2f Mbps", it) } ?: "failed"
                     ),
-            "Ping Time" to  (networkData.pingTime?.let { "$it ms" } ?: "failed"),
-            "DNS Response Time" to (networkData.dnsResponse?.let { "$it ms" } ?: "failed"),
-            "Web Response Time" to (networkData.webResponse?.let { "$it ms" } ?: "failed"),
-            "SMS Response Time" to (networkData.smsDeliveryTime?.let { "$it ms" } ?: "failed")
+            "Ping Time" to  (networkData.pingTime?.let { String.format("%.2f ms", it) } ?: "failed"),
+            "DNS Response Time" to (networkData.dnsResponse?.let { String.format("%.2f ms", it) } ?: "failed"),
+            "Web Response Time" to (networkData.webResponse?.let { String.format("%.2f ms", it) } ?: "failed"),
+            "SMS Response Time" to (networkData.smsDeliveryTime?.let { String.format("%.2f ms", it) } ?: "failed")
         )) { _: NetworkData -> }
     )
 
