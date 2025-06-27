@@ -40,7 +40,6 @@ import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.receiver.AlarmReceiver
 import com.netwatcher.polaris.utils.AlarmUtility.scheduleExactAlarm
 import com.netwatcher.polaris.utils.LocationUtility
-import com.netwatcher.polaris.worker.NetworkMonitorWorker
 
 class MainActivity : ComponentActivity() {
 
@@ -54,12 +53,12 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.INTERNET,
             Manifest.permission.SEND_SMS,
             Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS
+            Manifest.permission.READ_SMS,
+            Manifest.permission.POST_NOTIFICATIONS,
         )
 
         private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
             Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-            Manifest.permission.POST_NOTIFICATIONS,
         )
     }
 
@@ -84,7 +83,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -93,7 +91,6 @@ class MainActivity : ComponentActivity() {
         } else {
             checkBatteryOptimizations()
             checkAndRequestExactAlarmPermission()
-//            NetworkMonitorWorker.schedule(this)
             scheduleExactAlarm(this)
             checkLocationAndSetContent()
         }
@@ -180,7 +177,6 @@ class MainActivity : ComponentActivity() {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 checkBatteryOptimizations()
                 checkAndRequestExactAlarmPermission()
-//                NetworkMonitorWorker.schedule(this)
                 scheduleExactAlarm(this)
                 checkLocationAndSetContent()
             } else {
