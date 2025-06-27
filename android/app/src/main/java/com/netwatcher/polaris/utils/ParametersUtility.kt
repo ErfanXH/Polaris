@@ -2,6 +2,7 @@ package com.netwatcher.polaris.utils
 
 import android.os.Build
 import android.telephony.CellInfo
+import android.telephony.CellInfoCdma
 import android.telephony.CellInfoGsm
 import android.telephony.CellInfoLte
 import android.telephony.CellInfoNr
@@ -16,18 +17,35 @@ fun getNetworkType(cellInfo: CellInfo?): String {
         cellInfo is CellInfoLte -> "LTE"
         cellInfo is CellInfoWcdma -> "HSPA"
         cellInfo is CellInfoGsm -> "GSM"
+        cellInfo is CellInfoCdma -> "CDMA"
         else -> "UNKNOWN"
     }
 }
-
-//fun getTac(cellInfo: CellInfo?): String? {
-//    val tac = when {
-//        cellInfo is CellInfoLte -> cellInfo.cellIdentity.tac.toString()
-//        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && cellInfo is CellInfoNr -> "N/A"
-//        else -> null
+//@SuppressLint("MissingPermission")
+//fun getNetworkType(context: Context): String {
+//    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+//
+//    // API 30+: getDataNetworkType() - Older: networkType
+//    val networkType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//        telephonyManager.dataNetworkType
+//    } else {
+//        @Suppress("DEPRECATION")
+//        telephonyManager.networkType
 //    }
-//    return tac
+//
+//    return when (networkType) {
+//        TelephonyManager.NETWORK_TYPE_GSM -> "GSM"
+//        TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS"
+//        TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE"
+//        TelephonyManager.NETWORK_TYPE_UMTS -> "UMTS"
+//        TelephonyManager.NETWORK_TYPE_HSPA -> "HSPA"
+//        TelephonyManager.NETWORK_TYPE_HSPAP -> "HSPA+"
+//        TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
+//        TelephonyManager.NETWORK_TYPE_NR -> "5G"
+//        else -> "UNKNOWN"
+//    }
 //}
+
 fun getTac(cellInfo: CellInfo?): String? {
     return when {
         cellInfo is CellInfoLte -> cellInfo.cellIdentity.tac.toString()
