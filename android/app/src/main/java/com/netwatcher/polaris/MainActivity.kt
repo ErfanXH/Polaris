@@ -1,7 +1,10 @@
 package com.netwatcher.polaris
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,6 +14,7 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.TelephonyManager
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,6 +37,8 @@ import com.netwatcher.polaris.presentation.auth.VerificationScreen
 import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
+import com.netwatcher.polaris.receiver.AlarmReceiver
+import com.netwatcher.polaris.utils.AlarmUtility.scheduleExactAlarm
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.worker.NetworkMonitorWorker
 
@@ -52,7 +58,8 @@ class MainActivity : ComponentActivity() {
         )
 
         private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            Manifest.permission.POST_NOTIFICATIONS,
         )
     }
 
@@ -66,14 +73,28 @@ class MainActivity : ComponentActivity() {
         checkLocationAndSetContent()
     }
 
+    private fun checkAndRequestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
+        }
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (!hasAllPermissions()) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE)
         } else {
-            checkBatteryOptimizations() // <--- Add this
-            NetworkMonitorWorker.schedule(this) // <--- Also make sure you reschedule here
+            checkBatteryOptimizations()
+            checkAndRequestExactAlarmPermission()
+//            NetworkMonitorWorker.schedule(this)
+            scheduleExactAlarm(this)
             checkLocationAndSetContent()
         }
     }
@@ -158,7 +179,9 @@ class MainActivity : ComponentActivity() {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 checkBatteryOptimizations()
-                NetworkMonitorWorker.schedule(this)
+                checkAndRequestExactAlarmPermission()
+//                NetworkMonitorWorker.schedule(this)
+                scheduleExactAlarm(this)
                 checkLocationAndSetContent()
             } else {
                 Toast.makeText(
