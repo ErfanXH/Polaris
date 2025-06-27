@@ -1,5 +1,6 @@
 package com.netwatcher.polaris.utils
 
+import android.util.Log
 import com.netwatcher.polaris.di.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -13,11 +14,11 @@ import java.io.IOException
 import java.util.Random
 import java.util.concurrent.TimeUnit
 
-
 object HttpUploadUtility {
     private const val UPLOAD_URL = "http://194.62.43.37/api/mobile/HTTPTest/upload/"
     private const val TEST_DURATION_MS = 5000
-    private const val CHUNK_SIZE = 1024 * 32
+    private const val CHUNK_SIZE = 1024 * 512   // 512KB
+    private const val TEST_DATA_SIZE = 3072 * 1024  // 3MB
 
     private val client by lazy {
         OkHttpClient.Builder()
@@ -34,87 +35,62 @@ object HttpUploadUtility {
     }
 
     suspend fun measureUploadThroughput(): Double = withContext(Dispatchers.IO) {
-        println("[DEBUG] Starting upload throughput test")
-
         val testData = generateTestData()
-        println("[DEBUG] Generated test data: ${testData.size} bytes")
-
         val startTime = System.nanoTime()
         var totalBytesSent = 0L
         var offset = 0
-        var successfulRequests = 0
-        var failedRequests = 0
 
         try {
-            println("[DEBUG] Starting upload loop...")
+            val requestBuilder = Request.Builder()
+                .addHeader("Authorization", getAuthToken())
+                .url(UPLOAD_URL)
 
-            while (true) {
-                val elapsedMs = (System.nanoTime() - startTime) / 1_000_000
-                if (elapsedMs >= TEST_DURATION_MS) {
-                    println("[DEBUG] Test duration reached ($TEST_DURATION_MS ms)")
-                    break
-                }
-
+            while ((System.nanoTime() - startTime) / 1_000_000 < TEST_DURATION_MS) {
                 val remainingBytes = testData.size - offset
                 if (remainingBytes <= 0) {
-                    println("[DEBUG] Resetting data offset (reached end of test data)")
                     offset = 0
+                    continue
                 }
 
                 val chunkSize = minOf(CHUNK_SIZE, remainingBytes)
                 val chunk = testData.copyOfRange(offset, offset + chunkSize)
                 offset += chunkSize
 
-                println("[DEBUG] Preparing chunk $chunkSize bytes (offset: $offset)")
-
-                val requestBody = chunk.toRequestBody(OCTET_STREAM)
-                val request = Request.Builder()
-                    .addHeader("Authorization", getAuthToken())
-                    .url(UPLOAD_URL)
-                    .post(requestBody)
+                val request = requestBuilder
+                    .post(chunk.toRequestBody(OCTET_STREAM))
                     .build()
 
                 try {
-                    val response = client.newCall(request).execute()
-                    response.use {
-                        if (it.isSuccessful) {
+                    client.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
                             totalBytesSent += chunk.size
-                            successfulRequests++
-                            println("[DEBUG] Chunk upload successful (${chunk.size} bytes) - Total: $totalBytesSent bytes")
-                        } else {
-                            failedRequests++
-                            println("[WARN] Chunk upload failed - Code: ${it.code} - Message: ${it.message}")
                         }
                     }
                 } catch (e: IOException) {
-                    failedRequests++
-                    println("[ERROR] Network error: ${e.message}")
+                    continue
                 }
             }
 
-            val durationSeconds = (System.nanoTime() - startTime) / 1_000_000_000.0
-            val bitsSent = totalBytesSent * 8
-            val throughputMbps = bitsSent / durationSeconds / 1_000_000
-
-            println("[DEBUG] Test completed - " +
-                    "Duration: ${"%.2f".format(durationSeconds)}s, " +
-                    "Total sent: $totalBytesSent bytes, " +
-                    "Successful requests: $successfulRequests, " +
-                    "Failed requests: $failedRequests, " +
-                    "Throughput: ${"%.2f".format(throughputMbps)} Mbps")
-
-            throughputMbps
+            calculateThroughput(startTime, totalBytesSent)
         } catch (e: Exception) {
-            println("[ERROR] Unexpected error: ${e.javaClass.simpleName} - ${e.message}")
-            0.0
+            -1.0
         }
     }
 
+    private fun calculateThroughput(startTime: Long, bytesSent: Long): Double {
+        val durationSeconds = (System.nanoTime() - startTime) / 1_000_000_000.0
+//        if (bytesSent > 0)
+        Log.d("Upload", "$bytesSent in $durationSeconds")
+        return (bytesSent * 8) / (durationSeconds * 1_000_000)  // Mbps
+//        return -1.0
+    }
+
     private fun generateTestData(): ByteArray {
-        val size = 5 * 1024 * 1024 // 5MB
-        println("[DEBUG] Generating $size bytes of test data")
-        return ByteArray(size).apply {
-            Random().nextBytes(this)
+        return ByteArray(TEST_DATA_SIZE).apply {
+            val pattern = "POLARIS_PATTERN_".toByteArray()
+            for (i in indices) {
+                this[i] = pattern[i % pattern.size]
+            }
         }
     }
 }
