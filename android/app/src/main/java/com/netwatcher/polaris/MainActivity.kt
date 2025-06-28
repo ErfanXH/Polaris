@@ -36,6 +36,7 @@ import com.netwatcher.polaris.presentation.auth.SignUpScreen
 import com.netwatcher.polaris.presentation.auth.VerificationScreen
 import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
+import com.netwatcher.polaris.presentation.settings.SettingsScreen
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.receiver.AlarmReceiver
 import com.netwatcher.polaris.utils.AlarmUtility.scheduleExactAlarm
@@ -303,7 +304,22 @@ fun PolarisNav(mainActivity: MainActivity) {
         }
 
         composable("home") {
-            HomeScreen(viewModel = homeViewModel)
+            HomeScreen(
+                viewModel = homeViewModel,
+                onSettingsClick = { navController.navigate("settings") }
+            )
         }
+
+        composable("settings") {
+            SettingsScreen(
+                onSimSelected = { simId ->
+                    homeViewModel.setSelectedSim(simId)
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
     }
 }

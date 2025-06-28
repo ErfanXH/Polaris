@@ -18,6 +18,12 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    private var selectedSubscriptionId: Int? = null
+
+    fun setSelectedSim(subscriptionId: Int) {
+        selectedSubscriptionId = subscriptionId
+    }
+
     fun runNetworkTest() {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
