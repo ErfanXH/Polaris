@@ -213,7 +213,8 @@ class NetworkRepositoryImpl(
         val cellInfo = telephonyManager.allCellInfo.firstOrNull { it.isRegistered }
         val netType = getNetworkType(cellInfo)
 
-        Log.d("Network Type", "Get data network Type:: ${telephonyManager.dataNetworkType}")
+//        val networkTypeInt = telephonyManager.dataNetworkType
+//        val netType = networkTypeToString(networkTypeInt)
 
         val networkData = NetworkData(
             location?.latitude ?: -1.0,

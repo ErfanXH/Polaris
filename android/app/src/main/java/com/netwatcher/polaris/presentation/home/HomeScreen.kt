@@ -138,6 +138,7 @@ private fun NetworkResults(networkData: NetworkData) {
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
                 "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
             "WCDMA", "HSPA", "HSPA+" -> listOf(
@@ -147,6 +148,7 @@ private fun NetworkResults(networkData: NetworkData) {
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
                 "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
             "GSM", "GPRS", "EDGE" -> listOf(
@@ -182,15 +184,23 @@ private fun NetworkResults(networkData: NetworkData) {
 
         Triple("Functional Tests", listOf(
             "HTTP Upload Throughput" to (
-                    networkData.httpUploadThroughput?.let { String.format("%.2f Mbps", it) } ?: "failed"
+                    networkData.httpUploadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "failed"
                     ),
             "HTTP Download Throughput" to (
-                    networkData.httpDownloadThroughput?.let { String.format("%.2f Mbps", it) } ?: "failed"
+                    networkData.httpDownloadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "failed"
                     ),
-            "Ping Time" to  (networkData.pingTime?.let { String.format("%.2f ms", it) } ?: "failed"),
-            "DNS Response Time" to (networkData.dnsResponse?.let { String.format("%.2f ms", it) } ?: "failed"),
-            "Web Response Time" to (networkData.webResponse?.let { String.format("%.2f ms", it) } ?: "failed"),
-            "SMS Response Time" to (networkData.smsDeliveryTime?.let { String.format("%.2f ms", it) } ?: "failed")
+            "Ping Time" to (
+                    networkData.pingTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    ),
+            "DNS Response Time" to (
+                    networkData.dnsResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    ),
+            "Web Response Time" to (
+                    networkData.webResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    ),
+            "SMS Response Time" to (
+                    networkData.smsDeliveryTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    )
         )) { _: NetworkData -> }
     )
 
