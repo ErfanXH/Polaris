@@ -208,9 +208,15 @@ class NetworkRepositoryImpl(
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    override suspend fun runNetworkTest(): NetworkData {
+    override suspend fun runNetworkTest(subscriptionId: Int?): NetworkData {
+        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && subscriptionId != null) {
+            telephonyManager.createForSubscriptionId(subscriptionId)
+        } else {
+            telephonyManager
+        }
+
         val location = getCurrentLocation()
-        val cellInfo = telephonyManager.allCellInfo.firstOrNull { it.isRegistered }
+        val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
         val netType = getNetworkType(cellInfo)
 
 //        val networkTypeInt = telephonyManager.dataNetworkType

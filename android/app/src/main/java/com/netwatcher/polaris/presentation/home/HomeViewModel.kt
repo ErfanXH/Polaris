@@ -28,7 +28,7 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
-                val result = repository.runNetworkTest()
+                val result = repository.runNetworkTest(selectedSubscriptionId)
                 _uiState.value = HomeUiState.Success(result)
                 repository.uploadNetworkData(BackFormatConverter(result))
             } catch (e: Exception) {

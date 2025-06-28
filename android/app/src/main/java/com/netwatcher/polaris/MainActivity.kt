@@ -317,6 +317,7 @@ fun PolarisNav(mainActivity: MainActivity) {
                 },
                 onBack = {
                     navController.popBackStack()
+//                    homeViewModel.loadInitialState()
                 }
             )
         }
