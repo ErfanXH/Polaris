@@ -9,6 +9,7 @@ import android.telephony.CellInfoNr
 import android.telephony.CellInfoWcdma
 import android.telephony.CellSignalStrengthLte
 import android.telephony.CellSignalStrengthNr
+import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 
 fun getNetworkType(cellInfo: CellInfo?): String {
@@ -21,28 +22,19 @@ fun getNetworkType(cellInfo: CellInfo?): String {
         else -> "UNKNOWN"
     }
 }
-//@SuppressLint("MissingPermission")
-//fun getNetworkType(context: Context): String {
-//    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-//
-//    // API 30+: getDataNetworkType() - Older: networkType
-//    val networkType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//        telephonyManager.dataNetworkType
-//    } else {
-//        @Suppress("DEPRECATION")
-//        telephonyManager.networkType
-//    }
-//
+
+//fun networkTypeToString(networkType: Int): String {
 //    return when (networkType) {
 //        TelephonyManager.NETWORK_TYPE_GSM -> "GSM"
 //        TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS"
 //        TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE"
 //        TelephonyManager.NETWORK_TYPE_UMTS -> "UMTS"
+//        TelephonyManager.NETWORK_TYPE_CDMA -> "CDMA"
 //        TelephonyManager.NETWORK_TYPE_HSPA -> "HSPA"
 //        TelephonyManager.NETWORK_TYPE_HSPAP -> "HSPA+"
 //        TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
-//        TelephonyManager.NETWORK_TYPE_NR -> "5G"
-//        else -> "UNKNOWN"
+//        TelephonyManager.NETWORK_TYPE_NR -> "NR"
+//        else -> "Others"
 //    }
 //}
 
@@ -260,9 +252,9 @@ fun getFrequencyBand(cellInfo: CellInfo?): String? {
             arfcn in 512..885 -> "GSM 1800"
             else -> "GSM Unknown"
         }
-        is CellInfoLte -> "LTE Band (EARFCN: $arfcn)"
-        is CellInfoWcdma -> "WCDMA Band (UARFCN: $arfcn)"
-        is CellInfoNr -> "NR Band (NRARFCN: $arfcn)"
+        is CellInfoWcdma -> "WCDMA Band"
+        is CellInfoLte -> "LTE Band"
+        is CellInfoNr -> "NR Band"
         else -> null
     }
 }

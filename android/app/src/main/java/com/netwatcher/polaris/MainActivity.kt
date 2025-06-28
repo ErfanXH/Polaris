@@ -45,6 +45,8 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2
+
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -54,11 +56,14 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.SEND_SMS,
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.READ_SMS,
-            Manifest.permission.POST_NOTIFICATIONS,
         )
 
         private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
             Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+        )
+
+        private val REQUIRED_PERMISSIONS_API_33 = arrayOf(
+            Manifest.permission.POST_NOTIFICATIONS
         )
     }
 
@@ -101,6 +106,18 @@ class MainActivity : ComponentActivity() {
             setAppContent()
         } else {
             showLocationEnableDialog()
+        }
+    }
+
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS_API_33,
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                )
+            }
         }
     }
 
@@ -147,6 +164,7 @@ class MainActivity : ComponentActivity() {
             val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }
+
             return basePermissionsGranted && backgroundLocationGranted
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return basePermissionsGranted
@@ -167,25 +185,49 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+//    override fun onRequestPermissionsResult(requestCode: Int,permissions: Array<String>,grantResults: IntArray) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        if (requestCode == PERMISSION_REQUEST_CODE) {
+//            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+//                checkBatteryOptimizations()
+//                checkAndRequestExactAlarmPermission()
+//                scheduleExactAlarm(this)
+//                checkLocationAndSetContent()
+//            } else {
+//                Toast.makeText(
+//                    this,
+//                    "Permissions are required for the app to function",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//                finish()
+//            }
+//        }
+//    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,permissions: Array<String>,grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                    checkNotificationPermission()
+                    checkBatteryOptimizations()
+                    checkAndRequestExactAlarmPermission()
+                    scheduleExactAlarm(this)
+                    checkLocationAndSetContent()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Permissions are required for the app to function",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                }
+            }
+            NOTIFICATION_PERMISSION_REQUEST_CODE -> {
                 checkBatteryOptimizations()
                 checkAndRequestExactAlarmPermission()
                 scheduleExactAlarm(this)
                 checkLocationAndSetContent()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Permissions are required for the app to function",
-                    Toast.LENGTH_LONG
-                ).show()
-                finish()
             }
         }
     }
