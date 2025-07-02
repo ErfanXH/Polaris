@@ -3,13 +3,14 @@ from .serializers import *
 from .models import *
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from uuid import uuid4
+
 class AuthenticationViewSet(GenericViewSet):
     def get_serializer_class(self):
         if self.action == 'register':
@@ -22,7 +23,6 @@ class AuthenticationViewSet(GenericViewSet):
             return GetVerificationCodeSerializer
         elif self.action=="verification":
             return VerificationSerializer
-        
     permission_classes = [AllowAny]
     
     @action(detail=False, methods=['POST'])
@@ -42,7 +42,8 @@ class AuthenticationViewSet(GenericViewSet):
         else:
             auth_status['register_state'] = 'existed'
             user = validated_data['user']
-            
+            if user.is_banned:
+                return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
         try:
             user.send_code()
         except:
@@ -56,10 +57,13 @@ class AuthenticationViewSet(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
-        if validated_data['user'].is_verified:
-            validated_data['user'].last_login = timezone.now()
-            validated_data['user'].save()
-            return Response(serializer.to_representation(validated_data['user']), status=status.HTTP_202_ACCEPTED)
+        user = validated_data['user']
+        if user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
+        elif user.is_verified:
+            user.last_login = timezone.now()
+            user.save()
+            return Response(serializer.to_representation(user), status=status.HTTP_202_ACCEPTED)
         else:
             return Response({'detail' : 'verification required, verify with code sent to your email'}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -67,10 +71,10 @@ class AuthenticationViewSet(GenericViewSet):
     def verify_code(self,request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        validated_data=serializer.validated_data
-        if validated_data['user'].is_code_expired():
+        user=serializer.validated_data['user']
+        if user.is_code_expired():
             return Response({'detail':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
-        elif not validated_data['user'].verify_code(validated_data['code']):
+        elif not user.verify_code(validated_data['code']):
             return Response({'detail':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
             return Response({'detail':'verification code is valid'} , status=status.HTTP_200_OK)
@@ -79,9 +83,11 @@ class AuthenticationViewSet(GenericViewSet):
     def get_verification_code(self,request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        validated_data=serializer.validated_data
+        user=serializer.validated_data['user']
+        if user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
         try:
-            validated_data['user'].send_code()
+            user.send_code()
         except:
             return Response({'detail':'could not send OTP code,please try again'} , status=status.HTTP_502_BAD_GATEWAY)
         return Response({'detail':'verification code sent'} , status=status.HTTP_200_OK)
@@ -92,6 +98,9 @@ class AuthenticationViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data=serializer.validated_data
         user = validated_data['user']
+        if user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
+        
         if validated_data['result']== 'expired':
             return Response({'detail':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         elif validated_data['result'] == 'mismatch':
@@ -111,14 +120,17 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = ProfileSerializer
-
+    
     @swagger_auto_schema(
         operation_description="Retrieves the profile information of the currently authenticated user.",
         responses={200: ProfileSerializer()}
     )
     def get(self, request):
-        serializer = self.serializer_class(request.user)
-        return Response(serializer.data)
+        if request.user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            serializer = self.serializer_class(request.user)
+            return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_description="Updates the profile information of the currently authenticated user.",
@@ -126,6 +138,8 @@ class ProfileView(APIView):
         responses={200: ProfileSerializer()}
     )
     def put(self, request, *args, **kwargs):
+        if request.user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.serializer_class(request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -137,6 +151,8 @@ class ProfileView(APIView):
         responses={200: ProfileSerializer()}
     )
     def patch(self, request, *args, **kwargs):
+        if request.user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.serializer_class(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -154,6 +170,8 @@ class ChangePasswordView(APIView):
         responses={200: ChangePasswordSerializer()} 
     )
     def patch(self, request):
+        if request.user.is_banned:
+            return Response({'detail':'this account is banned and cannot be accessed'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.serializer_class(data=request.data, context={'user': request.user})
         serializer.is_valid(raise_exception=True)
         password = serializer.validated_data['new_password']
@@ -165,8 +183,17 @@ class ChangePasswordView(APIView):
 
 
 class AdminViewSet(GenericViewSet):
-    serializer_class = AdminPasswordSerializer
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.action in ['make_admin', 'make_superuser']:
+            return [IsAuthenticated()]
+        else:
+            return [IsAuthenticated(),IsAdminUser()]
+    
+    def get_serializer_class(self):
+        if self.action in ['make_admin', 'make_superuser']:
+            return AdminPasswordSerializer
+        else:
+            return SelectUserSerializer
     
     @action(['POST'],detail=False)
     def make_admin(self,request):
@@ -181,3 +208,26 @@ class AdminViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         request.user.make_superuser()
         return Response({'detail' : f'user {request.user.phone_number} now have Superuser access'})
+    
+    @action(['POST'],detail=False)
+    def ban_user(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        user.ban()
+        return Response({'detail' : f'user {user.phone_number} is now banned'})
+    
+    @action(['POST'],detail=False)
+    def allow_user(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        user.unban()
+        return Response({'detail' : f'removed restriction on user {user.phone_number}'})
+    
+    @action(['GET'],detail=False)
+    def user_info(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        return Response(serializer.to_representation(user), status=status.HTTP_200_OK)

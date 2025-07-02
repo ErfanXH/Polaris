@@ -4,6 +4,7 @@ from .models import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated , IsAdminUser
+from .permissions import IsNotBanned
 from rest_framework.viewsets import GenericViewSet , ModelViewSet , mixins
 from rest_framework.decorators import action
 from random import randbytes
@@ -16,7 +17,7 @@ class DeviceViewSet(ModelViewSet):
         return self.request.user.devices.all()
         
     serializer_class =DeviceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsNotBanned]
     lookup_field = 'device_id'
     
     def perform_create(self, serializer):
@@ -34,7 +35,7 @@ class MeasurementViewSet(mixins.CreateModelMixin,
         return Measurement.objects.filter(user=self.request.user)
     
     serializer_class = MeasurementSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsNotBanned]
     
     def perform_create(self, serializer):
         serializer.save(user = self.request.user)
@@ -44,6 +45,15 @@ class MeasurementViewSet(mixins.CreateModelMixin,
         instance = self.get_queryset().latest('timestamp')
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+    
+    @action(methods=['GET'],detail=False)
+    def get_all(self, request):
+        if request.user.is_staff:
+            data = Measurement.objects.filter(user__allow_admin_access = True)
+            serializer = self.get_serializer(data=data, many=True)
+        else:
+            return Response({'detail': 'access denied:admin access level is required for this operation'},status=status.HTTP_403_FORBIDDEN)
+        return Response(serializer.data ,status=status.HTTP_200_OK)
 
 
 
@@ -57,7 +67,7 @@ class TestResultViewSet(mixins.CreateModelMixin,
         return TestResult.objects.filter(user=self.request.user)
         
     serializer_class = TestResultSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsNotBanned]
     
     def perform_create(self, serializer):
         serializer.save(user = self.request.user)
@@ -78,7 +88,7 @@ class BulkUploadViewSet(GenericViewSet):
         elif self.action == 'test_report':
             return BulkUploadTestResultSerializer
     
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsNotBanned]
     
     @action(methods=['POST'],detail=False)
     def measurement(self,request):
@@ -98,7 +108,7 @@ class BulkUploadViewSet(GenericViewSet):
 
 class BulkDeleteViewSet(GenericViewSet):
     
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsNotBanned]
     serializer_class = BulkDeleteSerializer
     
     @action(methods=['POST'],detail=False)
@@ -122,7 +132,7 @@ class BulkDeleteViewSet(GenericViewSet):
         try:
             delete_count,_ = TestResult.objects.filter(user = request.user
                                                        ,id__in = validated_data['ids']).delete()
-        except: #set a godo except for it
+        except: #set a good except for it
             return Response({'detail':f'error while deleting,{delete_count} records deleted'},status=status.HTTP_417_EXPECTATION_FAILED)
 
         return Response({'detail':f'{delete_count} measurement reports has successfully deleted'},status=status.HTTP_200_OK)
@@ -134,7 +144,7 @@ class HTTPTestViewSet(GenericViewSet):
     def get_queryset(self):
         return TestResult.objects.none()
     
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsNotBanned]
     
     @action(methods=['GET'],detail=False)
     def download(self,request):

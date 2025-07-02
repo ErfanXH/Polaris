@@ -55,12 +55,11 @@ class LoginSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         representation = {
-            'id': instance.id,
             'phone_number': instance.phone_number,
             'email': instance.email,
             'username': instance.username,
             'image': instance.image.url if instance.image else None,
-            'is_staff': instance.is_staff,
+            'is_admin': instance.is_staff,
             'is_banned': instance.is_banned,
         }
         representation.update(instance.token())
@@ -128,12 +127,11 @@ class VerificationSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         representation = {
-            'id': instance.id,
             'phone_number': instance.phone_number,
             'email': instance.email,
             'username': instance.username,
             'image': instance.image.url if instance.image else None,
-            'is_staff': instance.is_staff,
+            'is_admin': instance.is_staff,
             'is_banned': instance.is_banned,
         }
         representation.update(instance.token())
@@ -165,3 +163,39 @@ class AdminPasswordSerializer(serializers.Serializer):
         if hash(attrs['admin_password']) != settings.ADMIN_PASSWORD:
             raise PermissionDenied('admin password is incorrect')
         return attrs
+    
+    
+
+class SelectUserSerializer(serializers.Serializer):
+    number_or_email = serializers.CharField(write_only = True)
+    
+    
+    def validate(self, attrs):
+        if match(r'^09\d{9}$', attrs['number_or_email']):
+            user = User.objects.filter(phone_number=attrs['number_or_email']).first()
+        elif match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', attrs['number_or_email']):
+            user = User.objects.filter(email=attrs['number_or_email']).first()
+        else:
+            raise serializers.ValidationError('number_or_email field must be a phone number or email')
+        attrs.pop('number_or_email')
+        
+        if not user:
+            raise NotFound('no user found')
+        else:
+            attrs['user'] = user
+        return super().validate(attrs)
+    
+    def to_representation(self, instance):
+        representation = {
+            'id': instance.id,
+            'phone_number': instance.phone_number,
+            'email': instance.email,
+            'username': instance.username,
+            'image': instance.image.url if instance.image else None,
+            'is_admin': instance.is_staff,
+            'is_superuser':instance.is_superuser,
+            'is_banned': instance.is_banned,
+            'is_verified': instance.is_verified,
+            'allow_admin_access': instance.allow_admin_access
+        }
+        return representation

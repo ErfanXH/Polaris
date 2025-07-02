@@ -62,6 +62,14 @@ class User(AbstractUser):
         self.save()
         return True
     
+    def ban(self):
+        self.is_banned = True
+        self.save()
+    
+    def unban(self):
+        self.is_banned = False
+        self.save()
+    
     def verify_user(self,code):
         if self.verify_code(code) and not self.is_code_expired():
             self.is_verified = True
@@ -76,21 +84,11 @@ class User(AbstractUser):
         else:
             return 'unknown'
     
-    
     def token(self):
         refresh = RefreshToken.for_user(self)
         return {
             "access":f"JWT {str(refresh.access_token)}",
             "refresh":f"JWT {str(refresh)}"
-        }
-    
-    def ban(self):
-        self.is_banned = True
-        self.save()
-        
-    def make_staff(self):
-        self.is_staff = True
-        self.save()
-        
+        }      
     def __str__(self):
         return self.username

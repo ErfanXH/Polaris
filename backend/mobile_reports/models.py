@@ -39,7 +39,7 @@ class Measurement(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_measurements')
     latitude = models.FloatField()
     longitude = models.FloatField()
-    timestamp = models.DateTimeField(null=True, blank=True)
+    timestamp = models.DateTimeField(null=True, blank=True,unique=True)
     network_type = models.CharField(max_length=10, choices=NETWORK_TYPES)
     lac = models.CharField(max_length=100, null=True, blank=True)  # Location Area Code
     tac = models.CharField(max_length=100, null=True, blank=True)  # Tracking Area Code
@@ -85,7 +85,7 @@ class TestResult(models.Model):
         'SMS'  : 'SMS'  ,
     }
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users_testResults')
-    timestamp = models.DateTimeField(null=True, blank=True)
+    timestamp = models.DateTimeField(null=True, blank=True,unique=True)
     test_type = models.CharField(max_length=10, choices=TEST_TYPES)
     value = models.FloatField()  
     success = models.BooleanField()
