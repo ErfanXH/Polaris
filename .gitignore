@@ -1,2 +1,6 @@
 .env
 backup_checkpoint.sql
+mysql-data/
+db_backups/
+backup.sql
+db_backup.log
