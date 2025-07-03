@@ -85,7 +85,7 @@ class TestResult(models.Model):
         'SMS'  : 'SMS'  ,
     }
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users_testResults')
-    timestamp = models.DateTimeField(null=True, blank=True,unique=True)
+    timestamp = models.DateTimeField(null=True, blank=True)
     test_type = models.CharField(max_length=10, choices=TEST_TYPES)
     value = models.FloatField()  
     success = models.BooleanField()
@@ -93,9 +93,10 @@ class TestResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ['-timestamp']
+        unique_together = ('user', 'timestamp'),
         indexes = [
             models.Index(fields=['user', 'timestamp']),
             ]
     
     def __str__(self):
-        return f"{self.get_test_type_display()} Test - {self.value}"
+        return f"{self.test_type} Test - {self.value}"
