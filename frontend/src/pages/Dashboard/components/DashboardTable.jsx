@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -14,11 +14,15 @@ import {
   Stack,
 } from "@mui/material";
 import { saveAs } from "file-saver";
-import { formatDateTime } from "../../../utils/FormatDatetime";
+import { formatDateTime } from "../../../utils/DatetimeUtility";
+import { tabConfig } from "./TabConfig";
+import { columnConfig } from "./ColumnConfig";
 
-export function DashboardTable({ data, isMobile }) {
+export function DashboardTable({ data, isMobile, activeTab }) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10);
+
+  const columnsToShow = useMemo(() => tabConfig[activeTab] || [], [activeTab]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -30,113 +34,32 @@ export function DashboardTable({ data, isMobile }) {
   };
 
   const exportCSV = () => {
-    const headers = [
-      "Timestamp",
-      "Location",
-      "Network",
-      "Frequency Band",
-      "ARFCN",
-      "PLMN Id",
-      "TAC",
-      "LAC",
-      "RAC",
-      "Cell Id",
-      "Frequency",
-      "RSRP",
-      "RSRQ",
-      "RSCP",
-      "EC/N0",
-      "RxLev",
-      "Download",
-      "Upload",
-      "Ping",
-      "DNS",
-      "Web",
-      "SMS",
-    ];
-    const rows = data.map((row) => [
-      row.timestamp,
-      `${row.latitude?.toFixed(4)}, ${row.longitude?.toFixed(4)}`,
-      row.network_type,
-      row.frequency_band,
-      row.arfcn,
-      row.plmn_id,
-      row.tac,
-      row.lac,
-      row.rac,
-      row.cell_id,
-      row.frequency,
-      row.rsrp,
-      row.rsrq,
-      row.rscp,
-      row.ecIo,
-      row.rxLev,
-      row.http_download,
-      row.http_upload,
-      row.ping_time,
-      row.dns_response,
-      row.web_response,
-      row.sms_delivery_time,
-    ]);
+    const headers = columnsToShow.map((key) => columnConfig[key]?.label || key);
+    const rows = data.map((row) =>
+      columnsToShow.map((key) =>
+        columnConfig[key]?.render
+          ? columnConfig[key].render(row)
+          : row[key] ?? "-"
+      )
+    );
 
     const csvContent = [headers.join(",")]
       .concat(rows.map((r) => r.join(",")))
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "measurements.csv");
+    saveAs(blob, `${activeTab}_data.csv`);
   };
 
   const exportKML = () => {
-    const headers = [
-      "Timestamp",
-      "Location",
-      "Network",
-      "Frequency Band",
-      "ARFCN",
-      "PLMN Id",
-      "TAC",
-      "LAC",
-      "RAC",
-      "Cell Id",
-      "Frequency",
-      "RSRP",
-      "RSRQ",
-      "RSCP",
-      "EC/N0",
-      "RxLev",
-      "Download",
-      "Upload",
-      "Ping",
-      "DNS",
-      "Web",
-      "SMS",
-    ];
-
-    const rows = data.map((row) => [
-      row.timestamp,
-      `${row.latitude?.toFixed(4)}, ${row.longitude?.toFixed(4)}`,
-      row.network_type,
-      row.frequency_band,
-      row.arfcn,
-      row.plmn_id,
-      row.tac,
-      row.lac,
-      row.rac,
-      row.cell_id,
-      row.frequency,
-      row.rsrp,
-      row.rsrq,
-      row.rscp,
-      row.ecIo,
-      row.rxLev,
-      row.http_download,
-      row.http_upload,
-      row.ping_time,
-      row.dns_response,
-      row.web_response,
-      row.sms_delivery_time,
-    ]);
+    const headers = columnsToShow.map((key) => columnConfig[key]?.label || key);
+    const rows = data.map((row) =>
+      columnsToShow.map((key) =>
+        columnConfig[key]?.render
+          ? columnConfig[key].render(row)
+          : row[key] ?? "-"
+      )
+    );
 
     const kmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>`;
     const kmlFooter = `</Document>\n</kml>`;
@@ -144,7 +67,16 @@ export function DashboardTable({ data, isMobile }) {
     const placemarks = rows
       .filter((row) => {
         const location = row[1];
-        return location && location !== "undefined, undefined";
+
+        if (!location || typeof location !== "string") return false;
+
+        const [latStr, lngStr] = location.split(",").map((val) => val.trim());
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+
+        const isInvalid = isNaN(lat) || isNaN(lng) || lat === -1 || lng === -1;
+
+        return !isInvalid;
       })
       .map((row) => {
         const coord = row[1].split(", ");
@@ -201,59 +133,23 @@ export function DashboardTable({ data, isMobile }) {
         <Table size={isMobile ? "small" : "medium"} stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Location</TableCell>
-              <TableCell>Network</TableCell>
-              <TableCell>Frequency Band</TableCell>
-              <TableCell>ARFCN</TableCell>
-              <TableCell>PLMN Id</TableCell>
-              <TableCell>TAC</TableCell>
-              <TableCell>LAC</TableCell>
-              <TableCell>RAC</TableCell>
-              <TableCell>Cell Id</TableCell>
-              <TableCell>Frequency(MHz)</TableCell>
-              <TableCell>RSRP</TableCell>
-              <TableCell>RSRQ</TableCell>
-              <TableCell>RSCP</TableCell>
-              <TableCell>EC/N0</TableCell>
-              <TableCell>RxLev</TableCell>
-              <TableCell>Download(Mbps)</TableCell>
-              <TableCell>Upload(Mbps)</TableCell>
-              <TableCell>Ping(ms)</TableCell>
-              <TableCell>DNS(ms)</TableCell>
-              <TableCell>Web(ms)</TableCell>
-              <TableCell>SMS(ms)</TableCell>
+              {columnsToShow.map((key) => (
+                <TableCell key={key} sx={columnConfig[key]?.style}>
+                  {columnConfig[key]?.label || key}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedData.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>{formatDateTime(row.timestamp)}</TableCell>
-                <TableCell>
-                  {row.latitude?.toFixed(4)}, {row.longitude?.toFixed(4)}
-                </TableCell>
-                <TableCell>{row.network_type}</TableCell>
-                <TableCell>{row.frequency_band || "-"}</TableCell>
-                <TableCell>{row.arfcn || "-"}</TableCell>
-                <TableCell>{row.plmn_id || "-"}</TableCell>
-                <TableCell>{row.tac || "-"}</TableCell>
-                <TableCell>{row.lac || "-"}</TableCell>
-                <TableCell>{row.rac || "-"}</TableCell>
-                <TableCell>{row.cell_id || "-"}</TableCell>
-                <TableCell>{row.frequency?.toFixed(3) || "-"}</TableCell>
-                <TableCell>{row.rsrp || "-"}</TableCell>
-                <TableCell>{row.rsrq || "-"}</TableCell>
-                <TableCell>{row.rscp || "-"}</TableCell>
-                <TableCell>{row.ecIo || "-"}</TableCell>
-                <TableCell>{row.rxLev || "-"}</TableCell>
-                <TableCell>{row.http_download?.toFixed(3) || "-"}</TableCell>
-                <TableCell>{row.http_upload?.toFixed(3) || "-"}</TableCell>
-                <TableCell>{row.ping_time?.toFixed(3) || "-"}</TableCell>
-                <TableCell>{row.dns_response?.toFixed(3) || "-"}</TableCell>
-                <TableCell>{row.web_response?.toFixed(3) || "-"}</TableCell>
-                <TableCell>
-                  {row.sms_delivery_time?.toFixed(3) || "-"}
-                </TableCell>
+            {paginatedData.map((row, i) => (
+              <TableRow key={row.id || i}>
+                {columnsToShow.map((key) => (
+                  <TableCell key={key} sx={columnConfig[key]?.style}>
+                    {columnConfig[key]?.render
+                      ? columnConfig[key].render(row)
+                      : row[key] ?? "-"}
+                  </TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>

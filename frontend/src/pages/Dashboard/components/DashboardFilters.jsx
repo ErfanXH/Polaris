@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, TextField, MenuItem, useTheme } from "@mui/material";
+import { LocalizeDateTime } from "../../../utils/DatetimeUtility";
 
 export function DashboardFilters({
   isMobile,
@@ -56,7 +57,10 @@ export function DashboardFilters({
         type="date"
         InputLabelProps={{ shrink: true }}
         onChange={(e) =>
-          setDateRange({ ...dateRange, start: new Date(e.target.value) })
+          setDateRange((prev) => ({
+            ...prev,
+            start: LocalizeDateTime(e.target.value),
+          }))
         }
         sx={dateFieldStyles}
         size={isMobile ? "small" : "medium"}
@@ -67,7 +71,10 @@ export function DashboardFilters({
         type="date"
         InputLabelProps={{ shrink: true }}
         onChange={(e) =>
-          setDateRange({ ...dateRange, end: new Date(e.target.value) })
+          setDateRange((prev) => ({
+            ...prev,
+            end: LocalizeDateTime(e.target.value),
+          }))
         }
         sx={dateFieldStyles}
         size={isMobile ? "small" : "medium"}

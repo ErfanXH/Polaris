@@ -8,8 +8,15 @@ import {
   getArfcnPieOption,
   getFrequencyBandBarOption,
   getRsrpRsrqScatterOption,
+  // getTestPerformanceRadarOption,
+  getSignalStrengthOverTimeOption,
+  getMeasurementCountByHourOption,
+  getMostFrequentCellsOption,
+  getLineChartOption,
+  getBoxPlotOption,
+  getDistributionOption,
 } from "../pages/Dashboard/components/DashboardConfig";
-import { formatDateTime } from "../utils/FormatDatetime";
+import { formatDateTime, LocalizeDateTime } from "../utils/DatetimeUtility";
 
 export const useDashboardData = () => {
   const theme = useTheme();
@@ -32,6 +39,9 @@ export const useDashboardData = () => {
 
   const filteredData = useMemo(() => {
     let result = [...measurements];
+    result = result.filter((m) => m.network_type !== "UNKNOWN");
+    // console.log(result);
+    // console.log(formatDateTime(result[0]?.timestamp));
 
     if (networkTypeFilter !== "all") {
       result = result.filter((m) => m.network_type === networkTypeFilter);
@@ -39,7 +49,7 @@ export const useDashboardData = () => {
 
     if (dateRange.start && dateRange.end) {
       result = result.filter((m) => {
-        const timestamp = new Date(m.timestamp);
+        const timestamp = LocalizeDateTime(m.timestamp);
         return timestamp >= dateRange.start && timestamp <= dateRange.end;
       });
     }
@@ -53,6 +63,145 @@ export const useDashboardData = () => {
       arfcnOption: getArfcnPieOption(filteredData, theme),
       frequencyBandOption: getFrequencyBandBarOption(filteredData, theme),
       rsrpRsrqScatterOption: getRsrpRsrqScatterOption(filteredData, theme),
+      // TestPerformanceRadarOption: getTestPerformanceRadarOption(
+      //   filteredData,
+      //   theme
+      // ),
+      SignalStrengthOverTimeOption: getSignalStrengthOverTimeOption(
+        filteredData,
+        theme
+      ),
+      MeasurementCountByHourOption: getMeasurementCountByHourOption(
+        filteredData,
+        theme
+      ),
+      MostFrequentCellsOption: getMostFrequentCellsOption(filteredData, theme),
+      SMSLineOption: getLineChartOption(
+        filteredData,
+        "sms_delivery_time",
+        theme,
+        "SMS",
+        "SMS delivery time"
+      ),
+      SMSBoxplotOption: getBoxPlotOption(
+        filteredData,
+        "sms_delivery_time",
+        theme,
+        "SMS",
+        "SMS delivery time"
+      ),
+      SMSDistributionOption: getDistributionOption(
+        filteredData,
+        "sms_delivery_time",
+        theme,
+        "SMS"
+        // (titleKey = "SMS")
+      ),
+      WebLineOption: getLineChartOption(
+        filteredData,
+        "web_response",
+        theme,
+        "Web",
+        "Web Response"
+      ),
+      WebBoxplotOption: getBoxPlotOption(
+        filteredData,
+        "web_response",
+        theme,
+        "Web",
+        "Web Response"
+      ),
+      WebDistributionOption: getDistributionOption(
+        filteredData,
+        "web_response",
+        theme,
+        "Web"
+        // (titleKey = "Web")
+      ),
+      UploadLineOption: getLineChartOption(
+        filteredData,
+        "http_upload",
+        theme,
+        "Upload",
+        "Upload throughput"
+      ),
+      UploadBoxplotOption: getBoxPlotOption(
+        filteredData,
+        "http_upload",
+        theme,
+        "Upload",
+        "Upload throughput"
+      ),
+      UploadDistributionOption: getDistributionOption(
+        filteredData,
+        "http_upload",
+        theme,
+        "Upload"
+        // (titleKey = "Upload")
+      ),
+      DownloadLineOption: getLineChartOption(
+        filteredData,
+        "http_download",
+        theme,
+        "Download",
+        "Download throughput"
+      ),
+      DownloadBoxplotOption: getBoxPlotOption(
+        filteredData,
+        "http_download",
+        theme,
+        "Download",
+        "Download throughput"
+      ),
+      DownloadDistributionOption: getDistributionOption(
+        filteredData,
+        "http_download",
+        theme,
+        "Download"
+        // (titleKey = "Download")
+      ),
+      PingLineOption: getLineChartOption(
+        filteredData,
+        "ping_time",
+        theme,
+        "Ping",
+        "Ping Response"
+      ),
+      PingBoxplotOption: getBoxPlotOption(
+        filteredData,
+        "ping_time",
+        theme,
+        "Ping",
+        "Ping Response"
+      ),
+      PingDistributionOption: getDistributionOption(
+        filteredData,
+        "ping_time",
+        theme,
+        "Ping"
+        // (titleKey = "Ping")
+      ),
+      DNSLineOption: getLineChartOption(
+        filteredData,
+        "dns_response",
+        theme,
+        "DNS",
+        "DNS Response"
+      ),
+      DNSBoxplotOption: getBoxPlotOption(
+        filteredData,
+        "dns_response",
+        theme,
+        "DNS",
+        "DNS Response"
+      ),
+      DNSDistributionOption: getDistributionOption(
+        filteredData,
+        "dns_response",
+        theme,
+        "DNS"
+        // (titleKey = "DNS")
+      ),
     };
   }, [filteredData, theme]);
 
