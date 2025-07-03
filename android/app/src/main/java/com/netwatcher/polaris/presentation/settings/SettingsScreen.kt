@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.netwatcher.polaris.domain.model.SimInfo
 import com.netwatcher.polaris.utils.DataSyncScheduler
+import com.netwatcher.polaris.utils.TestConfigManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MissingPermission")
@@ -65,36 +66,38 @@ fun SettingsScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // SIM Selection Section
-            Text("Select SIM Card", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(16.dp))
-            simList.forEach { sim ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            selectedSimId = sim.subscriptionId
-                            onSimSelected(sim.subscriptionId)
-                        }
-                        .padding(vertical = 8.dp)
-                ) {
-                    RadioButton(
-                        selected = sim.subscriptionId == selectedSimId,
-                        onClick = {
-                            selectedSimId = sim.subscriptionId
-                            onSimSelected(sim.subscriptionId)
-                        }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("SIM ${sim.simSlotIndex + 1} (${sim.carrierName})")
-                }
-            }
+//            Text("Select SIM Card", style = MaterialTheme.typography.titleMedium)
+//            Spacer(modifier = Modifier.height(16.dp))
+//            simList.forEach { sim ->
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clickable {
+//                            selectedSimId = sim.subscriptionId
+//                            onSimSelected(sim.subscriptionId)
+//                        }
+//                        .padding(vertical = 8.dp)
+//                ) {
+//                    RadioButton(
+//                        selected = sim.subscriptionId == selectedSimId,
+//                        onClick = {
+//                            selectedSimId = sim.subscriptionId
+//                            onSimSelected(sim.subscriptionId)
+//                        }
+//                    )
+//                    Spacer(modifier = Modifier.width(8.dp))
+//                    Text("SIM ${sim.simSlotIndex + 1} (${sim.carrierName})")
+//                }
+//            }
 
             Divider(modifier = Modifier.padding(vertical = 24.dp))
 
-            // Sync Interval Section
             SyncIntervalSettings(context = context)
+
+            Divider(modifier = Modifier.padding(vertical = 24.dp))
+
+            TestConfigurationSettings(context = context)
         }
     }
 }
@@ -150,5 +153,79 @@ fun SyncIntervalSettings(context: Context) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TestConfigurationSettings(context: Context) {
+    val testConfig = remember { TestConfigManager.getPreferences(context) }
+
+    var smsTestNumber by remember {
+        mutableStateOf(testConfig.getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989012571580") ?: "+989012571580")
+    }
+
+    var pingTestAddress by remember {
+        mutableStateOf(testConfig.getString(TestConfigManager.KEY_PING_TEST_ADDRESS, "8.8.8.8") ?: "8.8.8.8")
+    }
+
+    var dnsTestAddress by remember {
+        mutableStateOf(testConfig.getString(TestConfigManager.KEY_DNS_TEST_ADDRESS, "google.com") ?: "google.com")
+    }
+
+    var webTestAddress by remember {
+        mutableStateOf(testConfig.getString(TestConfigManager.KEY_WEB_TEST_ADDRESS, "https://www.google.com") ?: "https://www.google.com")
+    }
+
+    Column {
+        Text("Test Configuration", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = smsTestNumber,
+            onValueChange = {
+                smsTestNumber = it
+                TestConfigManager.setSmsTestNumber(context, it)
+            },
+            label = { Text("SMS Test Number") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = pingTestAddress,
+            onValueChange = {
+                pingTestAddress = it
+                TestConfigManager.setPingTestAddress(context, it)
+            },
+            label = { Text("Ping Test Address") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = dnsTestAddress,
+            onValueChange = {
+                dnsTestAddress = it
+                TestConfigManager.setDnsTestAddress(context, it)
+            },
+            label = { Text("DNS Test Address") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = webTestAddress,
+            onValueChange = {
+                webTestAddress = it
+                TestConfigManager.setWebTestAddress(context, it)
+            },
+            label = { Text("Web Test Address") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
