@@ -1,11 +1,14 @@
 package com.netwatcher.polaris.utils
 
+import android.util.Log
 import java.net.InetAddress
 import java.net.UnknownHostException
 
 object DnsUtility {
-    fun measureDnsResolution(hostname: String = "google.com"): Double? {
+    private const val DEFAULT_DNS_HOST = "google.com"
+    fun measureDnsResolution(hostname: String): Double? {
         return try {
+            Log.d("DNS", "Starting DNS Response Measurement for $hostname")
             val startTime = System.currentTimeMillis()
             InetAddress.getAllByName(hostname)
             (System.currentTimeMillis() - startTime).toDouble()
@@ -19,13 +22,20 @@ object DnsUtility {
     }
 
     fun measureDnsResolutionWithRetry(
-        hostname: String = "google.com",
+        hostname: String,
         retries: Int = 3
     ): Double? {
+        val dnsHost = when {
+            hostname.isNullOrBlank() -> {
+                Log.w("PING", "No host provided, using default: $DEFAULT_DNS_HOST")
+                DEFAULT_DNS_HOST
+            }
+            else -> hostname
+        }
         var lastError: Exception? = null
         repeat(retries) {
             try {
-                return measureDnsResolution(hostname)
+                return measureDnsResolution(dnsHost)
             } catch (e: Exception) {
                 lastError = e
             }
