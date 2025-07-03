@@ -15,15 +15,12 @@ import androidx.core.app.NotificationCompat
 import com.netwatcher.polaris.AppDatabaseHelper
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
+import com.netwatcher.polaris.domain.model.TestSelection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-/**
- * A foreground service dedicated to running the network test and saving the results locally.
- * It does not perform any data syncing.
- */
 class TestExecutionService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO)
@@ -45,7 +42,11 @@ class TestExecutionService : Service() {
         serviceScope.launch {
             try {
                 Log.d("TestExecutionService", "Running network test in background...")
-                repository.runNetworkTest()
+                repository.runNetworkTest(
+                    testSelection = TestSelection(false, false, false,
+                        false, false, false
+                    )
+                )
                 Log.d("TestExecutionService", "Network test finished and saved locally.")
             } catch (e: Exception) {
                 Log.e("TestExecutionService", "Error during background test: ${e.message}", e)
@@ -57,9 +58,6 @@ class TestExecutionService : Service() {
         return START_NOT_STICKY
     }
 
-    /**
-     * Creates the notification required for a foreground service.
-     */
     private fun createNotification(): Notification {
         val channelId = "network_test_channel"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
