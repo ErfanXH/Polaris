@@ -1,13 +1,24 @@
 package com.netwatcher.polaris.utils
 
+import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.regex.Pattern
 
 object PingUtility {
-    fun ping(host: String, count: Int = 3): Double? {
+    private const val DEFAULT_PING_HOST = "8.8.8.8"
+    fun ping(host: String?, count: Int = 3): Double? {
         return try {
-            val process = ProcessBuilder("ping", "-c", count.toString(), host).start()
+            Log.d("PING", "Starting PING Response Measurement for $host")
+            val pingHost = when {
+                host.isNullOrBlank() -> {
+                    Log.w("PING", "No host provided, using default: $DEFAULT_PING_HOST")
+                    DEFAULT_PING_HOST
+                }
+                else -> host
+            }
+
+            val process = ProcessBuilder("ping", "-c", count.toString(), pingHost).start()
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             val output = StringBuilder()
             var line: String?
@@ -20,6 +31,7 @@ object PingUtility {
 
             parsePingOutput(output.toString())
         } catch (e: Exception) {
+            Log.e("PING", "$e")
             null
         }
     }

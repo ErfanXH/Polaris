@@ -4,26 +4,32 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.FlowColumnScopeInstance.weight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,10 +38,12 @@ import com.netwatcher.polaris.presentation.home.components.KeyValueRow
 import com.netwatcher.polaris.presentation.home.components.NetworkInfoCard
 import com.netwatcher.polaris.presentation.home.components.RunTestButton
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         viewModel.loadInitialState()
@@ -43,48 +51,87 @@ fun HomeScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    Column (
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
     ) {
-        when (val state = uiState) {
-            is HomeUiState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-            is HomeUiState.Error -> {
-                Text(
-                    text = state.message,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .background(MaterialTheme.colorScheme.background),
-                )
-            }
-            is HomeUiState.Empty -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("No Test Data Available",
-                        color = MaterialTheme.colorScheme.primary
+        TopAppBar(
+            title = {
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Home"
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    RunTestButton(onClick = { viewModel.runNetworkTest() })
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = "Home",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
-            }
-            is HomeUiState.Success -> {
-                HomeContent(
-                    networkData = state.data,
-                    onRunTest = { viewModel.runNetworkTest() },
-                    onProfileClick = onProfileClick
-                )
-            }
-            is HomeUiState.LocationSuccess -> {
-                Text(text = "Lat: ${state.location.latitude}, Lon: ${state.location.longitude}")
+            },
+            actions = {
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings"
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = Color.Black,
+                navigationIconContentColor = Color.Black,
+                actionIconContentColor = Color.Black
+            )
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            when (val state = uiState) {
+                is HomeUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                is HomeUiState.Error -> {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .background(MaterialTheme.colorScheme.background),
+                    )
+                }
+
+                is HomeUiState.Empty -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "No Test Data Available",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        RunTestButton(onClick = { viewModel.runNetworkTest() })
+                    }
+                }
+
+                is HomeUiState.Success -> {
+                    HomeContent(
+                        networkData = state.data,
+                        onRunTest = { viewModel.runNetworkTest() },
+                        onProfileClick = onProfileClick
+                    )
+                }
+
+                is HomeUiState.LocationSuccess -> {
+                    Text(text = "Lat: ${state.location.latitude}, Lon: ${state.location.longitude}")
+                }
             }
         }
     }
@@ -102,12 +149,14 @@ private fun HomeContent(
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(8.dp))
+
         RunTestButton(
             onClick = onRunTest,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "Last Test Results",
@@ -205,7 +254,8 @@ private fun NetworkResults(networkData: NetworkData) {
     )
 
     LazyColumn(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
