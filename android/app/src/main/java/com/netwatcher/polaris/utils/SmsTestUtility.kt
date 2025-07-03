@@ -21,7 +21,6 @@ class SmsTestUtility(private val context: Context) {
     private var smsStartTime: Double = 0.0
     private val smsSentAction = "${context.packageName}.SMS_SENT_ACTION"
     private val smsDeliveredAction = "${context.packageName}.SMS_DELIVERED_ACTION"
-    private val testPhoneNumber = "+989012571580"
 
     private val smsSentReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -51,8 +50,13 @@ class SmsTestUtility(private val context: Context) {
         }
     }
 
+    private fun getTestPhoneNumber(context: Context): String {
+        return TestConfigManager.getPreferences(context)
+            .getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "+989303009264"
+    }
+
     @SuppressLint("MissingPermission")
-    suspend fun measureSmsDeliveryTime(): Double? = suspendCoroutine { cont ->
+    suspend fun measureSmsDeliveryTime(context: Context): Double? = suspendCoroutine { cont ->
         try {
             registerReceivers()
             smsContinuation = cont
@@ -62,7 +66,7 @@ class SmsTestUtility(private val context: Context) {
             val deliveredIntent = createPendingIntent(smsDeliveredAction)
 
             getSmsManager().sendTextMessage(
-                testPhoneNumber,
+                getTestPhoneNumber(context),
                 null,
                 "This is a test for SMS delivery time from POLARIS...",
                 sentIntent,
@@ -95,12 +99,6 @@ class SmsTestUtility(private val context: Context) {
     }
 
     private fun registerReceivers() {
-//        context.registerReceiver(
-//            smsSentReceiver,
-//            IntentFilter(smsSentAction),
-//            Context.RECEIVER_EXPORTED
-//        )
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(smsSentReceiver, IntentFilter(smsSentAction), Context.RECEIVER_EXPORTED)
         } else {
@@ -112,11 +110,6 @@ class SmsTestUtility(private val context: Context) {
         } else {
             context.registerReceiver(smsDeliveredReceiver, IntentFilter(smsDeliveredAction))
         }
-
-//        context.registerReceiver(
-//            smsDeliveredReceiver,
-//            IntentFilter(smsDeliveredAction)
-//        )
     }
 
     private fun setupTimeout() {

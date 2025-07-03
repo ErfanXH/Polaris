@@ -153,24 +153,6 @@ class NetworkRepositoryImpl(
         }
     }
 
-    override suspend fun pingTest(host: String): Double? = withContext(Dispatchers.IO) {
-        try {
-            PingUtility.ping(host)
-        } catch (e: Exception) {
-            Log.e("PingTest", "Error during ping test", e)
-            null
-        }
-    }
-
-    override suspend fun dnsTest(hostname: String): Double? = withContext(Dispatchers.IO) {
-        try {
-            DnsUtility.measureDnsResolutionWithRetry(hostname)
-        } catch (e: Exception) {
-            Log.e("DnsTest", "Error during DNS test", e)
-            null
-        }
-    }
-
     override suspend fun measureUploadThroughput(): Double {
         return HttpUploadUtility.measureUploadThroughput()
     }
@@ -179,32 +161,49 @@ class NetworkRepositoryImpl(
         return HttpDownloadUtility.measureDownloadThroughput()
     }
 
-    override suspend fun measureWebResponseTime(): Double? = withContext(Dispatchers.IO) {
-        val testUrls = listOf(
-            "https://www.google.com",
-            "https://quera.org"
-        )
-
-        val results = mutableListOf<Double>()
-
-        for (url in testUrls) {
-            try {
-                val time = WebTestUtility.measureWebResponseTime(url)
-                time?.let { results.add(it) }
-                if (results.size >= 1) break
-            } catch (e: Exception) {
-                Log.e("NetworkRepository", "Error measuring web response for $url: ${e.message}")
-            }
+    override suspend fun pingTest(): Double? = withContext(Dispatchers.IO) {
+        val testHost = TestConfigManager.getPreferences(context)
+            .getString(TestConfigManager.KEY_PING_TEST_ADDRESS, "8.8.8.8") ?: "8.8.8.8"
+        try {
+            PingUtility.ping(testHost)
+        } catch (e: Exception) {
+            Log.e("PingTest", "Error during ping test", e)
+            null
         }
-
-        results.takeIf { it.isNotEmpty() }?.average()?.toDouble()
     }
 
-//    private val smsTestUtility = SmsTestUtility(context)
-//    @SuppressLint("MissingPermission")
-//    suspend fun measureSmsDeliveryTime(): Long? = withContext(Dispatchers.IO) {
-//        smsTestUtility.measureSmsDeliveryTime()
-//    }
+    override suspend fun dnsTest(): Double? = withContext(Dispatchers.IO) {
+        val testHost = TestConfigManager.getPreferences(context)
+            .getString(TestConfigManager.KEY_DNS_TEST_ADDRESS, "google.com") ?: "google.com"
+        try {
+            DnsUtility.measureDnsResolutionWithRetry(testHost)
+        } catch (e: Exception) {
+            Log.e("DnsTest", "Error during DNS test", e)
+            null
+        }
+    }
+
+    override suspend fun measureWebResponseTime(): Double? = withContext(Dispatchers.IO) {
+        val testUrl = TestConfigManager.getPreferences(context)
+            .getString(TestConfigManager.KEY_WEB_TEST_ADDRESS, null)
+
+        try {
+            WebTestUtility.measureWebResponseTime(testUrl).also { result ->
+                if (result == null) {
+                    Log.e("WebTest", "Web response test failed for URL: ${testUrl ?: "null"}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("WebTest", "Error during web response test", e)
+            null
+        }
+    }
+
+    private val smsTestUtility = SmsTestUtility(context)
+    @SuppressLint("MissingPermission")
+    suspend fun measureSmsDeliveryTime(): Double? = withContext(Dispatchers.IO) {
+        smsTestUtility.measureSmsDeliveryTime(context)?.toDouble()
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
@@ -218,9 +217,6 @@ class NetworkRepositoryImpl(
         val location = getCurrentLocation()
         val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
         val netType = getNetworkType(cellInfo)
-
-//        val networkTypeInt = telephonyManager.dataNetworkType
-//        val netType = networkTypeToString(networkTypeInt)
 
         val networkData = NetworkData(
             location?.latitude ?: -1.0,
@@ -246,14 +242,12 @@ class NetworkRepositoryImpl(
             pingTest() ?: -1.0,
             dnsTest() ?: -1.0,
             measureWebResponseTime() ?: -1.0,
-//            measureSmsDeliveryTime() ?: -1.0
-            -1.0,
+            measureSmsDeliveryTime() ?: -1.0,
             NetworkDataDao.getEmail()
         )
 
         if (isValidNetworkData(networkData, cellInfo)) {
             addNetworkData(networkData)
-//            return networkData
         }
 
         return networkData

@@ -42,7 +42,7 @@ object DataSyncScheduler {
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             SYNC_WORK_TAG,
-            ExistingPeriodicWorkPolicy.REPLACE, // Replace existing work with the new one
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, // Replace !! existing work with the new one
             syncRequest
         )
     }
