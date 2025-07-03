@@ -1,6 +1,8 @@
 package com.netwatcher.polaris.presentation.home
 
+import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,16 +40,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.netwatcher.polaris.domain.model.NetworkData
+import com.netwatcher.polaris.domain.model.TestSelection
 import com.netwatcher.polaris.presentation.home.components.KeyValueRow
 import com.netwatcher.polaris.presentation.home.components.NetworkInfoCard
 import com.netwatcher.polaris.presentation.home.components.RunTestButton
+import com.netwatcher.polaris.utils.TestConfigManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onProfileClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    context: Context
 ) {
     LaunchedEffect(Unit) {
         viewModel.loadInitialState()
@@ -112,20 +121,23 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        RunTestButton(onClick = { viewModel.runNetworkTest(
+                            TestConfigManager.getTestSelection(context)
+                        ) })
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             "No Test Data Available",
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        RunTestButton(onClick = { viewModel.runNetworkTest() })
                     }
                 }
 
                 is HomeUiState.Success -> {
                     HomeContent(
                         networkData = state.data,
-                        onRunTest = { viewModel.runNetworkTest() },
-                        onProfileClick = onProfileClick
+                        onRunTest = { selection -> viewModel.runNetworkTest(selection) },
+                        onProfileClick = onProfileClick,
+                        context = context
                     )
                 }
 
@@ -139,21 +151,37 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     networkData: NetworkData,
-    onRunTest: () -> Unit,
-    onProfileClick: () -> Unit
+    onRunTest: (TestSelection) -> Unit,
+    onProfileClick: () -> Unit,
+    context: Context
 ) {
+//    val testSelection = remember { TestConfigManager.getTestSelection(context) }
+
+    var testSelection by remember {
+        mutableStateOf(TestConfigManager.getTestSelection(context))
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp, vertical = 8.dp)
-            .background(MaterialTheme.colorScheme.background),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
         RunTestButton(
-            onClick = onRunTest,
+            onClick = { onRunTest(testSelection) },
             modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TestSelectionSection(
+            initialSelection = testSelection,
+            onSelectionChanged = { newSelection ->
+                TestConfigManager.setTestSelection(context, newSelection)
+                testSelection = newSelection
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -276,3 +304,103 @@ private fun NetworkResults(networkData: NetworkData) {
     }
 }
 
+@Composable
+fun TestSelectionSection(
+    modifier: Modifier = Modifier,
+    initialSelection: TestSelection = TestSelection(),
+    onSelectionChanged: (TestSelection) -> Unit
+) {
+    var selection by remember { mutableStateOf(initialSelection) }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = "Select Tests to Run",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TestOption(
+                label = "Upload",
+                checked = selection.runUploadTest,
+                onCheckedChange = {
+                    selection = selection.copy(runUploadTest = it)
+                    onSelectionChanged(selection)
+                }
+            )
+            TestOption(
+                label = "Ping",
+                checked = selection.runPingTest,
+                onCheckedChange = {
+                    selection = selection.copy(runPingTest = it)
+                    onSelectionChanged(selection)
+                }
+            )
+            TestOption(
+                label = "Web",
+                checked = selection.runWebTest,
+                onCheckedChange = {
+                    selection = selection.copy(runWebTest = it)
+                    onSelectionChanged(selection)
+                }
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TestOption(
+                label = "Download",
+                checked = selection.runDownloadTest,
+                onCheckedChange = {
+                    selection = selection.copy(runDownloadTest = it)
+                    onSelectionChanged(selection)
+                }
+            )
+            TestOption(
+                label = "DNS",
+                checked = selection.runDnsTest,
+                onCheckedChange = {
+                    selection = selection.copy(runDnsTest = it)
+                    onSelectionChanged(selection)
+                }
+            )
+            TestOption(
+                label = "SMS",
+                checked = selection.runSmsTest,
+                onCheckedChange = {
+                    selection = selection.copy(runSmsTest = it)
+                    onSelectionChanged(selection)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun TestOption(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable { onCheckedChange(!checked) }
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        Text(text = label, style = MaterialTheme.typography.labelMedium)
+    }
+}

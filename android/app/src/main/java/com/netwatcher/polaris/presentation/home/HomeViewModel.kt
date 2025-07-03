@@ -1,26 +1,25 @@
 package com.netwatcher.polaris.presentation.home
 
 import android.app.Application
+import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.netwatcher.polaris.domain.model.TestSelection
 import com.netwatcher.polaris.presentation.home.HomeUiState
 import com.netwatcher.polaris.domain.repository.NetworkRepository
+import com.netwatcher.polaris.service.TestExecutionService
 import com.netwatcher.polaris.utils.TestAlarmScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel for the HomeScreen.
- * Inherits from AndroidViewModel to get access to the application context,
- * which is needed for rescheduling alarms.
- */
 class HomeViewModel(
     private val repository: NetworkRepository,
-    application: Application // Add application parameter
-) : AndroidViewModel(application) { // Inherit from AndroidViewModel
+    application: Application
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -31,20 +30,16 @@ class HomeViewModel(
         selectedSubscriptionId = subscriptionId
     }
 
-    /**
-     * Runs a manual network test, saves the result locally, and reschedules the next background test.
-     */
-    fun runNetworkTest() {
+    fun runNetworkTest(testSelection: TestSelection) {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
-                val result = repository.runNetworkTest(selectedSubscriptionId)
+                val result = repository.runNetworkTest(selectedSubscriptionId, testSelection)
                 _uiState.value = HomeUiState.Success(result)
 
                 // Reschedule the background test alarm after a manual run
                 TestAlarmScheduler.rescheduleTest(getApplication())
                 Log.d("HomeViewModel", "Manual test run. Background test rescheduled.")
-
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error(e.message ?: "Network Test Failed")
             }
@@ -55,9 +50,6 @@ class HomeViewModel(
         loadInitialState()
     }
 
-    /**
-     * Loads the last test result from the local database to show on the screen.
-     */
     fun loadInitialState() {
         viewModelScope.launch {
             try {
