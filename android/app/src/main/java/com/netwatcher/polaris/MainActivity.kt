@@ -78,9 +78,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Initializes schedulers and proceeds with app startup.
-     */
     private fun initializeApp() {
         checkBatteryOptimizations()
         checkAndRequestExactAlarmPermission()
@@ -223,7 +220,6 @@ fun PolarisNav(mainActivity: MainActivity) {
     val telephonyManager = mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     val database = AppDatabaseHelper.getDatabase(mainActivity)
 
-    // Use the custom factory to create the HomeViewModel instance
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             repository = NetworkRepositoryImpl(
@@ -286,7 +282,8 @@ fun PolarisNav(mainActivity: MainActivity) {
         composable("home") {
             HomeScreen(
                 viewModel = homeViewModel,
-                onSettingsClick = { navController.navigate("settings") }
+                onSettingsClick = { navController.navigate("settings") },
+                context = mainActivity
             )
         }
         composable("settings") {
@@ -302,10 +299,6 @@ fun PolarisNav(mainActivity: MainActivity) {
     }
 }
 
-/**
- * A ViewModelProvider.Factory for creating HomeViewModel instances.
- * This is necessary because HomeViewModel now has a constructor with parameters (Application).
- */
 class HomeViewModelFactory(
     private val repository: NetworkRepository,
     private val application: Application
