@@ -19,6 +19,7 @@ import com.netwatcher.polaris.data.remote.NetworkDataApi
 import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
+import com.netwatcher.polaris.domain.model.TestSelection
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.*
 import kotlinx.coroutines.Dispatchers
@@ -207,7 +208,7 @@ class NetworkRepositoryImpl(
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    override suspend fun runNetworkTest(subscriptionId: Int?): NetworkData {
+    override suspend fun runNetworkTest(subscriptionId: Int?, testSelection: TestSelection): NetworkData {
         val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && subscriptionId != null) {
             telephonyManager.createForSubscriptionId(subscriptionId)
         } else {
@@ -217,6 +218,18 @@ class NetworkRepositoryImpl(
         val location = getCurrentLocation()
         val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
         val netType = getNetworkType(cellInfo)
+
+        val httpUploadThroughput = if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
+        val httpDownloadThroughput = if (testSelection.runDownloadTest) measureDownloadThroughput() else -1.0
+        val pingTime = if (testSelection.runPingTest) pingTest() else -1.0
+        val dnsResponse = if (testSelection.runDnsTest) dnsTest() else -1.0
+        val webResponse = if (testSelection.runWebTest) measureWebResponseTime() else -1.0
+        val smsDeliveryTime = if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
+
+        println(testSelection)
+        Log.d("RUNTIME", testSelection.runPingTest.toString())
+        Log.d("RUNTIME", testSelection.runDnsTest.toString())
+        Log.d("RUNTIME", testSelection.runWebTest.toString())
 
         val networkData = NetworkData(
             location?.latitude ?: -1.0,
@@ -237,12 +250,12 @@ class NetworkRepositoryImpl(
             getEcIo(cellInfo),
             getRxLev(cellInfo),
             getSsRsrp(cellInfo),
-            measureUploadThroughput() ?: -1.0,
-            measureDownloadThroughput() ?: -1.0,
-            pingTest() ?: -1.0,
-            dnsTest() ?: -1.0,
-            measureWebResponseTime() ?: -1.0,
-            measureSmsDeliveryTime() ?: -1.0,
+            httpUploadThroughput,
+            httpDownloadThroughput,
+            pingTime,
+            dnsResponse,
+            webResponse,
+            smsDeliveryTime,
             NetworkDataDao.getEmail()
         )
 

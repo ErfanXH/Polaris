@@ -2,11 +2,12 @@ package com.netwatcher.polaris.domain.repository
 
 import android.location.Location
 import com.netwatcher.polaris.domain.model.NetworkData
+import com.netwatcher.polaris.domain.model.TestSelection
 import kotlinx.coroutines.flow.Flow
 import okhttp3.RequestBody
 
 interface NetworkRepository {
-    suspend fun runNetworkTest(subscriptionId: Int? = null): NetworkData
+    suspend fun runNetworkTest(subscriptionId: Int? = null, testSelection: TestSelection): NetworkData
     suspend fun getCurrentLocation(): Location?
     suspend fun pingTest(): Double?
     suspend fun dnsTest(): Double?
