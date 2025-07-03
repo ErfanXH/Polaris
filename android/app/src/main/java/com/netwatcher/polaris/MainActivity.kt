@@ -1,10 +1,9 @@
 package com.netwatcher.polaris
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.AlarmManager
+import android.app.Application
 import android.app.AlertDialog
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,15 +13,18 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.TelephonyManager
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
+import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.presentation.auth.AuthViewModel
 import com.netwatcher.polaris.presentation.auth.LoginScreen
 import com.netwatcher.polaris.presentation.auth.SignUpScreen
@@ -38,35 +41,11 @@ import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.settings.SettingsScreen
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
-import com.netwatcher.polaris.receiver.AlarmReceiver
-import com.netwatcher.polaris.utils.AlarmUtility.scheduleExactAlarm
+import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
+import com.netwatcher.polaris.utils.TestAlarmScheduler
 
 class MainActivity : ComponentActivity() {
-
-    companion object {
-        private const val PERMISSION_REQUEST_CODE = 1
-        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2
-
-        private val REQUIRED_PERMISSIONS = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS,
-        )
-
-        private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-        )
-
-        private val REQUIRED_PERMISSIONS_API_33 = arrayOf(
-            Manifest.permission.POST_NOTIFICATIONS
-        )
-    }
 
     private var isWaitingForLocation = false
     private var isContentSet = false
@@ -95,11 +74,20 @@ class MainActivity : ComponentActivity() {
         if (!hasAllPermissions()) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE)
         } else {
-            checkBatteryOptimizations()
-            checkAndRequestExactAlarmPermission()
-            scheduleExactAlarm(this)
-            checkLocationAndSetContent()
+            checkNotificationPermission()
         }
+    }
+
+    /**
+     * Initializes schedulers and proceeds with app startup.
+     */
+    private fun initializeApp() {
+        checkBatteryOptimizations()
+        checkAndRequestExactAlarmPermission()
+        // Schedule the first test and the periodic sync
+        TestAlarmScheduler.scheduleTest(this)
+        DataSyncScheduler.schedulePeriodicSync(this)
+        checkLocationAndSetContent()
     }
 
     private fun checkLocationAndSetContent() {
@@ -112,13 +100,13 @@ class MainActivity : ComponentActivity() {
 
     private fun checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS_API_33,
-                    NOTIFICATION_PERMISSION_REQUEST_CODE
-                )
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS_API_33, NOTIFICATION_PERMISSION_REQUEST_CODE)
+            } else {
+                initializeApp() // Already granted, so initialize
             }
+        } else {
+            initializeApp() // Not needed for older APIs
         }
     }
 
@@ -165,12 +153,9 @@ class MainActivity : ComponentActivity() {
             val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }
-
             return basePermissionsGranted && backgroundLocationGranted
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return basePermissionsGranted
         }
-        return true
+        return basePermissionsGranted
     }
 
     private fun checkBatteryOptimizations() {
@@ -186,51 +171,47 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-//    override fun onRequestPermissionsResult(requestCode: Int,permissions: Array<String>,grantResults: IntArray) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        if (requestCode == PERMISSION_REQUEST_CODE) {
-//            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-//                checkBatteryOptimizations()
-//                checkAndRequestExactAlarmPermission()
-//                scheduleExactAlarm(this)
-//                checkLocationAndSetContent()
-//            } else {
-//                Toast.makeText(
-//                    this,
-//                    "Permissions are required for the app to function",
-//                    Toast.LENGTH_LONG
-//                ).show()
-//                finish()
-//            }
-//        }
-//    }
-
-    override fun onRequestPermissionsResult(requestCode: Int,permissions: Array<String>,grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                     checkNotificationPermission()
-                    checkBatteryOptimizations()
-                    checkAndRequestExactAlarmPermission()
-                    scheduleExactAlarm(this)
-                    checkLocationAndSetContent()
                 } else {
-                    Toast.makeText(
-                        this,
-                        "Permissions are required for the app to function",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this, "Permissions are required for the app to function", Toast.LENGTH_LONG).show()
                     finish()
                 }
             }
             NOTIFICATION_PERMISSION_REQUEST_CODE -> {
-                checkBatteryOptimizations()
-                checkAndRequestExactAlarmPermission()
-                scheduleExactAlarm(this)
-                checkLocationAndSetContent()
+                initializeApp()
             }
         }
+    }
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2
+
+        private val REQUIRED_PERMISSIONS = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_SMS,
+        )
+
+        @RequiresApi(Build.VERSION_CODES.Q)
+        private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+        )
+
+        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+        private val REQUIRED_PERMISSIONS_API_33 = arrayOf(
+            Manifest.permission.POST_NOTIFICATIONS
+        )
     }
 }
 
@@ -239,21 +220,23 @@ fun PolarisNav(mainActivity: MainActivity) {
     val navController = rememberNavController()
     val authViewModel = remember { AuthViewModel(NetworkModule.authRepository) }
 
-    val telephonyManager =
-        mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    val telephonyManager = mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     val database = AppDatabaseHelper.getDatabase(mainActivity)
-    val homeViewModel = remember {
-        HomeViewModel(
-            NetworkRepositoryImpl(
-                context = mainActivity,
+
+    // Use the custom factory to create the HomeViewModel instance
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(
+            repository = NetworkRepositoryImpl(
+                context = mainActivity.applicationContext,
                 telephonyManager = telephonyManager,
                 networkDataDao = database.networkDataDao(),
                 api = NetworkModule.networkDataApi
-            )
+            ),
+            application = mainActivity.application
         )
-    }
-    NavHost(navController = navController, startDestination = "login") {
+    )
 
+    NavHost(navController = navController, startDestination = "login") {
         composable("sign_up") {
             SignUpScreen(
                 viewModel = authViewModel,
@@ -263,7 +246,6 @@ fun PolarisNav(mainActivity: MainActivity) {
                 }
             )
         }
-
         composable("login") {
             LoginScreen(
                 viewModel = authViewModel,
@@ -278,7 +260,6 @@ fun PolarisNav(mainActivity: MainActivity) {
                 }
             )
         }
-
         composable(
             "verification?numberOrEmail={numberOrEmail}&password={password}",
             arguments = listOf(
@@ -302,14 +283,12 @@ fun PolarisNav(mainActivity: MainActivity) {
                 }
             )
         }
-
         composable("home") {
             HomeScreen(
                 viewModel = homeViewModel,
                 onSettingsClick = { navController.navigate("settings") }
             )
         }
-
         composable("settings") {
             SettingsScreen(
                 onSimSelected = { simId ->
@@ -317,10 +296,25 @@ fun PolarisNav(mainActivity: MainActivity) {
                 },
                 onBack = {
                     navController.popBackStack()
-//                    homeViewModel.loadInitialState()
                 }
             )
         }
+    }
+}
 
+/**
+ * A ViewModelProvider.Factory for creating HomeViewModel instances.
+ * This is necessary because HomeViewModel now has a constructor with parameters (Application).
+ */
+class HomeViewModelFactory(
+    private val repository: NetworkRepository,
+    private val application: Application
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HomeViewModel(repository, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
