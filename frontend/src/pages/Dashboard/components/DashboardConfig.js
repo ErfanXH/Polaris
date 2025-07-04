@@ -333,7 +333,7 @@ export function getLineChartOption(
   titleKey = "Value",
   yLabel = "Value"
 ) {
-  data = data.sort(
+  data = [...data].sort(
     (a, b) => LocalizeDateTime(a.timestamp) - LocalizeDateTime(b.timestamp)
   );
   const timestamps = data
