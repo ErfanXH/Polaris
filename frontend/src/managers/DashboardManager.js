@@ -1,5 +1,4 @@
 import { api } from "./ApiManager";
-import cookie from "./CookieManager";
 
 const DashboardManager = {
   getAll: async () => {
@@ -10,6 +9,7 @@ const DashboardManager = {
       throw JSON.stringify(error.response?.data) || error.message;
     }
   },
+  // () => mockData,
 };
 
 export default DashboardManager;

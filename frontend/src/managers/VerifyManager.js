@@ -1,4 +1,5 @@
 import { api } from "./ApiManager";
+import cookie from "./CookieManager";
 
 const VerifyManager = {
   sendVerificationCode: async (credential) => {
@@ -19,6 +20,10 @@ const VerifyManager = {
         password: password,
         code: code,
       });
+      const token = response.data?.access;
+      if (token) {
+        cookie.SaveToken(token);
+      }
       return response.data;
     } catch (error) {
       throw JSON.stringify(error.response?.data) || error.message;

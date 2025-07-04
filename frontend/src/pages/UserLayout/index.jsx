@@ -48,9 +48,9 @@ export default function UserLayout() {
   };
 
   const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/user/dashboard" },
-    { text: "Profile", icon: <PersonIcon />, path: "/user/profile" },
-    { text: "Map", icon: <MapIcon />, path: "/user/map" },
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+    // { text: "Profile", icon: <PersonIcon />, path: "/profile" },
+    { text: "Map", icon: <MapIcon />, path: "/map" },
     {
       text: "Sign Out",
       icon: <LogoutIcon />,

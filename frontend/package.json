@@ -31,6 +31,7 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.6.2",
     "react-toastify": "^11.0.5",
+    "simple-statistics": "^7.8.8",
     "zod": "^3.25.61",
     "zustand": "^5.0.5"
   },

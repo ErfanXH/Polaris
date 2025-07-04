@@ -88,3 +88,31 @@ export function FrequencyBandChart({ option, chartRef }) {
 export function RsrpRsrqScatterChart({ option, chartRef }) {
   return <ChartContainer option={option} chartRef={chartRef} />;
 }
+
+// export function TestPerformanceRadarChart({ option, chartRef }) {
+//   return <ChartContainer option={option} chartRef={chartRef} />;
+// }
+
+export function SignalStrengthOverTimeChart({ option, chartRef }) {
+  return <ChartContainer option={option} chartRef={chartRef} />;
+}
+
+export function MeasurementCountByHourChart({ option, chartRef }) {
+  return <ChartContainer option={option} chartRef={chartRef} />;
+}
+
+export function MostFrequentCellsChart({ option, chartRef }) {
+  return <ChartContainer option={option} chartRef={chartRef} />;
+}
+
+export function TestLineChart({ option, chartRef }) {
+  return <ChartContainer option={option} chartRef={chartRef} />;
+}
+
+export function TestBoxPlotChart({ option, chartRef }) {
+  return <ChartContainer option={option} chartRef={chartRef} />;
+}
+
+export function TestDistributionChart({ option, chartRef }) {
+  return <ChartContainer option={option} chartRef={chartRef} />;
+}
