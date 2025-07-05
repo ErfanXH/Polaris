@@ -191,6 +191,7 @@ class SelectUserSerializer(serializers.Serializer):
             'phone_number': instance.phone_number,
             'email': instance.email,
             'image': instance.image.url if instance.image else None,
+            'last_login': instance.last_login,
             'is_banned': instance.is_banned,
             'is_verified': instance.is_verified,
         }

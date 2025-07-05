@@ -235,6 +235,6 @@ class AdminViewSet(GenericViewSet):
     
     @action(['GET'],detail=False)
     def all_users(self,request):
-        all_users = User.objects.filter(is_admin = False)
+        all_users = User.objects.filter(is_staff = False)
         serializer = SelectUserSerializer(all_users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
