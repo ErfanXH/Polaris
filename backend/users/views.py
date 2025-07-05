@@ -225,9 +225,16 @@ class AdminViewSet(GenericViewSet):
         user.unban()
         return Response({'detail' : f'removed restriction on user {user.phone_number}'})
     
-    @action(['GET'],detail=False)
-    def user_info(self,request):
-        serializer = self.get_serializer(data=request.data)
+    @action(['GET'],detail=False,url_path="user_info/(?P<number_or_email>[^/]+)")
+    def user_info(self,request,number_or_email = None):
+        # The serializer will handle the validation and NotFound error
+        serializer = self.get_serializer(data={'number_or_email': number_or_email})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         return Response(serializer.to_representation(user), status=status.HTTP_200_OK)
+    
+    @action(['GET'],detail=False)
+    def all_users(self,request):
+        all_users = User.objects.filter(is_admin = False)
+        serializer = SelectUserSerializer(all_users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -190,12 +190,8 @@ class SelectUserSerializer(serializers.Serializer):
             'id': instance.id,
             'phone_number': instance.phone_number,
             'email': instance.email,
-            'username': instance.username,
             'image': instance.image.url if instance.image else None,
-            'is_admin': instance.is_staff,
-            'is_superuser':instance.is_superuser,
             'is_banned': instance.is_banned,
             'is_verified': instance.is_verified,
-            'allow_admin_access': instance.allow_admin_access
         }
         return representation
