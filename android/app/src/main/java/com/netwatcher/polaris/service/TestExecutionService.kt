@@ -16,6 +16,7 @@ import com.netwatcher.polaris.AppDatabaseHelper
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.domain.model.TestSelection
+import com.netwatcher.polaris.utils.TestConfigManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -39,14 +40,17 @@ class TestExecutionService : Service() {
         Log.d("TestExecutionService", "Starting foreground service for test execution...")
         startForeground(NOTIF_ID, createNotification())
 
+        val testSelection = TestConfigManager.getTestSelection(this)
+
         serviceScope.launch {
             try {
                 Log.d("TestExecutionService", "Running network test in background...")
-                repository.runNetworkTest(
-                    testSelection = TestSelection(false, false, false,
-                        false, false, false
-                    )
-                )
+//                repository.runNetworkTest(
+//                    testSelection = TestSelection(false, false, false,
+//                        false, false, false
+//                    )
+//                )
+                repository.runNetworkTest(testSelection = testSelection)
                 Log.d("TestExecutionService", "Network test finished and saved locally.")
             } catch (e: Exception) {
                 Log.e("TestExecutionService", "Error during background test: ${e.message}", e)

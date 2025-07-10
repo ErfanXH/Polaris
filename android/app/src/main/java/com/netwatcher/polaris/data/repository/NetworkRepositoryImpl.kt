@@ -226,10 +226,7 @@ class NetworkRepositoryImpl(
         val webResponse = if (testSelection.runWebTest) measureWebResponseTime() else -1.0
         val smsDeliveryTime = if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
 
-        println(testSelection)
-        Log.d("RUNTIME", testSelection.runPingTest.toString())
-        Log.d("RUNTIME", testSelection.runDnsTest.toString())
-        Log.d("RUNTIME", testSelection.runWebTest.toString())
+        println("test selection: $testSelection")
 
         val networkData = NetworkData(
             location?.latitude ?: -1.0,
