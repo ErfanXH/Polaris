@@ -127,7 +127,7 @@ fun SyncIntervalSettings(context: Context) {
 
     Column {
         Text("Background Sync Interval", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         ExposedDropdownMenuBox(
             expanded = expanded,
