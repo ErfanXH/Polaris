@@ -155,8 +155,6 @@ private fun HomeContent(
     onProfileClick: () -> Unit,
     context: Context
 ) {
-//    val testSelection = remember { TestConfigManager.getTestSelection(context) }
-
     var testSelection by remember {
         mutableStateOf(TestConfigManager.getTestSelection(context))
     }
@@ -261,22 +259,22 @@ private fun NetworkResults(networkData: NetworkData) {
 
         Triple("Functional Tests", listOf(
             "HTTP Upload Throughput" to (
-                    networkData.httpUploadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "failed"
+                    networkData.httpUploadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "N/A"
                     ),
             "HTTP Download Throughput" to (
-                    networkData.httpDownloadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "failed"
+                    networkData.httpDownloadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "N/A"
                     ),
             "Ping Time" to (
-                    networkData.pingTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    networkData.pingTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
                     ),
             "DNS Response Time" to (
-                    networkData.dnsResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    networkData.dnsResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
                     ),
             "Web Response Time" to (
-                    networkData.webResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    networkData.webResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
                     ),
             "SMS Response Time" to (
-                    networkData.smsDeliveryTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "failed"
+                    networkData.smsDeliveryTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
                     )
         )) { _: NetworkData -> }
     )
