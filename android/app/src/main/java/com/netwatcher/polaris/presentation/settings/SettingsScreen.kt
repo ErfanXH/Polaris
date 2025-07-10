@@ -167,7 +167,7 @@ fun TestConfigurationSettings(context: Context) {
     val testConfig = remember { TestConfigManager.getPreferences(context) }
 
     var smsTestNumber by remember {
-        mutableStateOf(testConfig.getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989012571580") ?: "+989012571580")
+        mutableStateOf(testConfig.getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "+989303009264")
     }
 
     var pingTestAddress by remember {
