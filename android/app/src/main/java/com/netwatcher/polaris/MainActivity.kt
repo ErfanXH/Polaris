@@ -318,6 +318,9 @@ fun PolarisNav(mainActivity: MainActivity) {
             HomeScreen(
                 viewModel = homeViewModel,
                 onSettingsClick = { navController.navigate("settings") },
+                onLogout = {
+                    navController.navigate("login")
+                },
                 context = mainActivity
             )
         }
