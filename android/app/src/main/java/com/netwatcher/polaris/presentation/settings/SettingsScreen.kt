@@ -41,7 +41,9 @@ fun SettingsScreen(
         } ?: emptyList()
     }
 
-    var selectedSimId by remember { mutableStateOf<Int?>(null) }
+    var selectedSimId by remember {
+        mutableStateOf(TestConfigManager.getSelectedSimId(context))
+    }
 
     Scaffold(
         topBar = {
@@ -66,37 +68,41 @@ fun SettingsScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-//            Text("Select SIM Card", style = MaterialTheme.typography.titleMedium)
-//            Spacer(modifier = Modifier.height(16.dp))
-//            simList.forEach { sim ->
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clickable {
-//                            selectedSimId = sim.subscriptionId
-//                            onSimSelected(sim.subscriptionId)
-//                        }
-//                        .padding(vertical = 8.dp)
-//                ) {
-//                    RadioButton(
-//                        selected = sim.subscriptionId == selectedSimId,
-//                        onClick = {
-//                            selectedSimId = sim.subscriptionId
-//                            onSimSelected(sim.subscriptionId)
-//                        }
-//                    )
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    Text("SIM ${sim.simSlotIndex + 1} (${sim.carrierName})")
-//                }
-//            }
-
-            Divider(modifier = Modifier.padding(vertical = 24.dp))
+            if (simList.size > 1) {
+                Text("Select SIM Card", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(4.dp))
+                simList.forEach { sim ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedSimId = sim.subscriptionId
+                                TestConfigManager.setSelectedSimId(context, sim.subscriptionId)
+                                onSimSelected(sim.subscriptionId)
+                            }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        RadioButton(
+                            selected = sim.subscriptionId == selectedSimId,
+                            onClick = {
+                                selectedSimId = sim.subscriptionId
+                                TestConfigManager.setSelectedSimId(context, sim.subscriptionId)
+                                onSimSelected(sim.subscriptionId)
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("SIM ${sim.simSlotIndex + 1}")
+                            Text(sim.carrierName, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+            }
 
             SyncIntervalSettings(context = context)
-
-            Divider(modifier = Modifier.padding(vertical = 24.dp))
-
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
             TestConfigurationSettings(context = context)
         }
     }
@@ -178,7 +184,7 @@ fun TestConfigurationSettings(context: Context) {
 
     Column {
         Text("Test Configuration", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = smsTestNumber,

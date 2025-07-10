@@ -4,6 +4,9 @@ import android.app.Application
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.netwatcher.polaris.domain.model.TestSelection
@@ -11,6 +14,7 @@ import com.netwatcher.polaris.presentation.home.HomeUiState
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.service.TestExecutionService
 import com.netwatcher.polaris.utils.TestAlarmScheduler
+import com.netwatcher.polaris.utils.TestConfigManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -24,10 +28,14 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private var selectedSubscriptionId: Int? = null
+
+    private var selectedSubscriptionId: Int? by mutableStateOf(
+        TestConfigManager.getSelectedSimId(application)
+    )
 
     fun setSelectedSim(subscriptionId: Int) {
         selectedSubscriptionId = subscriptionId
+        TestConfigManager.setSelectedSimId(getApplication(), subscriptionId)
     }
 
     fun runNetworkTest(testSelection: TestSelection) {
@@ -37,7 +45,6 @@ class HomeViewModel(
                 val result = repository.runNetworkTest(selectedSubscriptionId, testSelection)
                 _uiState.value = HomeUiState.Success(result)
 
-                // Reschedule the background test alarm after a manual run
                 TestAlarmScheduler.rescheduleTest(getApplication())
                 Log.d("HomeViewModel", "Manual test run. Background test rescheduled.")
             } catch (e: Exception) {

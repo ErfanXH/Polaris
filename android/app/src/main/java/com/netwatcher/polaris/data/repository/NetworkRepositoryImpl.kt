@@ -209,14 +209,24 @@ class NetworkRepositoryImpl(
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
     override suspend fun runNetworkTest(subscriptionId: Int?, testSelection: TestSelection): NetworkData {
-        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && subscriptionId != null) {
-            telephonyManager.createForSubscriptionId(subscriptionId)
+//        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && subscriptionId != null) {
+//            telephonyManager.createForSubscriptionId(subscriptionId)
+//        } else {
+//            telephonyManager
+//        }
+//
+//        val location = getCurrentLocation()
+//        val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
+
+        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            subscriptionId?.let { telephonyManager.createForSubscriptionId(it) } ?: telephonyManager
         } else {
             telephonyManager
         }
 
         val location = getCurrentLocation()
         val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
+
         val netType = getNetworkType(cellInfo)
 
         val httpUploadThroughput = if (testSelection.runUploadTest) measureUploadThroughput() else -1.0

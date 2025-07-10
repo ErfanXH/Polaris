@@ -38,9 +38,11 @@ class TestExecutionService : Service() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("TestExecutionService", "Starting foreground service for test execution...")
+
         startForeground(NOTIF_ID, createNotification())
 
         val testSelection = TestConfigManager.getTestSelection(this)
+        val selectedSimId = TestConfigManager.getSelectedSimId(this)
 
         serviceScope.launch {
             try {
@@ -50,12 +52,15 @@ class TestExecutionService : Service() {
 //                        false, false, false
 //                    )
 //                )
-                repository.runNetworkTest(testSelection = testSelection)
+                repository.runNetworkTest(
+                    testSelection = testSelection,
+                    subscriptionId = selectedSimId
+                )
+
                 Log.d("TestExecutionService", "Network test finished and saved locally.")
             } catch (e: Exception) {
                 Log.e("TestExecutionService", "Error during background test: ${e.message}", e)
             } finally {
-                // Stop the service once the work is done
                 stopSelf()
             }
         }
