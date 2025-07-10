@@ -32,10 +32,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
+import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.presentation.auth.AuthViewModel
 import com.netwatcher.polaris.presentation.auth.LoginScreen
 import com.netwatcher.polaris.presentation.auth.SignUpScreen
+import com.netwatcher.polaris.presentation.auth.SplashScreen
 import com.netwatcher.polaris.presentation.auth.VerificationScreen
 import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
@@ -44,6 +46,8 @@ import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.TestAlarmScheduler
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
 
@@ -97,8 +101,16 @@ class MainActivity : ComponentActivity() {
 
     private fun checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS_API_33, NOTIFICATION_PERMISSION_REQUEST_CODE)
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    REQUIRED_PERMISSIONS_API_33,
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                )
             } else {
                 initializeApp() // Already granted, so initialize
             }
@@ -168,17 +180,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                     checkNotificationPermission()
                 } else {
-                    Toast.makeText(this, "Permissions are required for the app to function", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this,
+                        "Permissions are required for the app to function",
+                        Toast.LENGTH_LONG
+                    ).show()
                     finish()
                 }
             }
+
             NOTIFICATION_PERMISSION_REQUEST_CODE -> {
                 initializeApp()
             }
@@ -217,7 +238,8 @@ fun PolarisNav(mainActivity: MainActivity) {
     val navController = rememberNavController()
     val authViewModel = remember { AuthViewModel(NetworkModule.authRepository) }
 
-    val telephonyManager = mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    val telephonyManager =
+        mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     val database = AppDatabaseHelper.getDatabase(mainActivity)
 
     val homeViewModel: HomeViewModel = viewModel(
@@ -232,7 +254,20 @@ fun PolarisNav(mainActivity: MainActivity) {
         )
     )
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(
+        navController = navController,
+        startDestination = "splash"
+    ) {
+        composable("splash") {
+            SplashScreen(
+                onTokenValidated = { isLoggedIn ->
+                    navController.navigate(if (isLoggedIn) "home" else "login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable("sign_up") {
             SignUpScreen(
                 viewModel = authViewModel,
@@ -283,6 +318,9 @@ fun PolarisNav(mainActivity: MainActivity) {
             HomeScreen(
                 viewModel = homeViewModel,
                 onSettingsClick = { navController.navigate("settings") },
+                onLogout = {
+                    navController.navigate("login")
+                },
                 context = mainActivity
             )
         }

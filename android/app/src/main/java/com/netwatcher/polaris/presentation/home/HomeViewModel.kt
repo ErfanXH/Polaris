@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.TestSelection
 import com.netwatcher.polaris.presentation.home.HomeUiState
 import com.netwatcher.polaris.domain.repository.NetworkRepository
@@ -27,7 +28,6 @@ class HomeViewModel(
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
-
 
     private var selectedSubscriptionId: Int? by mutableStateOf(
         TestConfigManager.getSelectedSimId(application)
@@ -71,6 +71,15 @@ class HomeViewModel(
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error("Failed To Load Previous Data")
             }
+        }
+    }
+
+    suspend fun onLogoutClick(): Boolean {
+        return try {
+            TokenManager.clearToken()
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 }

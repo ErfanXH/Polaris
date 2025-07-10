@@ -26,7 +26,7 @@ object TokenManager {
 
     fun getToken(): Flow<String?> {
         return appContext.dataStore.data.map { prefs ->
-            prefs[tokenKey]
+            prefs[tokenKey] ?: ""
         }
     }
 
