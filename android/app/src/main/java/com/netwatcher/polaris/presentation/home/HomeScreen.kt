@@ -1,7 +1,6 @@
 package com.netwatcher.polaris.presentation.home
 
 import android.content.Context
-import android.telephony.TelephonyManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +16,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +48,7 @@ import com.netwatcher.polaris.presentation.home.components.KeyValueRow
 import com.netwatcher.polaris.presentation.home.components.NetworkInfoCard
 import com.netwatcher.polaris.presentation.home.components.RunTestButton
 import com.netwatcher.polaris.utils.TestConfigManager
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +56,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onProfileClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    onLogout: () -> Unit = {},
     context: Context
 ) {
     LaunchedEffect(Unit) {
@@ -60,8 +64,9 @@ fun HomeScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
-    Column (
+    Column(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
     ) {
         TopAppBar(
@@ -79,10 +84,31 @@ fun HomeScreen(
                 }
             },
             actions = {
+                IconButton(onClick = {
+                    viewModel.loadInitialState()
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh"
+                    )
+                }
                 IconButton(onClick = onSettingsClick) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings"
+                    )
+                }
+                IconButton(onClick = {
+                    coroutineScope.launch {
+                        val success = viewModel.onLogoutClick()
+                        if (success) {
+                            onLogout()
+                        }
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Logout"
                     )
                 }
             },
@@ -122,9 +148,11 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        RunTestButton(onClick = { viewModel.runNetworkTest(
-                            TestConfigManager.getTestSelection(context)
-                        ) })
+                        RunTestButton(onClick = {
+                            viewModel.runNetworkTest(
+                                TestConfigManager.getTestSelection(context)
+                            )
+                        })
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             "No Test Data Available",
@@ -149,6 +177,7 @@ fun HomeScreen(
         }
     }
 }
+
 @Composable
 private fun HomeContent(
     networkData: NetworkData,
@@ -198,14 +227,17 @@ private fun HomeContent(
         NetworkResults(networkData = networkData)
     }
 }
+
 @Composable
 private fun NetworkResults(networkData: NetworkData) {
     val sections = listOf(
-        Triple("User Info", listOf(
-            "Latitude" to networkData.latitude.toString(),
-            "Longitude" to networkData.longitude.toString(),
-            "Time" to networkData.timestamp
-        )) { _: NetworkData -> },
+        Triple(
+            "User Info", listOf(
+                "Latitude" to networkData.latitude.toString(),
+                "Longitude" to networkData.longitude.toString(),
+                "Time" to networkData.timestamp
+            )
+        ) { _: NetworkData -> },
 
         Triple("Cell Info", when (networkData.networkType) {
             "LTE", "IWLAN", "5G" -> listOf(
@@ -213,7 +245,8 @@ private fun NetworkResults(networkData: NetworkData) {
                 "TAC" to (networkData.tac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
-                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) }
+                    ?: "N/A"),
                 "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
@@ -223,7 +256,8 @@ private fun NetworkResults(networkData: NetworkData) {
                 "RAC" to (networkData.rac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
-                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) }
+                    ?: "N/A"),
                 "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
@@ -233,10 +267,12 @@ private fun NetworkResults(networkData: NetworkData) {
                 "RAC" to (networkData.rac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
-                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) } ?: "N/A"),
+                "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) }
+                    ?: "N/A"),
                 "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
+
             else -> emptyList()
         }) { _: NetworkData -> },
 
@@ -252,30 +288,38 @@ private fun NetworkResults(networkData: NetworkData) {
             "GSM", "GPRS", "EDGE", "CDMA" -> listOf(
                 "RxLev" to (networkData.rxLev?.let { String.format("%01d dBm", it) } ?: "N/A")
             )
+
             "5G" -> listOf(
                 "SS-RSRP" to (networkData.ssRsrp?.let { String.format("%01d dBm", it) } ?: "N/A"),
             )
+
             else -> emptyList()
         }) { _: NetworkData -> },
 
         Triple("Functional Tests", listOf(
             "HTTP Upload Throughput" to (
-                    networkData.httpUploadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "N/A"
+                    networkData.httpUploadThroughput?.takeIf { it != -1.0 }
+                        ?.let { String.format("%.2f Mbps", it) } ?: "N/A"
                     ),
             "HTTP Download Throughput" to (
-                    networkData.httpDownloadThroughput?.takeIf { it != -1.0 }?.let { String.format("%.2f Mbps", it) } ?: "N/A"
+                    networkData.httpDownloadThroughput?.takeIf { it != -1.0 }
+                        ?.let { String.format("%.2f Mbps", it) } ?: "N/A"
                     ),
             "Ping Time" to (
-                    networkData.pingTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
+                    networkData.pingTime?.takeIf { it != -1.0 }
+                        ?.let { String.format("%.2f ms", it) } ?: "N/A"
                     ),
             "DNS Response Time" to (
-                    networkData.dnsResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
+                    networkData.dnsResponse?.takeIf { it != -1.0 }
+                        ?.let { String.format("%.2f ms", it) } ?: "N/A"
                     ),
             "Web Response Time" to (
-                    networkData.webResponse?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
+                    networkData.webResponse?.takeIf { it != -1.0 }
+                        ?.let { String.format("%.2f ms", it) } ?: "N/A"
                     ),
             "SMS Response Time" to (
-                    networkData.smsDeliveryTime?.takeIf { it != -1.0 }?.let { String.format("%.2f ms", it) } ?: "N/A"
+                    networkData.smsDeliveryTime?.takeIf { it != -1.0 }
+                        ?.let { String.format("%.2f ms", it) } ?: "N/A"
                     )
         )) { _: NetworkData -> }
     )

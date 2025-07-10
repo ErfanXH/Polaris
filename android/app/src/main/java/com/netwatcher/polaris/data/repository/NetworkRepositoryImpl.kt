@@ -43,6 +43,7 @@ class NetworkRepositoryImpl(
     override suspend fun addNetworkData(networkData: NetworkData) {
         networkDataDao.addNetworkData(networkData)
     }
+
     override fun getAllNetworkData(): Flow<List<NetworkData>> {
         return networkDataDao.getAllNetworkData()
     }
@@ -54,26 +55,31 @@ class NetworkRepositoryImpl(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMessage = response.errorBody()?.string() ?: "Failed to Sync Data with Server"
+                val errorMessage =
+                    response.errorBody()?.string() ?: "Failed to Sync Data with Server"
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
     override suspend fun uploadNetworkDataBatch(data: RequestBody): Result<Unit> {
         return try {
-            val response = api.uploadNetworkDataBatch(token = getAuthToken().toString(), data = data)
+            val response =
+                api.uploadNetworkDataBatch(token = getAuthToken().toString(), data = data)
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMessage = response.errorBody()?.string() ?: "Failed to Sync Batch Data with Server"
+                val errorMessage =
+                    response.errorBody()?.string() ?: "Failed to Sync Batch Data with Server"
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
     override suspend fun getUserInfo(): Result<Unit> {
         return try {
             val response = api.getUserInfo(token = getAuthToken().toString())
@@ -88,6 +94,7 @@ class NetworkRepositoryImpl(
             Result.failure(e)
         }
     }
+
     private suspend fun getAuthToken(): String? {
         return TokenManager.getToken().firstOrNull()
     }
@@ -95,6 +102,7 @@ class NetworkRepositoryImpl(
     private val fusedLocationClient by lazy {
         LocationServices.getFusedLocationProviderClient(context)
     }
+
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine { cont ->
         if (!LocationUtility.isLocationEnabled(context)) {
@@ -201,6 +209,7 @@ class NetworkRepositoryImpl(
     }
 
     private val smsTestUtility = SmsTestUtility(context)
+
     @SuppressLint("MissingPermission")
     suspend fun measureSmsDeliveryTime(): Double? = withContext(Dispatchers.IO) {
         smsTestUtility.measureSmsDeliveryTime(context)?.toDouble()
@@ -242,12 +251,15 @@ class NetworkRepositoryImpl(
                 cellInfos?.getOrNull(indexInList)
             }
 
-        val httpUploadThroughput = if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
-        val httpDownloadThroughput = if (testSelection.runDownloadTest) measureDownloadThroughput() else -1.0
+        val httpUploadThroughput =
+            if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
+        val httpDownloadThroughput =
+            if (testSelection.runDownloadTest) measureDownloadThroughput() else -1.0
         val pingTime = if (testSelection.runPingTest) pingTest() else -1.0
         val dnsResponse = if (testSelection.runDnsTest) dnsTest() else -1.0
         val webResponse = if (testSelection.runWebTest) measureWebResponseTime() else -1.0
-        val smsDeliveryTime = if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
+        val smsDeliveryTime =
+            if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
 
         var actualTech : String = ""
 
@@ -318,7 +330,7 @@ class NetworkRepositoryImpl(
         return networkData
     }
 
-    private fun isValidNetworkData(networkData: NetworkData?, cellInfo: CellInfo?) : Boolean {
+    private fun isValidNetworkData(networkData: NetworkData?, cellInfo: CellInfo?): Boolean {
         return !(cellInfo == null ||
                 networkData == null ||
                 networkData.latitude == -1.0 ||
