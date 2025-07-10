@@ -55,7 +55,7 @@ export default function UserLayout() {
       text: "Sign Out",
       icon: <LogoutIcon />,
       func: () => {
-        CookieManager.RemoveToken();
+        CookieManager.removeCookie();
         resetAuthentication();
         navigate("/login");
       },

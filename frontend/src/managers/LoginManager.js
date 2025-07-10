@@ -5,9 +5,9 @@ const LoginManager = {
   login: async (credentials) => {
     try {
       const response = await api.post("/users/login/", credentials);
-      const token = response.data?.access;
-      if (token) {
-        cookie.SaveToken(token);
+      const userInfo = response.data;
+      if (userInfo) {
+        cookie.saveCookie(userInfo);
       }
       return response.data;
     } catch (error) {

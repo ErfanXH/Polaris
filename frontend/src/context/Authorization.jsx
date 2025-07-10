@@ -6,7 +6,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    isAuthenticated: !!CookieManager.LoadToken(),
+    isAuthenticated: !!CookieManager.loadToken(),
     isLoading: false,
   });
 
