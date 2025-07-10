@@ -444,6 +444,10 @@ private fun TestOption(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
-        Text(text = label, style = MaterialTheme.typography.labelMedium)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
