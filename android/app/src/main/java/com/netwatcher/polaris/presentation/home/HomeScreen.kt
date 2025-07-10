@@ -1,6 +1,7 @@
 package com.netwatcher.polaris.presentation.home
 
 import android.content.Context
+import android.telephony.TelephonyManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -207,7 +208,7 @@ private fun NetworkResults(networkData: NetworkData) {
         )) { _: NetworkData -> },
 
         Triple("Cell Info", when (networkData.networkType) {
-            "LTE", "5G" -> listOf(
+            "LTE", "IWLAN", "5G" -> listOf(
                 "Technology" to (networkData.networkType),
                 "TAC" to (networkData.tac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
@@ -216,7 +217,7 @@ private fun NetworkResults(networkData: NetworkData) {
                 "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
-            "WCDMA", "HSPA", "HSPA+" -> listOf(
+            "WCDMA", "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS" -> listOf(
                 "Technology" to (networkData.networkType),
                 "LAC" to (networkData.lac ?: "N/A"),
                 "RAC" to (networkData.rac ?: "N/A"),
@@ -226,7 +227,7 @@ private fun NetworkResults(networkData: NetworkData) {
                 "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
-            "GSM", "GPRS", "EDGE" -> listOf(
+            "GSM", "GPRS", "EDGE", "CDMA" -> listOf(
                 "Technology" to (networkData.networkType),
                 "LAC" to (networkData.lac ?: "N/A"),
                 "RAC" to (networkData.rac ?: "N/A"),
@@ -244,11 +245,11 @@ private fun NetworkResults(networkData: NetworkData) {
                 "RSRP" to (networkData.rsrp?.let { String.format("%01d dBm", it) } ?: "N/A"),
                 "RSRQ" to (networkData.rsrq?.let { String.format("%01d dB", it) } ?: "N/A"),
             )
-            "WCDMA", "HSPA", "HSPA+" -> listOf(
+            "WCDMA", "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS" -> listOf(
                 "RSCP" to (networkData.rscp?.let { String.format("%01d dBm", it) } ?: "N/A"),
                 "Ec/N0" to (networkData.ecIo?.let { String.format("%01d dBm", it) } ?: "N/A")
             )
-            "GSM", "GPRS", "EDGE" -> listOf(
+            "GSM", "GPRS", "EDGE", "CDMA" -> listOf(
                 "RxLev" to (networkData.rxLev?.let { String.format("%01d dBm", it) } ?: "N/A")
             )
             "5G" -> listOf(
