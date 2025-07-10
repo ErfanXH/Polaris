@@ -194,6 +194,7 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.CHANGE_NETWORK_STATE,
             Manifest.permission.INTERNET,
             Manifest.permission.SEND_SMS,
             Manifest.permission.RECEIVE_SMS,
@@ -224,7 +225,7 @@ fun PolarisNav(mainActivity: MainActivity) {
         factory = HomeViewModelFactory(
             repository = NetworkRepositoryImpl(
                 context = mainActivity.applicationContext,
-                telephonyManager = telephonyManager,
+                defaultTelephonyManager = telephonyManager,
                 networkDataDao = database.networkDataDao(),
                 api = NetworkModule.networkDataApi
             ),
