@@ -47,11 +47,7 @@ class TestExecutionService : Service() {
         serviceScope.launch {
             try {
                 Log.d("TestExecutionService", "Running network test in background...")
-//                repository.runNetworkTest(
-//                    testSelection = TestSelection(false, false, false,
-//                        false, false, false
-//                    )
-//                )
+                Log.d("TestExecutionService", "$selectedSimId")
                 repository.runNetworkTest(
                     testSelection = testSelection,
                     subscriptionId = selectedSimId
