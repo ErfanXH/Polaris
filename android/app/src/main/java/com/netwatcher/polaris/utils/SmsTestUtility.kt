@@ -51,8 +51,18 @@ class SmsTestUtility(private val context: Context) {
     }
 
     private fun getTestPhoneNumber(context: Context): String {
-        return TestConfigManager.getPreferences(context)
-            .getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "+989303009264"
+//        return TestConfigManager.getPreferences(context)
+//            .getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "+989303009264"
+        val defaultNumber = "+989303009264"
+        val number = TestConfigManager.getPreferences(context)
+            .getString(TestConfigManager.KEY_SMS_TEST_NUMBER, defaultNumber) ?: defaultNumber
+
+        return if (number.isBlank() || !number.matches(Regex("^\\+[0-9]{10,15}$"))) {
+            Log.w("SmsTestUtility", "Invalid phone number, using default")
+            defaultNumber
+        } else {
+            number
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -62,11 +72,17 @@ class SmsTestUtility(private val context: Context) {
             smsContinuation = cont
             smsStartTime = System.currentTimeMillis().toDouble()
 
+            val phoneNumber = getTestPhoneNumber(context).also {
+                if (it.isBlank()) throw IllegalArgumentException("Empty phone number")
+            }
+
+            Log.d("SmsTestUtility", "Sending SMS to: $phoneNumber")
+
             val sentIntent = createPendingIntent(smsSentAction)
             val deliveredIntent = createPendingIntent(smsDeliveredAction)
 
             getSmsManager().sendTextMessage(
-                getTestPhoneNumber(context),
+                phoneNumber,
                 null,
                 "This is a test for SMS delivery time from POLARIS...",
                 sentIntent,
