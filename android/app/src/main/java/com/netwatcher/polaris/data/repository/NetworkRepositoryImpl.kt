@@ -35,7 +35,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class NetworkRepositoryImpl(
     private val context: Context,
-    private val telephonyManager: TelephonyManager,
+    private val defaultTelephonyManager: TelephonyManager,
     val networkDataDao: NetworkDataDao,
     private val api: NetworkDataApi
 ) : NetworkRepository {
@@ -209,25 +209,38 @@ class NetworkRepositoryImpl(
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
     override suspend fun runNetworkTest(subscriptionId: Int?, testSelection: TestSelection): NetworkData {
-//        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && subscriptionId != null) {
-//            telephonyManager.createForSubscriptionId(subscriptionId)
-//        } else {
-//            telephonyManager
-//        }
-//
-//        val location = getCurrentLocation()
-//        val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
-
-        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            subscriptionId?.let { telephonyManager.createForSubscriptionId(it) } ?: telephonyManager
+        Log.d("SIM ID", subscriptionId.toString())
+        val tm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && subscriptionId != null) {
+            defaultTelephonyManager.createForSubscriptionId(subscriptionId)
         } else {
-            telephonyManager
+            defaultTelephonyManager
         }
-
         val location = getCurrentLocation()
         val cellInfo = tm.allCellInfo.firstOrNull { it.isRegistered }
+        Log.d("networkTypeCellInfo", "Raw CellInfo: ${cellInfo?.toString()}")
+//        val netType = getNetworkType(cellInfo)
 
-        val netType = getNetworkType(cellInfo)
+        val networkTypeInt = tm.dataNetworkType
+        Log.d("networkTypeInt", networkTypeInt.toString())
+        val networkType = networkTypeToString(networkTypeInt)
+        Log.d("networkTypeToString", networkType)
+
+        val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+        val subscriptionList = subManager.activeSubscriptionInfoList ?: emptyList()
+
+        Log.d("subscriptionId", subscriptionId.toString())
+        val simSlotIndex = if (subscriptionId == 1) 1 else 0
+        val subInfo = subManager.getActiveSubscriptionInfoForSimSlotIndex(simSlotIndex)
+        val subId = subInfo.subscriptionId
+
+        val cellInfos = tm.allCellInfo
+        val targetCell: CellInfo? =
+            if (subscriptionList.size == 1) {
+                cellInfos?.firstOrNull()
+            } else {
+                val indexInList = subscriptionList.indexOfFirst { it.subscriptionId == subId }
+                cellInfos?.getOrNull(indexInList)
+            }
 
         val httpUploadThroughput = if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
         val httpDownloadThroughput = if (testSelection.runDownloadTest) measureDownloadThroughput() else -1.0
@@ -236,25 +249,55 @@ class NetworkRepositoryImpl(
         val webResponse = if (testSelection.runWebTest) measureWebResponseTime() else -1.0
         val smsDeliveryTime = if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
 
-        println("test selection: $testSelection")
+        var actualTech : String = ""
+
+        if (targetCell == null) {
+            Log.e("CellInfoCollector", "No matching cell info found")
+        } else {
+            actualTech = when (targetCell) {
+                is CellInfoLte -> "LTE"
+                is CellInfoWcdma -> {
+                    "WCDMA"
+                }
+
+                is CellInfoGsm -> {
+                    "GSM"
+                }
+
+                is CellInfoCdma -> "CDMA"
+                else -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && targetCell.javaClass.simpleName == "CellInfoNr") {
+                        "NR"
+                    } else {
+                        "Unknown"
+                    }
+                }
+            }
+        }
+
+        val ss = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            targetCell?.cellSignalStrength
+        } else {
+            TODO("VERSION.SDK_INT < R")
+        }
 
         val networkData = NetworkData(
             location?.latitude ?: -1.0,
             location?.longitude ?: -1.0,
             SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(Date()),
-            netType,
+            actualTech,
             getTac(cellInfo),
             getLac(cellInfo),
             getCellId(cellInfo),
-            getRac(cellInfo),
-            telephonyManager.networkOperator,
+            null,
+            tm.networkOperator,
             getArfcn(cellInfo),
             getFrequency(cellInfo),
             getFrequencyBand(cellInfo),
             getRsrp(cellInfo),
             getRsrq(cellInfo),
             getRscp(cellInfo),
-            getEcIo(cellInfo),
+            null,
             getRxLev(cellInfo),
             getSsRsrp(cellInfo),
             httpUploadThroughput,
@@ -265,6 +308,8 @@ class NetworkRepositoryImpl(
             smsDeliveryTime,
             NetworkDataDao.getEmail()
         )
+
+        println("Network Data: $networkData")
 
         if (isValidNetworkData(networkData, cellInfo)) {
             addNetworkData(networkData)
@@ -279,5 +324,28 @@ class NetworkRepositoryImpl(
                 networkData.latitude == -1.0 ||
                 networkData.longitude == -1.0 ||
                 networkData.networkType == "UNKNOWN")
+    }
+
+    private fun networkTypeToString(networkType: Int): String {
+        return when (networkType) {
+            NETWORK_TYPE_GPRS -> "GPRS"
+            NETWORK_TYPE_EDGE -> "EDGE"
+            NETWORK_TYPE_UMTS -> "UMTS"
+            NETWORK_TYPE_CDMA -> "CDMA"
+            NETWORK_TYPE_EVDO_0 -> "EVDO rev.0"
+            NETWORK_TYPE_EVDO_A -> "EVDO rev.A"
+            NETWORK_TYPE_EVDO_B -> "EVDO rev.B"
+            NETWORK_TYPE_1xRTT -> "1xRTT"
+            NETWORK_TYPE_HSDPA -> "HSDPA"
+            NETWORK_TYPE_HSUPA -> "HSUPA"
+            NETWORK_TYPE_HSPA -> "HSPA"
+            NETWORK_TYPE_HSPAP -> "HSPA+"
+            NETWORK_TYPE_LTE -> "LTE"
+            NETWORK_TYPE_NR -> "NR"
+            NETWORK_TYPE_EHRPD -> "eHRPD"
+            NETWORK_TYPE_TD_SCDMA -> "TD-SCDMA"
+            NETWORK_TYPE_IWLAN -> "IWLAN"
+            else -> "Unknown ($networkType)"
+        }
     }
 }
