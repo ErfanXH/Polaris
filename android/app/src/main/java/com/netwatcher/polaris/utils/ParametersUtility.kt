@@ -1,5 +1,6 @@
 package com.netwatcher.polaris.utils
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.telephony.CellInfo
 import android.telephony.CellInfoCdma
@@ -10,6 +11,7 @@ import android.telephony.CellInfoWcdma
 import android.telephony.CellSignalStrengthLte
 import android.telephony.CellSignalStrengthNr
 import android.telephony.TelephonyManager
+import android.util.Log
 import androidx.annotation.RequiresApi
 
 fun getNetworkType(cellInfo: CellInfo?): String {
@@ -22,21 +24,6 @@ fun getNetworkType(cellInfo: CellInfo?): String {
         else -> "UNKNOWN"
     }
 }
-
-//fun networkTypeToString(networkType: Int): String {
-//    return when (networkType) {
-//        TelephonyManager.NETWORK_TYPE_GSM -> "GSM"
-//        TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS"
-//        TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE"
-//        TelephonyManager.NETWORK_TYPE_UMTS -> "UMTS"
-//        TelephonyManager.NETWORK_TYPE_CDMA -> "CDMA"
-//        TelephonyManager.NETWORK_TYPE_HSPA -> "HSPA"
-//        TelephonyManager.NETWORK_TYPE_HSPAP -> "HSPA+"
-//        TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
-//        TelephonyManager.NETWORK_TYPE_NR -> "NR"
-//        else -> "Others"
-//    }
-//}
 
 fun getTac(cellInfo: CellInfo?): String? {
     return when {
@@ -99,22 +86,22 @@ fun handlePossibleNrCell(cellInfo: CellInfo?): String? {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
-@Suppress("DiscouragedApi")
-fun getRac(cellInfo: CellInfo?): String? {
-    return when (cellInfo) {
-        is CellInfoGsm, is CellInfoWcdma -> {
-            try {
-                val racField = cellInfo.cellIdentity.javaClass.getDeclaredField("mRac")
-                racField.isAccessible = true
-                (racField.get(cellInfo.cellIdentity) as? Int)?.takeIf { it != Int.MAX_VALUE }?.toString()
-            } catch (e: Exception) {
-                null
-            }
-        }
-        else -> null
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.R)
+//@Suppress("DiscouragedApi")
+//fun getRac(cellInfo: CellInfo?): String? {
+//    return when (cellInfo) {
+//        is CellInfoGsm, is CellInfoWcdma -> {
+//            try {
+//                val racField = cellInfo.cellIdentity.javaClass.getDeclaredField("mRac")
+//                racField.isAccessible = true
+//                (racField.get(cellInfo.cellIdentity) as? Int)?.takeIf { it != Int.MAX_VALUE }?.toString()
+//            } catch (e: Exception) {
+//                null
+//            }
+//        }
+//        else -> null
+//    }
+//}
 
 fun getRsrp(cellInfo: CellInfo?): Int? {
     return when {
@@ -173,20 +160,20 @@ fun getRscp(cellInfo: CellInfo?): Int? {
     }
 }
 
-fun getEcIo(cellInfo: CellInfo?): Int? {
-    return when (cellInfo) {
-        is CellInfoWcdma -> {
-            try {
-                val method = cellInfo.cellSignalStrength.javaClass.getMethod("getEcNo")
-                method.invoke(cellInfo.cellSignalStrength) as? Int
-            } catch (e: Exception) {
-                null
-            }
-        }
-
-        else -> null
-    }
-}
+//fun getEcIo(cellInfo: CellInfo?): Int? {
+//    return when (cellInfo) {
+//        is CellInfoWcdma -> {
+//            try {
+//                val method = cellInfo.cellSignalStrength.javaClass.getMethod("getEcNo")
+//                method.invoke(cellInfo.cellSignalStrength) as? Int
+//            } catch (e: Exception) {
+//                null
+//            }
+//        }
+//
+//        else -> null
+//    }
+//}
 
 fun getRxLev(cellInfo: CellInfo?): Int? {
     return when (cellInfo) {
