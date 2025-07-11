@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import UserListManager from "./UserListManager";
+import UserListManager from "../managers/UserListManager";
 
 export function useUserList() {
   const queryClient = useQueryClient();

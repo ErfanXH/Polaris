@@ -12,7 +12,7 @@ import {
   Switch,
   TablePagination,
 } from "@mui/material";
-import { useUserList } from "./useUserList";
+import { useUserList } from "../../hooks/useUserList";
 
 export default function UserList() {
   const { users, isLoading, error, banUser, allowUser } = useUserList();
