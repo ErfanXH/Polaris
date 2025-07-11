@@ -7,8 +7,11 @@ import com.netwatcher.polaris.domain.repository.AuthRepository
 import android.util.Log
 import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.LoginResult
+import com.netwatcher.polaris.domain.model.ResetPasswordRequest
+import com.netwatcher.polaris.domain.model.SendResetCodeRequest
 import com.netwatcher.polaris.domain.model.VerificationRequest
 import com.netwatcher.polaris.domain.model.VerificationRetryRequest
+import com.netwatcher.polaris.domain.model.VerifyResetCodeRequest
 
 /**
  * Concrete implementation of the [AuthRepository] interface.
@@ -33,6 +36,7 @@ class AuthRepositoryImpl(
             Result.failure(e)
         }
     }
+
     override suspend fun login(request: LoginRequest): LoginResult {
         return try {
             val response = api.login(request) // ← This is the LOGIN call
@@ -46,6 +50,7 @@ class AuthRepositoryImpl(
                         LoginResult.Error("Empty response")
                     }
                 }
+
                 response.code() == 401 -> LoginResult.RequiresVerification
                 else -> {
                     val errorMessage = response.errorBody()?.string() ?: "Login failed"
@@ -84,6 +89,45 @@ class AuthRepositoryImpl(
                 Result.success(Unit)
             } else {
                 val errorMessage = response.errorBody()?.string() ?: "Retry failed"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendResetCode(numberOrEmail: String): Result<Unit> {
+        return try {
+            val response = api.sendResetCode(SendResetCodeRequest(numberOrEmail))
+            if (response.isSuccessful) Result.success(Unit)
+            else {
+                val errorMessage = response.errorBody()?.string() ?: "Send reset code failed"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun verifyResetCode(request: VerifyResetCodeRequest): Result<Unit> {
+        return try {
+            val response = api.verifyResetCode(request)
+            if (response.isSuccessful) Result.success(Unit)
+            else {
+                val errorMessage = response.errorBody()?.string() ?: "Verify reset code failed"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun resetPassword(request: ResetPasswordRequest): Result<Unit> {
+        return try {
+            val response = api.resetPassword(request)
+            if (response.isSuccessful) Result.success(Unit)
+            else {
+                val errorMessage = response.errorBody()?.string() ?: "Reset password failed"
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
