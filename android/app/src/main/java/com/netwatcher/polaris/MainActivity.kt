@@ -246,7 +246,6 @@ fun PolarisNav(mainActivity: MainActivity) {
         factory = HomeViewModelFactory(
             repository = NetworkRepositoryImpl(
                 context = mainActivity.applicationContext,
-                defaultTelephonyManager = telephonyManager,
                 networkDataDao = database.networkDataDao(),
                 api = NetworkModule.networkDataApi
             ),
