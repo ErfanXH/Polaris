@@ -1,6 +1,5 @@
 package com.netwatcher.polaris.utils
 
-import android.annotation.SuppressLint
 import android.os.Build
 import android.telephony.CellInfo
 import android.telephony.CellInfoCdma
@@ -11,17 +10,125 @@ import android.telephony.CellInfoWcdma
 import android.telephony.CellSignalStrengthLte
 import android.telephony.CellSignalStrengthNr
 import android.telephony.TelephonyManager
-import android.util.Log
 import androidx.annotation.RequiresApi
+import com.netwatcher.polaris.domain.model.NetworkData
 
-fun getNetworkType(cellInfo: CellInfo?): String {
+fun getNetworkType(networkType: Int): String {
+    return when (networkType) {
+        TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS"
+        TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE"
+        TelephonyManager.NETWORK_TYPE_UMTS -> "UMTS"
+        TelephonyManager.NETWORK_TYPE_CDMA -> "CDMA"
+        TelephonyManager.NETWORK_TYPE_HSDPA -> "HSDPA"
+        TelephonyManager.NETWORK_TYPE_HSUPA -> "HSUPA"
+        TelephonyManager.NETWORK_TYPE_HSPA -> "HSPA"
+        TelephonyManager.NETWORK_TYPE_HSPAP -> "HSPA+"
+        TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
+        TelephonyManager.NETWORK_TYPE_NR -> "NR"
+        TelephonyManager.NETWORK_TYPE_EHRPD -> "eHRPD"
+        TelephonyManager.NETWORK_TYPE_TD_SCDMA -> "TD-SCDMA"
+        TelephonyManager.NETWORK_TYPE_IWLAN -> "IWLAN"
+        else -> "Others"
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+fun getCellInfo(cell: CellInfo?) : NetworkData? {
+    return when (cell) {
+        is CellInfoGsm -> getGsmInfo(cell)
+//        is CellInfoCdma -> getCdmaInfo(cell)
+        is CellInfoWcdma -> getWcdmaInfo(cell)
+        is CellInfoLte -> getLteInfo(cell)
+//        is CellInfoNr -> getNrInfo(cell)
+        else -> null
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+private fun getGsmInfo(cell: CellInfoGsm) : NetworkData {
+    return NetworkData(
+        0.0, 0.0, "", "GSM",
+        null, cell.cellIdentity.lac.toString(),
+        cell.cellIdentity.cid.toString(),
+        null,
+        "",
+        cell.cellIdentity.arfcn,
+        getFrequency(cell),
+        getFrequencyBand(cell),
+        null,
+        null,
+        null,
+        null,
+        cell.cellSignalStrength.javaClass.getMethod("getRssi").invoke(cell.cellSignalStrength) as? Int,
+        null,
+        0.0,0.0,0.0,0.0,0.0, 0.0, ""
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+private fun getWcdmaInfo(cell: CellInfoWcdma) : NetworkData {
+    var ecN0 = -1
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        ecN0 = cell.cellSignalStrength.ecNo
+    }
+    return NetworkData(
+        0.0, 0.0, "", "WCDMA",
+        null, cell.cellIdentity.lac.toString(),
+        cell.cellIdentity.cid.toString(),
+        null,
+        "",
+        cell.cellIdentity.uarfcn,
+        getFrequency(cell),
+        getFrequencyBand(cell),
+        null,
+        null,
+        cell.cellSignalStrength.dbm,
+        ecN0,
+        null,
+        null,
+        0.0,0.0,0.0,0.0,0.0, 0.0, ""
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+private fun getLteInfo(cell: CellInfoLte) : NetworkData {
+    return NetworkData(
+        0.0, 0.0, "", "LTE",
+        cell.cellIdentity.tac.toString(), null,
+        cell.cellIdentity.ci.toString(),
+        null,
+        "",
+        cell.cellIdentity.earfcn,
+        getFrequency(cell),
+        getFrequencyBand(cell),
+        cell.cellSignalStrength.rsrp,
+        cell.cellSignalStrength.rsrq,
+        null,
+        null,
+        null,
+        null,
+        0.0,0.0,0.0,0.0,0.0, 0.0, ""
+    )
+}
+
+private fun calculateNrFrequency(nrarfcn: Int): Double {
+    // Implement NR frequency calculation based on 3GPP 38.104
+    // This is a simplified example - actual calculation depends on band
     return when {
-        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) && (cellInfo is CellInfoNr) -> "5G"
-        cellInfo is CellInfoLte -> "LTE"
-        cellInfo is CellInfoWcdma -> "HSPA"
-        cellInfo is CellInfoGsm -> "GSM"
-        cellInfo is CellInfoCdma -> "CDMA"
-        else -> "UNKNOWN"
+        nrarfcn in 0..599999 -> 0.001 * nrarfcn + 0.0  // Example for low bands
+        else -> 0.0005 * nrarfcn + 0.0  // Example for high bands
+    }
+}
+
+private fun getNrBand(nrarfcn: Int): String {
+    // Map NRARFCN to 5G bands based on 3GPP specifications
+    return when (nrarfcn) {
+        in 0..599999 -> "n1"  // 2100 MHz
+        in 600000..1199999 -> "n3"  // 1800 MHz
+        in 1200000..1799999 -> "n7"  // 2600 MHz
+        in 1800000..2399999 -> "n28"  // 700 MHz
+        in 2400000..2999999 -> "n78"  // 3500 MHz (common 5G band)
+        else -> "Unknown NR Band"
     }
 }
 
@@ -86,23 +193,6 @@ fun handlePossibleNrCell(cellInfo: CellInfo?): String? {
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.R)
-//@Suppress("DiscouragedApi")
-//fun getRac(cellInfo: CellInfo?): String? {
-//    return when (cellInfo) {
-//        is CellInfoGsm, is CellInfoWcdma -> {
-//            try {
-//                val racField = cellInfo.cellIdentity.javaClass.getDeclaredField("mRac")
-//                racField.isAccessible = true
-//                (racField.get(cellInfo.cellIdentity) as? Int)?.takeIf { it != Int.MAX_VALUE }?.toString()
-//            } catch (e: Exception) {
-//                null
-//            }
-//        }
-//        else -> null
-//    }
-//}
-
 fun getRsrp(cellInfo: CellInfo?): Int? {
     return when {
         cellInfo is CellInfoLte -> {
@@ -159,21 +249,6 @@ fun getRscp(cellInfo: CellInfo?): Int? {
         else -> null
     }
 }
-
-//fun getEcIo(cellInfo: CellInfo?): Int? {
-//    return when (cellInfo) {
-//        is CellInfoWcdma -> {
-//            try {
-//                val method = cellInfo.cellSignalStrength.javaClass.getMethod("getEcNo")
-//                method.invoke(cellInfo.cellSignalStrength) as? Int
-//            } catch (e: Exception) {
-//                null
-//            }
-//        }
-//
-//        else -> null
-//    }
-//}
 
 fun getRxLev(cellInfo: CellInfo?): Int? {
     return when (cellInfo) {
