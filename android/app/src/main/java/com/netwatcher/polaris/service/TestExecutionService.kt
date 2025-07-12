@@ -31,7 +31,6 @@ class TestExecutionService : Service() {
         super.onCreate()
         Log.d("TestExecutionService", "Service created.")
         val dao = AppDatabaseHelper.getDatabase(this).networkDataDao()
-        val tm = getSystemService(Context.TELEPHONY_SERVICE) as android.telephony.TelephonyManager
         repository = NetworkRepositoryImpl(this, dao, NetworkModule.networkDataApi)
     }
 

@@ -16,7 +16,6 @@ interface NetworkRepository {
     suspend fun measureWebResponseTime(): Double?
     suspend fun addNetworkData(networkData: NetworkData)
     fun getAllNetworkData(): Flow<List<NetworkData>>
-    suspend fun uploadNetworkData(data: Any): Result<Unit>
     suspend fun uploadNetworkDataBatch(data: RequestBody): Result<Unit>
     suspend fun getUserInfo(): Result<Unit>
 }

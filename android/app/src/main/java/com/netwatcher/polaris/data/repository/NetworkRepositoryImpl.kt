@@ -48,21 +48,6 @@ class NetworkRepositoryImpl(
     }
 
     // Server Database
-    override suspend fun uploadNetworkData(data: Any): Result<Unit> {
-        return try {
-            val response = api.uploadNetworkData(token = getAuthToken().toString(), data = data)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                val errorMessage =
-                    response.errorBody()?.string() ?: "Failed to Sync Data with Server"
-                Result.failure(Exception(errorMessage))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     override suspend fun uploadNetworkDataBatch(data: RequestBody): Result<Unit> {
         return try {
             val response =
