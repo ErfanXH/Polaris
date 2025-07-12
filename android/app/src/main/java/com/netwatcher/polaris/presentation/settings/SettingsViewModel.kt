@@ -32,8 +32,9 @@ class SettingsViewModel(
 
     @SuppressLint("MissingPermission")
     private fun loadSimCards() {
-        val subscriptionManager = getApplication<Application>()
-            .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+        val application = getApplication<Application>()
+        val subscriptionManager =
+            application.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
 
         val list = subscriptionManager.activeSubscriptionInfoList?.map {
             SimInfo(
@@ -43,8 +44,21 @@ class SettingsViewModel(
                 subscriptionId = it.subscriptionId
             )
         } ?: emptyList()
+
         _simList.value = list
+
+        // If no sim was saved (or invalid), default to the first sim
+        val savedSimId = TestConfigManager.getSelectedSimId(application)
+        val validSaved = list.any { it.subscriptionId == savedSimId }
+
+        val defaultSimId = if (validSaved) savedSimId else list.firstOrNull()?.subscriptionId
+
+        if (defaultSimId != null) {
+            _selectedSimId.value = defaultSimId
+            TestConfigManager.setSelectedSimId(application, defaultSimId)
+        }
     }
+
 
     fun selectSim(simId: Int) {
         _selectedSimId.value = simId
