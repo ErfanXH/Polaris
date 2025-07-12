@@ -42,6 +42,7 @@ import com.netwatcher.polaris.presentation.auth.VerificationScreen
 import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.settings.SettingsScreen
+import com.netwatcher.polaris.presentation.settings.SettingsViewModel
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
@@ -255,6 +256,15 @@ fun PolarisNav(mainActivity: MainActivity) {
         )
     )
 
+    val settingsViewModel: SettingsViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return SettingsViewModel(mainActivity.application) as T
+            }
+        }
+    )
+
+
     NavHost(
         navController = navController,
         startDestination = "splash"
@@ -327,6 +337,7 @@ fun PolarisNav(mainActivity: MainActivity) {
         }
         composable("settings") {
             SettingsScreen(
+                viewModel = settingsViewModel,
                 onSimSelected = { simId ->
                     homeViewModel.setSelectedSim(simId)
                 },
@@ -335,6 +346,7 @@ fun PolarisNav(mainActivity: MainActivity) {
                 }
             )
         }
+
     }
 }
 

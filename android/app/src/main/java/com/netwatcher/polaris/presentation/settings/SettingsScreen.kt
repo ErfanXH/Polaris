@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.netwatcher.polaris.presentation.settings
 
 import android.annotation.SuppressLint
@@ -19,31 +21,15 @@ import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.TestConfigManager
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("MissingPermission")
 @Composable
 fun SettingsScreen(
+    viewModel: SettingsViewModel,
     onSimSelected: (Int) -> Unit,
     onBack: () -> Unit
 ) {
+    val simList by viewModel.simList.collectAsState()
+    val selectedSimId by viewModel.selectedSimId.collectAsState()
     val context = LocalContext.current
-    val subscriptionManager = remember {
-        context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
-    }
-
-    val simList = remember {
-        subscriptionManager.activeSubscriptionInfoList?.map {
-            SimInfo(
-                displayName = it.displayName?.toString() ?: "Unknown",
-                carrierName = it.carrierName?.toString() ?: "Unknown",
-                simSlotIndex = it.simSlotIndex,
-                subscriptionId = it.subscriptionId
-            )
-        } ?: emptyList()
-    }
-
-    var selectedSimId by remember {
-        mutableStateOf(TestConfigManager.getSelectedSimId(context))
-    }
 
     Scaffold(
         topBar = {
@@ -77,8 +63,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                selectedSimId = sim.subscriptionId
-                                TestConfigManager.setSelectedSimId(context, sim.subscriptionId)
+                                viewModel.selectSim(sim.subscriptionId)
                                 onSimSelected(sim.subscriptionId)
                             }
                             .padding(vertical = 8.dp)
@@ -86,8 +71,7 @@ fun SettingsScreen(
                         RadioButton(
                             selected = sim.subscriptionId == selectedSimId,
                             onClick = {
-                                selectedSimId = sim.subscriptionId
-                                TestConfigManager.setSelectedSimId(context, sim.subscriptionId)
+                                viewModel.selectSim(sim.subscriptionId)
                                 onSimSelected(sim.subscriptionId)
                             }
                         )
@@ -101,19 +85,16 @@ fun SettingsScreen(
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
             }
 
-            SyncIntervalSettings(context = context)
+            SyncIntervalSettings(viewModel = viewModel)
             Divider(modifier = Modifier.padding(vertical = 16.dp))
-            TestConfigurationSettings(context = context)
+            TestConfigurationSettings(viewModel = viewModel)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SyncIntervalSettings(context: Context) {
-    val preferences = remember { DataSyncScheduler.getPreferences(context) }
-    val currentInterval = preferences.getLong(DataSyncScheduler.KEY_SYNC_INTERVAL, 30L)
-    var selectedInterval by remember { mutableStateOf(currentInterval) }
+fun SyncIntervalSettings(viewModel: SettingsViewModel) {
+    val selectedInterval by viewModel.selectedInterval.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
     val intervals = listOf(
@@ -138,9 +119,7 @@ fun SyncIntervalSettings(context: Context) {
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
+                modifier = Modifier.fillMaxWidth().menuAnchor()
             )
 
             ExposedDropdownMenu(
@@ -151,9 +130,8 @@ fun SyncIntervalSettings(context: Context) {
                     DropdownMenuItem(
                         text = { Text(label) },
                         onClick = {
-                            selectedInterval = value
+                            viewModel.updateSyncInterval(value)
                             expanded = false
-                            DataSyncScheduler.updateSyncInterval(context, value)
                         }
                     )
                 }
@@ -163,23 +141,21 @@ fun SyncIntervalSettings(context: Context) {
 }
 
 @Composable
-fun TestConfigurationSettings(context: Context) {
-    val testConfig = remember { TestConfigManager.getPreferences(context) }
+fun TestConfigurationSettings(viewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    val prefs = remember { TestConfigManager.getPreferences(context) }
 
     var smsTestNumber by remember {
-        mutableStateOf(testConfig.getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "+989303009264")
+        mutableStateOf(prefs.getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "")
     }
-
     var pingTestAddress by remember {
-        mutableStateOf(testConfig.getString(TestConfigManager.KEY_PING_TEST_ADDRESS, "8.8.8.8") ?: "8.8.8.8")
+        mutableStateOf(prefs.getString(TestConfigManager.KEY_PING_TEST_ADDRESS, "8.8.8.8") ?: "")
     }
-
     var dnsTestAddress by remember {
-        mutableStateOf(testConfig.getString(TestConfigManager.KEY_DNS_TEST_ADDRESS, "google.com") ?: "google.com")
+        mutableStateOf(prefs.getString(TestConfigManager.KEY_DNS_TEST_ADDRESS, "google.com") ?: "")
     }
-
     var webTestAddress by remember {
-        mutableStateOf(testConfig.getString(TestConfigManager.KEY_WEB_TEST_ADDRESS, "https://www.google.com") ?: "https://www.google.com")
+        mutableStateOf(prefs.getString(TestConfigManager.KEY_WEB_TEST_ADDRESS, "https://www.google.com") ?: "")
     }
 
     Column {
@@ -190,7 +166,7 @@ fun TestConfigurationSettings(context: Context) {
             value = smsTestNumber,
             onValueChange = {
                 smsTestNumber = it
-                TestConfigManager.setSmsTestNumber(context, it)
+                viewModel.setSmsTestNumber(it)
             },
             label = { Text("SMS Test Number") },
             modifier = Modifier.fillMaxWidth()
@@ -202,7 +178,7 @@ fun TestConfigurationSettings(context: Context) {
             value = pingTestAddress,
             onValueChange = {
                 pingTestAddress = it
-                TestConfigManager.setPingTestAddress(context, it)
+                viewModel.setPingAddress(it)
             },
             label = { Text("Ping Test Address") },
             modifier = Modifier.fillMaxWidth()
@@ -214,7 +190,7 @@ fun TestConfigurationSettings(context: Context) {
             value = dnsTestAddress,
             onValueChange = {
                 dnsTestAddress = it
-                TestConfigManager.setDnsTestAddress(context, it)
+                viewModel.setDnsAddress(it)
             },
             label = { Text("DNS Test Address") },
             modifier = Modifier.fillMaxWidth()
@@ -226,12 +202,10 @@ fun TestConfigurationSettings(context: Context) {
             value = webTestAddress,
             onValueChange = {
                 webTestAddress = it
-                TestConfigManager.setWebTestAddress(context, it)
+                viewModel.setWebAddress(it)
             },
             label = { Text("Web Test Address") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
