@@ -238,8 +238,6 @@ fun PolarisNav(mainActivity: MainActivity) {
     val navController = rememberNavController()
     val authViewModel = remember { AuthViewModel(NetworkModule.authRepository) }
 
-    val telephonyManager =
-        mainActivity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     val database = AppDatabaseHelper.getDatabase(mainActivity)
 
     val homeViewModel: HomeViewModel = viewModel(
@@ -260,7 +258,6 @@ fun PolarisNav(mainActivity: MainActivity) {
             }
         }
     )
-
 
     NavHost(
         navController = navController,
