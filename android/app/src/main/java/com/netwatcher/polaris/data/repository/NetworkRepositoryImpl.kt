@@ -35,7 +35,6 @@ import kotlin.coroutines.suspendCoroutine
 
 class NetworkRepositoryImpl(
     private val context: Context,
-    private val defaultTelephonyManager: TelephonyManager,
     val networkDataDao: NetworkDataDao,
     private val api: NetworkDataApi
 ) : NetworkRepository {
