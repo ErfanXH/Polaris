@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.netwatcher.polaris.domain.model.LoginRequest
 import com.netwatcher.polaris.domain.model.LoginResult
 import com.netwatcher.polaris.domain.model.NetworkData
+import com.netwatcher.polaris.domain.model.ResetPasswordRequest
 import com.netwatcher.polaris.domain.model.SignUpRequest
 import com.netwatcher.polaris.domain.model.VerificationRequest
 import com.netwatcher.polaris.domain.model.VerificationRetryRequest
+import com.netwatcher.polaris.domain.model.VerifyResetCodeRequest
 import com.netwatcher.polaris.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,6 +66,39 @@ class AuthViewModel(
             _authUiState.value = result.fold(
                 onSuccess = { AuthUiState.Success },
                 onFailure = { AuthUiState.Error(it.message ?: "Retry failed") }
+            )
+        }
+    }
+
+    fun sendResetCode(numberOrEmail: String) {
+        _authUiState.value = AuthUiState.Loading
+        viewModelScope.launch {
+            val result = repository.sendResetCode(numberOrEmail)
+            _authUiState.value = result.fold(
+                onSuccess = { AuthUiState.CodeSent },
+                onFailure = { AuthUiState.Error(it.message ?: "Failed to send reset code") }
+            )
+        }
+    }
+
+    fun verifyResetCode(request: VerifyResetCodeRequest) {
+        _authUiState.value = AuthUiState.Loading
+        viewModelScope.launch {
+            val result = repository.verifyResetCode(request)
+            _authUiState.value = result.fold(
+                onSuccess = { AuthUiState.CodeVerified },
+                onFailure = { AuthUiState.Error(it.message ?: "Invalid verification code") }
+            )
+        }
+    }
+
+    fun resetPassword(request: ResetPasswordRequest) {
+        _authUiState.value = AuthUiState.Loading
+        viewModelScope.launch {
+            val result = repository.resetPassword(request)
+            _authUiState.value = result.fold(
+                onSuccess = { AuthUiState.Success },
+                onFailure = { AuthUiState.Error(it.message ?: "Failed to reset password") }
             )
         }
     }

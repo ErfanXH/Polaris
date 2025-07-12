@@ -32,10 +32,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.presentation.auth.AuthViewModel
 import com.netwatcher.polaris.presentation.auth.LoginScreen
+import com.netwatcher.polaris.presentation.auth.ResetPasswordScreen
 import com.netwatcher.polaris.presentation.auth.SignUpScreen
 import com.netwatcher.polaris.presentation.auth.SplashScreen
 import com.netwatcher.polaris.presentation.auth.VerificationScreen
@@ -47,8 +47,6 @@ import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.TestAlarmScheduler
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
 
@@ -295,6 +293,9 @@ fun PolarisNav(mainActivity: MainActivity) {
                 onNavigateToVerification = { numberOrEmail, password ->
                     navController.navigate("verification?numberOrEmail=$numberOrEmail&password=$password")
                 },
+                onNavigateToResetPassword = {
+                    navController.navigate("reset_password")
+                },
                 onSuccess = {
                     navController.navigate("home") {
                         popUpTo("login") { inclusive = true }
@@ -321,6 +322,21 @@ fun PolarisNav(mainActivity: MainActivity) {
                         popUpTo("verification?numberOrEmail={numberOrEmail}&password={password}") {
                             inclusive = true
                         }
+                    }
+                }
+            )
+        }
+        composable("reset_password") {
+            ResetPasswordScreen(
+                viewModel = authViewModel,
+                onSuccess = {
+                    navController.navigate("login") {
+                        popUpTo("reset_password") { inclusive = true }
+                    }
+                },
+                onBackToLogin = {
+                    navController.navigate("login") {
+                        popUpTo("reset_password") { inclusive = true }
                     }
                 }
             )

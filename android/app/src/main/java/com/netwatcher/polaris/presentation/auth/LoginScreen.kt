@@ -22,6 +22,7 @@ fun LoginScreen(
     viewModel: AuthViewModel,
     onNavigateToSignUp: () -> Unit,
     onNavigateToVerification: (numberOrEmail: String, password: String) -> Unit,
+    onNavigateToResetPassword: () -> Unit,
     onSuccess: () -> Unit
 ) {
     val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
@@ -143,6 +144,19 @@ fun LoginScreen(
                 }
             )
             passwordError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                TextButton(onClick = {
+                    onNavigateToResetPassword()
+                }) {
+                    Text("Forgot Password?")
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
