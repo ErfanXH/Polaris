@@ -21,7 +21,11 @@ fun HomeStateContent(
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when (uiState) {
             is HomeUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-            is HomeUiState.Error -> Text(uiState.message, Modifier.align(Alignment.Center))
+            is HomeUiState.Error -> Text(
+                uiState.message,
+                Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.primary
+            )
             is HomeUiState.Empty -> Column(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -30,7 +34,10 @@ fun HomeStateContent(
                     onRunTest(TestConfigManager.getTestSelection(context))
                 })
                 Spacer(Modifier.height(16.dp))
-                Text("No Test Data Available")
+                Text(
+                    "No Test Data Available",
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             is HomeUiState.Success -> HomeContent(
@@ -41,6 +48,7 @@ fun HomeStateContent(
 
             is HomeUiState.LocationSuccess -> Text(
                 "Lat: ${uiState.location.latitude}, Lon: ${uiState.location.longitude}",
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
