@@ -1,6 +1,5 @@
 package com.netwatcher.polaris.service
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,11 +14,12 @@ import androidx.core.app.NotificationCompat
 import com.netwatcher.polaris.AppDatabaseHelper
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.domain.model.TestSelection
+import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.utils.TestConfigManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class TestExecutionService : Service() {
@@ -46,14 +46,19 @@ class TestExecutionService : Service() {
 
         serviceScope.launch {
             try {
-                Log.d("TestExecutionService", "Running network test in background...")
-                Log.d("TestExecutionService", "$selectedSimId")
-                repository.runNetworkTest(
-                    testSelection = testSelection,
-                    subscriptionId = selectedSimId
-                )
+                val token = TokenManager.getToken().first()
 
-                Log.d("TestExecutionService", "Network test finished and saved locally.")
+                if (!token.isNullOrEmpty()) {
+                    Log.d("TestExecutionService", "Running network test for $selectedSimId in background...")
+                    repository.runNetworkTest(
+                        testSelection = testSelection,
+                        subscriptionId = selectedSimId
+                    )
+                    Log.d("TestExecutionService", "Network test finished and saved locally.")
+                }
+                else {
+                    Log.d("TestExecutionService", "No token available - skipping network test")
+                }
             } catch (e: Exception) {
                 Log.e("TestExecutionService", "Error during background test: ${e.message}", e)
             } finally {
