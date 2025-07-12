@@ -54,7 +54,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onProfileClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onLogout: () -> Unit = {},
     context: Context
@@ -165,7 +164,6 @@ fun HomeScreen(
                     HomeContent(
                         networkData = state.data,
                         onRunTest = { selection -> viewModel.runNetworkTest(selection) },
-                        onProfileClick = onProfileClick,
                         context = context
                     )
                 }
@@ -182,7 +180,6 @@ fun HomeScreen(
 private fun HomeContent(
     networkData: NetworkData,
     onRunTest: (TestSelection) -> Unit,
-    onProfileClick: () -> Unit,
     context: Context
 ) {
     var testSelection by remember {
