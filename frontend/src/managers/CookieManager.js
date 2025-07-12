@@ -1,17 +1,32 @@
-import TokenCookieKey from "./Constants";
+import Constants from "./Constants";
 import Cookies from "js-cookie";
 
-const SaveToken = (token, expire = 30) => {
-  token = token.slice(4);
-  Cookies.set(TokenCookieKey.TokenCookieKey, token, { expires: expire });
+const saveCookie = (credentials, expire = 30) => {
+  const cookie = {
+    token: credentials.access.slice(4),
+    isAdmin: credentials.is_admin,
+  };
+  Cookies.set(Constants.CookieKey, JSON.stringify(cookie), {
+    expires: expire,
+  });
 };
 
-const LoadToken = () => {
-  return Cookies.get(TokenCookieKey.TokenCookieKey);
+const loadCookie = () => {
+  return JSON.parse(Cookies.get(Constants.CookieKey) || "{}");
 };
 
-const RemoveToken = () => {
-  Cookies.remove(TokenCookieKey.TokenCookieKey);
+const loadIsAdmin = () => {
+  const cookie = loadCookie();
+  return cookie?.isAdmin;
 };
 
-export default { SaveToken, LoadToken, RemoveToken };
+const loadToken = () => {
+  const cookie = loadCookie();
+  return cookie?.token;
+};
+
+const removeCookie = () => {
+  Cookies.remove(Constants.CookieKey);
+};
+
+export default { saveCookie, loadToken, loadIsAdmin, removeCookie };

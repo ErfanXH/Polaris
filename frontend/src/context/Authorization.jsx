@@ -6,16 +6,26 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    isAuthenticated: !!CookieManager.LoadToken(),
+    isAuthenticated: !!CookieManager.loadToken(),
+    isAdmin: CookieManager.loadIsAdmin() || false,
     isLoading: false,
   });
 
   const setAuthentication = useCallback(() => {
-    setAuthState({ isAuthenticated: true, isLoading: false });
+    const isAdmin = CookieManager.loadIsAdmin();
+    setAuthState({
+      isAuthenticated: true,
+      isAdmin: CookieManager.loadIsAdmin() || false,
+      isLoading: false,
+    });
   }, []);
 
   const resetAuthentication = useCallback(() => {
-    setAuthState({ isAuthenticated: false, isLoading: false });
+    setAuthState({
+      isAuthenticated: false,
+      isAdmin: false,
+      isLoading: false,
+    });
   }, []);
 
   return (
@@ -35,14 +45,20 @@ export const useAuth = () => {
   return context;
 };
 
-export const ProtectedRoute = ({ children, redirectPath = "/login" }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+export const ProtectedRoute = ({
+  children,
+  redirectPath = "/login",
+  adminOnly = false,
+}) => {
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
   if (isLoading) return <div>Loading...</div>;
 
-  return isAuthenticated ? (
-    children || <Outlet />
-  ) : (
-    <Navigate to={redirectPath} replace />
-  );
+  if (adminOnly && isAdmin && isAuthenticated) {
+    return children || <Outlet />;
+  } else if (!adminOnly && isAuthenticated) {
+    return children || <Outlet />;
+  } else {
+    return <Navigate to={redirectPath} replace />;
+  }
 };

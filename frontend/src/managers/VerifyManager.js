@@ -20,9 +20,9 @@ const VerifyManager = {
         password: password,
         code: code,
       });
-      const token = response.data?.access;
-      if (token) {
-        cookie.SaveToken(token);
+      const userInfo = response.data;
+      if (userInfo) {
+        cookie.saveCookie(userInfo);
       }
       return response.data;
     } catch (error) {

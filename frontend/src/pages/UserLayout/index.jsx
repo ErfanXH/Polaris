@@ -24,6 +24,7 @@ import {
   Logout as LogoutIcon,
   Menu as MenuIcon,
   Settings as SettingsIcon,
+  Group as GroupIcon,
 } from "@mui/icons-material";
 import CookieManager from "../../managers/CookieManager";
 import { useAuth } from "../../context/Authorization";
@@ -51,11 +52,16 @@ export default function UserLayout() {
     { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
     // { text: "Profile", icon: <PersonIcon />, path: "/profile" },
     { text: "Map", icon: <MapIcon />, path: "/map" },
+    CookieManager.loadIsAdmin() && {
+      text: "User List",
+      icon: <GroupIcon />,
+      path: "/user-list",
+    },
     {
       text: "Sign Out",
       icon: <LogoutIcon />,
       func: () => {
-        CookieManager.RemoveToken();
+        CookieManager.removeCookie();
         resetAuthentication();
         navigate("/login");
       },
