@@ -74,7 +74,7 @@ class AuthenticationViewSet(GenericViewSet):
         user=serializer.validated_data['user']
         if user.is_code_expired():
             return Response({'detail':'verification code has expired'} , status=status.HTTP_406_NOT_ACCEPTABLE)
-        elif not user.verify_code(validated_data['code']):
+        elif not user.verify_code(serializer.validated_data['code']):
             return Response({'detail':'verification code does not match'} , status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
             return Response({'detail':'verification code is valid'} , status=status.HTTP_200_OK)
