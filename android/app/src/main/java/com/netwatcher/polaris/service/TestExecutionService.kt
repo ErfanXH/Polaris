@@ -16,6 +16,7 @@ import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.utils.TestConfigManager
+import com.netwatcher.polaris.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -37,6 +38,12 @@ class TestExecutionService : Service() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("TestExecutionService", "Starting foreground service for test execution...")
+
+        if (!hasAllPermissions(this)) {
+            Log.w("TestExecutionService", "Required permissions are missing, aborting test execution.")
+            stopSelf()
+            return START_NOT_STICKY
+        }
 
         startForeground(NOTIF_ID, createNotification())
 
