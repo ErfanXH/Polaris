@@ -61,7 +61,7 @@ private fun getGsmInfo(cell: CellInfoGsm) : NetworkData {
     return NetworkData(
         0.0, 0.0, "", "GSM",
         null, lac, cellId, null, "",
-        arfcn, getGsmFrequency(arfcn), "GSM Band ${getGsmFrequencyBand(arfcn)}",
+        arfcn, getGsmFrequency(arfcn), getGsmFrequencyBand(arfcn),
         null, null, null, null,
         cell.cellSignalStrength.javaClass.getMethod("getRssi").invoke(cell.cellSignalStrength) as? Int,
         null,

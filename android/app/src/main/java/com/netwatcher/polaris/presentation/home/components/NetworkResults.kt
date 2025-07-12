@@ -38,7 +38,6 @@ fun NetworkResults(networkData: NetworkData) {
             "WCDMA", "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS" -> listOf(
                 "Technology" to (networkData.networkType),
                 "LAC" to (networkData.lac ?: "N/A"),
-                "RAC" to (networkData.rac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
                 "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) }
@@ -49,7 +48,6 @@ fun NetworkResults(networkData: NetworkData) {
             "GSM", "GPRS", "EDGE", "CDMA" -> listOf(
                 "Technology" to (networkData.networkType),
                 "LAC" to (networkData.lac ?: "N/A"),
-                "RAC" to (networkData.rac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
                 "PLMN ID" to (networkData.plmnId ?: "N/A"),
                 "Frequency" to (networkData.frequency?.let { String.format("%.2f MHz", it) }
