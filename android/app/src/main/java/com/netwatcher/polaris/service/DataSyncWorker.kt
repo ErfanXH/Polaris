@@ -13,19 +13,22 @@ import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.utils.TimeStampConverter
+import com.netwatcher.polaris.utils.hasAllPermissions
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
-/**
- * A background worker responsible for syncing locally stored, unsynced network data with the remote server.
- * Uses WorkManager to ensure the task is executed even if the app is closed.
- */
 class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         Log.d("DataSyncWorker", "Starting data sync work.")
+
+        if (!hasAllPermissions(applicationContext)) {
+            Log.w("DataSyncWorker", "Missing required permissions. Skipping sync.")
+            return Result.failure()
+        }
+
         val dao = AppDatabaseHelper.getDatabase(applicationContext).networkDataDao()
 
         return try {
@@ -50,12 +53,6 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    /**
-     * Performs the network request to upload a batch of data to the server.
-     * @param dao The DAO to mark data as synced upon success.
-     * @param unsynced The list of NetworkData objects to upload.
-     * @return True if the upload was successful, false otherwise.
-     */
     private suspend fun syncDataWithServer(dao: NetworkDataDao, unsynced: List<NetworkData>): Boolean {
         val token = TokenManager.getToken().firstOrNull() ?: return false
 
