@@ -27,6 +27,8 @@ class Measurement(models.Model):
         'EDGE'   : 'EDGE'   ,
         'UMTS'   : 'UMTS'   ,
         'HSPA'   : 'HSPA'   ,
+        'WCDMA'  : 'WCDMA'  ,
+        '3G'     : '3G'     ,
         'HSPA+'  : 'HSPA+'  ,
         'LTE'    : 'LTE'    ,
         '5G'     : '5G'     ,
