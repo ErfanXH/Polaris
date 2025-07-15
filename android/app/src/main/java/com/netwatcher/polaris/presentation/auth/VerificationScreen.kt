@@ -77,8 +77,8 @@ fun VerificationScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 32.dp) // Adjust as needed
-                    .wrapContentSize(Alignment.TopCenter) // 👈 Align top
+                    .padding(top = 32.dp)
+                    .wrapContentSize(Alignment.TopCenter)
             ) {
                 SnackbarHost(hostState = snackbarHostState)
             }
@@ -106,11 +106,24 @@ fun VerificationScreen(
                 codeDigits.forEachIndexed { index, value ->
                     OutlinedTextField(
                         value = value,
-                        onValueChange = {
-                            if (it.length <= 1 && it.all { c -> c.isDigit() }) {
-                                codeDigits[index] = it
-                                if (it.isNotEmpty() && index < 4) {
-                                    focusRequesters[index + 1].requestFocus()
+                        onValueChange = { newValue ->
+                            when {
+                                newValue.length == 1 && newValue.all { it.isDigit() } -> {
+                                    codeDigits[index] = newValue
+                                    if (index < codeDigits.lastIndex) {
+                                        focusRequesters[index + 1].requestFocus()
+                                    }
+                                }
+
+                                newValue.isEmpty() && value.isNotEmpty() -> {
+                                    codeDigits[index] = ""
+                                    if (index > 0) {
+                                        focusRequesters[index - 1].requestFocus()
+                                    }
+                                }
+
+                                newValue.isEmpty() -> {
+                                    codeDigits[index] = ""
                                 }
                             }
                         },
