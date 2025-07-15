@@ -12,7 +12,7 @@ import com.netwatcher.polaris.domain.model.SimInfo
 @Composable
 fun SimSelectionSection(
     simList: List<SimInfo>,
-    selectedSimId: Int?,
+    selectedSimSlotId: Int?,
     onSimSelected: (Int) -> Unit
 ) {
     Text("Select SIM Card", style = MaterialTheme.typography.titleMedium)
@@ -23,13 +23,13 @@ fun SimSelectionSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onSimSelected(sim.subscriptionId)
+                    onSimSelected(sim.simSlotIndex)
                 }
                 .padding(vertical = 8.dp)
         ) {
             RadioButton(
-                selected = sim.subscriptionId == selectedSimId,
-                onClick = { onSimSelected(sim.subscriptionId) }
+                selected = sim.simSlotIndex == selectedSimSlotId,
+                onClick = { onSimSelected(sim.simSlotIndex) }
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {

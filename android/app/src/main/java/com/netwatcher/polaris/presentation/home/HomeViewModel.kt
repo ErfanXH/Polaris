@@ -29,26 +29,26 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private var selectedSubscriptionId: Int? by mutableStateOf(
-        TestConfigManager.getSelectedSimId(application)
+    private var selectedSimSlotId: Int? by mutableStateOf(
+        TestConfigManager.getSelectedSimSlotId(application)
     )
 
-    fun setSelectedSim(subscriptionId: Int) {
-        selectedSubscriptionId = subscriptionId
-        TestConfigManager.setSelectedSimId(getApplication(), subscriptionId)
+    fun setSelectedSim(simSlotId: Int) {
+        selectedSimSlotId = simSlotId
+        TestConfigManager.setSelectedSimSlotId(getApplication(), simSlotId)
     }
 
     fun runNetworkTest(testSelection: TestSelection) {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
-                val result = repository.runNetworkTest(selectedSubscriptionId, testSelection)
+                val result = repository.runNetworkTest(selectedSimSlotId ?: 0, testSelection)
                 _uiState.value = HomeUiState.Success(result)
 
                 TestAlarmScheduler.rescheduleTest(getApplication())
                 Log.d("HomeViewModel", "Manual test run. Background test rescheduled.")
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(e.message ?: "Network Test Failed")
+                _uiState.value = HomeUiState.Error("Network Test Failed!")
             }
         }
     }

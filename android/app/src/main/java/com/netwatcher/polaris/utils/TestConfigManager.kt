@@ -78,7 +78,7 @@ object TestConfigManager {
 
     private const val KEY_SELECTED_SIM_ID = "selected_sim_id"
 
-    fun getSelectedSimId(context: Context): Int? {
+    fun getSelectedSimSlotId(context: Context): Int? {
         val prefs = getPreferences(context)
         return if (prefs.contains(KEY_SELECTED_SIM_ID)) {
             prefs.getInt(KEY_SELECTED_SIM_ID, -1).takeIf { it != -1 }
@@ -87,7 +87,7 @@ object TestConfigManager {
         }
     }
 
-    fun setSelectedSimId(context: Context, simId: Int?) {
+    fun setSelectedSimSlotId(context: Context, simId: Int?) {
         getPreferences(context).edit()
             .putInt(KEY_SELECTED_SIM_ID, simId ?: -1)
             .apply()

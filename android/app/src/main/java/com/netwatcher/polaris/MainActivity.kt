@@ -350,8 +350,8 @@ fun PolarisNav(mainActivity: MainActivity) {
         composable("settings") {
             SettingsScreen(
                 viewModel = settingsViewModel,
-                onSimSelected = { simId ->
-                    homeViewModel.setSelectedSim(simId)
+                onSimSelected = { simSlotId ->
+                    homeViewModel.setSelectedSim(simSlotId)
                 },
                 onBack = {
                     navController.popBackStack()

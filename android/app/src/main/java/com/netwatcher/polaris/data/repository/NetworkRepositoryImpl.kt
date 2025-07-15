@@ -201,7 +201,7 @@ class NetworkRepositoryImpl(
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    override suspend fun runNetworkTest(subscriptionId: Int?, testSelection: TestSelection): NetworkData {
+    override suspend fun runNetworkTest(simSlotIndex: Int, testSelection: TestSelection): NetworkData {
         val location = getCurrentLocation()
 
         val sm = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
@@ -210,15 +210,16 @@ class NetworkRepositoryImpl(
         val allCellsInfo = tm.allCellInfo.filter { it.isRegistered } ?: emptyList()
         println("all cells: \n $allCellsInfo")
         val subscriptionList = sm.activeSubscriptionInfoList ?: emptyList()
-
-        val simSlotIndex = if (subscriptionId == 1) 1 else 0
+        println("subscription List: $subscriptionList")
+        println("simSlotIndex: $simSlotIndex")
         val subInfo = sm.getActiveSubscriptionInfoForSimSlotIndex(simSlotIndex)
+        println("subInfo: $subInfo")
 
         val targetCell: CellInfo? =
             if (subscriptionList.size == 1) {
                 allCellsInfo?.firstOrNull()
             } else {
-                val indexInList = subscriptionList.indexOfFirst { it.subscriptionId == subInfo.subscriptionId }
+                val indexInList = subscriptionList.indexOfFirst { it.simSlotIndex == subInfo.simSlotIndex }
                 allCellsInfo?.getOrNull(indexInList)
             }
         println("target cell: $targetCell")

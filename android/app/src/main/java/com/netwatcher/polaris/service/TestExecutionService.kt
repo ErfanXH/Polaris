@@ -48,17 +48,17 @@ class TestExecutionService : Service() {
         startForeground(NOTIF_ID, createNotification())
 
         val testSelection = TestConfigManager.getTestSelection(this)
-        val selectedSimId = TestConfigManager.getSelectedSimId(this)
+        val selectedSimSlotId = TestConfigManager.getSelectedSimId(this)
 
         serviceScope.launch {
             try {
                 val token = TokenManager.getToken().first()
 
                 if (!token.isNullOrEmpty()) {
-                    Log.d("TestExecutionService", "Running network test for $selectedSimId in background...")
+                    Log.d("TestExecutionService", "Running network test for $selectedSimSlotId in background...")
                     repository.runNetworkTest(
                         testSelection = testSelection,
-                        subscriptionId = selectedSimId
+                        simSlotIndex = selectedSimSlotId ?: 0
                     )
                     Log.d("TestExecutionService", "Network test finished and saved locally.")
                 }

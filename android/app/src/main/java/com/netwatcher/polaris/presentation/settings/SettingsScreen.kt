@@ -57,7 +57,7 @@ fun SettingsScreen(
             if (simList.size > 1) {
                 SimSelectionSection(
                     simList = simList,
-                    selectedSimId = selectedSimId,
+                    selectedSimSlotId = selectedSimId,
                     onSimSelected = {
                         viewModel.selectSim(it)
                         onSimSelected(it)
