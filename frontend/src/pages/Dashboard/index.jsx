@@ -14,7 +14,6 @@ import {
   ArfcnDistributionChart,
   FrequencyBandChart,
   RsrpRsrqScatterChart,
-  // TestPerformanceRadarChart,
   SignalStrengthOverTimeChart,
   MeasurementCountByHourChart,
   MostFrequentCellsChart,
@@ -107,10 +106,6 @@ export default function Dashboard() {
                 option={chartOptions.rsrpRsrqScatterOption}
                 chartRef={(el) => (chartRefs.current[3] = el)}
               />
-              {/* <TestPerformanceRadarChart
-                option={chartOptions.TestPerformanceRadarOption}
-                chartRef={(el) => (chartRefs.current[4] = el)}
-              /> */}
               <DashboardTable
                 data={filteredData}
                 isMobile={isMobile}
@@ -137,10 +132,6 @@ export default function Dashboard() {
                 option={chartOptions.rsrpRsrqScatterOption}
                 chartRef={(el) => (chartRefs.current[3] = el)}
               />
-              {/* <TestPerformanceRadarChart
-                option={chartOptions.TestPerformanceRadarOption}
-                chartRef={(el) => (chartRefs.current[4] = el)}
-              /> */}
               <SignalStrengthOverTimeChart
                 option={chartOptions.SignalStrengthOverTimeOption}
                 chartRef={(el) => (chartRefs.current[4] = el)}

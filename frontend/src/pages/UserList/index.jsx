@@ -8,17 +8,22 @@ import {
   TableRow,
   TextField,
   Paper,
-  Avatar,
+  Box,
   Switch,
   TablePagination,
+  CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useUserList } from "../../hooks/useUserList";
 
 export default function UserList() {
-  const { users, isLoading, error, banUser, allowUser } = useUserList();
+  const { users = [], isLoading, error, banUser, allowUser } = useUserList();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10);
 
   const filteredUsers = users.filter(
     (user) =>
@@ -33,13 +38,26 @@ export default function UserList() {
     setPage(0);
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "200px", // You can adjust height
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
   if (error) return <div>Error loading users</div>;
 
   return (
     <Paper sx={{ padding: 2 }}>
       <TextField
-        label="Search by username, email, or phone"
+        label="Search"
         variant="outlined"
         fullWidth
         margin="normal"
@@ -47,11 +65,9 @@ export default function UserList() {
         onChange={(e) => setSearch(e.target.value)}
       />
       <TableContainer>
-        <Table>
+        <Table size={isMobile ? "small" : "medium"} stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell>Profile</TableCell>
-              <TableCell>Username</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Phone Number</TableCell>
               <TableCell>Verified</TableCell>
@@ -63,18 +79,12 @@ export default function UserList() {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>
-                    <Avatar src={user.image || undefined}>
-                      {!user.image && user.username[0]?.toUpperCase()}
-                    </Avatar>
-                  </TableCell>
-                  <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.phone_number}</TableCell>
                   <TableCell>{user.is_verified ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     <Switch
-                      checked={!user.is_banned}
+                      checked={user.is_banned}
                       onChange={() =>
                         user.is_banned
                           ? allowUser(user.email || user.phone_number)

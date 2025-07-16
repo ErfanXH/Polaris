@@ -47,13 +47,6 @@ export const useDashboardData = () => {
       result = result.filter((m) => m.network_type === networkTypeFilter);
     }
 
-    if (dateRange.start && dateRange.end) {
-      result = result.filter((m) => {
-        const timestamp = LocalizeDateTime(m.timestamp);
-        return timestamp >= dateRange.start && timestamp <= dateRange.end;
-      });
-    }
-
     return result;
   }, [measurements, networkTypeFilter, dateRange]);
 
@@ -63,10 +56,6 @@ export const useDashboardData = () => {
       arfcnOption: getArfcnPieOption(filteredData, theme),
       frequencyBandOption: getFrequencyBandBarOption(filteredData, theme),
       rsrpRsrqScatterOption: getRsrpRsrqScatterOption(filteredData, theme),
-      // TestPerformanceRadarOption: getTestPerformanceRadarOption(
-      //   filteredData,
-      //   theme
-      // ),
       SignalStrengthOverTimeOption: getSignalStrengthOverTimeOption(
         filteredData,
         theme
@@ -95,7 +84,6 @@ export const useDashboardData = () => {
         "sms_delivery_time",
         theme,
         "SMS"
-        // (titleKey = "SMS")
       ),
       WebLineOption: getLineChartOption(
         filteredData,
@@ -116,7 +104,6 @@ export const useDashboardData = () => {
         "web_response",
         theme,
         "Web"
-        // (titleKey = "Web")
       ),
       UploadLineOption: getLineChartOption(
         filteredData,
@@ -137,7 +124,6 @@ export const useDashboardData = () => {
         "http_upload",
         theme,
         "Upload"
-        // (titleKey = "Upload")
       ),
       DownloadLineOption: getLineChartOption(
         filteredData,
@@ -158,7 +144,6 @@ export const useDashboardData = () => {
         "http_download",
         theme,
         "Download"
-        // (titleKey = "Download")
       ),
       PingLineOption: getLineChartOption(
         filteredData,
@@ -179,7 +164,6 @@ export const useDashboardData = () => {
         "ping_time",
         theme,
         "Ping"
-        // (titleKey = "Ping")
       ),
       DNSLineOption: getLineChartOption(
         filteredData,
@@ -200,7 +184,6 @@ export const useDashboardData = () => {
         "dns_response",
         theme,
         "DNS"
-        // (titleKey = "DNS")
       ),
     };
   }, [filteredData, theme]);
