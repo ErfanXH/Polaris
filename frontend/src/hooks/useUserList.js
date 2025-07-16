@@ -43,6 +43,9 @@ export function useUserList() {
 
       return { prevUsers };
     },
+    onSuccess: () => {
+      toast.success("user is banned");
+    },
     onError: (_, __, context) => {
       if (context?.prevUsers) {
         queryClient.setQueryData(["users"], context.prevUsers);
@@ -71,6 +74,9 @@ export function useUserList() {
       );
 
       return { prevUsers };
+    },
+    onSuccess: () => {
+      toast.success("user is unbanned");
     },
     onError: (_, __, context) => {
       if (context?.prevUsers) {
