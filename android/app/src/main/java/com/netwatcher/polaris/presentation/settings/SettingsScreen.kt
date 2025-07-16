@@ -17,17 +17,19 @@ import com.netwatcher.polaris.presentation.settings.components.TestConfiguration
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
-    onSimSelected: (Int) -> Unit,
+    onSimSelected: (Int, Int) -> Unit,
     onBack: () -> Unit
 ) {
     val simList by viewModel.simList.collectAsState()
-    val selectedSimId by viewModel.selectedSimId.collectAsState()
+    val selectedSimSlotId by viewModel.selectedSimSlotId.collectAsState()
+    val selectedSimSubsId by viewModel.selectedSimSubsId.collectAsState()
 
-    if (simList.isNotEmpty() && selectedSimId == null) {
+    if (simList.isNotEmpty() && selectedSimSlotId == null) {
         LaunchedEffect(simList) {
-            val defaultSimId = simList.first().subscriptionId
-            viewModel.selectSim(defaultSimId)
-            onSimSelected(defaultSimId)
+            val defaultSimSlotId = simList.first().simSlotIndex
+            val defaultSimSubsId = simList.first().subscriptionId
+            viewModel.selectSim(defaultSimSlotId, defaultSimSubsId)
+            onSimSelected(defaultSimSlotId, defaultSimSubsId)
         }
     }
 
@@ -57,10 +59,11 @@ fun SettingsScreen(
             if (simList.size > 1) {
                 SimSelectionSection(
                     simList = simList,
-                    selectedSimSlotId = selectedSimId,
-                    onSimSelected = {
-                        viewModel.selectSim(it)
-                        onSimSelected(it)
+                    selectedSimSubsId = selectedSimSubsId,
+                    selectedSimSlotId = selectedSimSlotId,
+                    onSimSelected = { slotId, subsId ->
+                        viewModel.selectSim(slotId, subsId)
+                        onSimSelected(slotId, subsId)
                     }
                 )
                 Divider(modifier = Modifier.padding(vertical = 8.dp))

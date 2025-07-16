@@ -18,8 +18,11 @@ class SettingsViewModel(
     private val _simList = MutableStateFlow<List<SimInfo>>(emptyList())
     val simList = _simList.asStateFlow()
 
-    private val _selectedSimId = MutableStateFlow(TestConfigManager.getSelectedSimSlotId(application))
-    val selectedSimId = _selectedSimId.asStateFlow()
+    private val _selectedSimSlotId = MutableStateFlow(TestConfigManager.getSelectedSimSlotId(application))
+    val selectedSimSlotId = _selectedSimSlotId.asStateFlow()
+
+    private val _selectedSimSubsId = MutableStateFlow(TestConfigManager.getSelectedSimSlotId(application))
+    val selectedSimSubsId = _selectedSimSubsId.asStateFlow()
 
     private val _selectedInterval = MutableStateFlow(
         DataSyncScheduler.getPreferences(application).getLong(DataSyncScheduler.KEY_SYNC_INTERVAL, 30L)
@@ -48,20 +51,25 @@ class SettingsViewModel(
         _simList.value = list
 
         // If no sim was saved (or invalid), default to the first sim
-        val savedSimId = TestConfigManager.getSelectedSimSlotId(application)
-        val validSaved = list.any { it.simSlotIndex == savedSimId }
+        val savedSimSlotId = TestConfigManager.getSelectedSimSlotId(application)
+        val validSaved = list.any { it.simSlotIndex == savedSimSlotId }
+        val savedSimSubsId = TestConfigManager.getSelectedSimSubsId(application)
 
-        val defaultSimSlotId = if (validSaved) savedSimId else list.firstOrNull()?.simSlotIndex
+        val defaultSimSlotId = if (validSaved) savedSimSlotId else list.firstOrNull()?.simSlotIndex
+        val defaultSimSubsId = if (validSaved) savedSimSubsId else list.firstOrNull()?.subscriptionId
 
         if (defaultSimSlotId != null) {
-            _selectedSimId.value = defaultSimSlotId
+            _selectedSimSlotId.value = defaultSimSlotId
+            _selectedSimSubsId.value = defaultSimSubsId
             TestConfigManager.setSelectedSimSlotId(application, defaultSimSlotId)
+            TestConfigManager.setSelectedSimSubsId(application, defaultSimSubsId)
         }
     }
 
-    fun selectSim(simId: Int) {
-        _selectedSimId.value = simId
-        TestConfigManager.setSelectedSimSlotId(getApplication(), simId)
+    fun selectSim(simSlotId: Int, simSubsId: Int) {
+        _selectedSimSlotId.value = simSlotId
+        TestConfigManager.setSelectedSimSlotId(getApplication(), simSlotId)
+        TestConfigManager.setSelectedSimSubsId(getApplication(), simSubsId)
     }
 
     fun updateSyncInterval(minutes: Long) {
