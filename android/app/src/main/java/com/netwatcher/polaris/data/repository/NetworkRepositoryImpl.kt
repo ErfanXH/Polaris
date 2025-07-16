@@ -289,7 +289,7 @@ class NetworkRepositoryImpl(
             NETWORK_TYPE_HSPAP -> "HSPA+"
             NETWORK_TYPE_LTE -> "LTE"
             NETWORK_TYPE_NR -> "5G"
-            else -> "Others ($networkType)"
+            else -> "Others"
         }
     }
 }

@@ -2,10 +2,10 @@ package com.netwatcher.polaris.presentation.permissions
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,8 +26,13 @@ fun PermissionScreen(navController: NavController, context: Context) {
             permission = permission,
             onDismiss = { showRationaleDialog = null },
             onNavigateToSettings = {
-                it.settingsIntent?.let { intentAction ->
-                    context.startActivity(Intent(intentAction))
+                it.settingsIntent?.let { intent ->
+                    try {
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Toast.makeText(context, "Failed to Navigate", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 showRationaleDialog = null
             }

@@ -61,45 +61,6 @@ class MainActivity : ComponentActivity() {
         checkLocationAndSetContent()
     }
 
-    /******************************************************/
-//    val requestPermissionLauncher = registerForActivityResult(
-//        ActivityResultContracts.RequestPermission()
-//    ) { isGranted ->
-//        if (isGranted) {
-//            // Permission granted, continue with app initialization
-//            if (hasAllPermissions()) {
-//                initializeApp()
-//            }
-//        } else {
-//            // Permission denied, show explanation or finish
-//            if (ActivityCompat.shouldShowRequestPermissionRationale(
-//                    this,
-//                    Manifest.permission.ACCESS_FINE_LOCATION
-//                )) {
-//                showPermissionRationaleDialog()
-//            } else {
-//                Toast.makeText(
-//                    this,
-//                    "Permission required for app functionality",
-//                    Toast.LENGTH_LONG
-//                ).show()
-//                finish()
-//            }
-//        }
-//    }
-//
-//    private fun showPermissionRationaleDialog() {
-//        AlertDialog.Builder(this)
-//            .setTitle("Permission Required")
-//            .setMessage("This app needs location permission to function properly")
-//            .setPositiveButton("Try Again") { _, _ ->
-//                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-//            }
-//            .setNegativeButton("Exit") { _, _ -> finish() }
-//            .show()
-//    }
-    /******************************************************/
-
     private fun checkAndRequestExactAlarmPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -208,15 +169,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkBatteryOptimizations() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent()
-            val packageName = packageName
-            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                intent.data = Uri.parse("package:$packageName")
-                startActivity(intent)
-            }
+        val intent = Intent()
+        val packageName = packageName
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+            intent.data = Uri.parse("package:$packageName")
+            startActivity(intent)
         }
     }
 
@@ -229,15 +188,16 @@ class MainActivity : ComponentActivity() {
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                    checkNotificationPermission()
+
                 } else {
                     Toast.makeText(
                         this,
-                        "Permissions are required for the app to function",
+                        "Permissions are required for the app to function. Visit Permissions Screen.",
                         Toast.LENGTH_LONG
                     ).show()
-                    finish()
+//                    finish()
                 }
+                checkNotificationPermission()
             }
 
             NOTIFICATION_PERMISSION_REQUEST_CODE -> {
@@ -401,18 +361,6 @@ fun PolarisNav(mainActivity: MainActivity) {
             )
         }
         composable("permissions") {
-//            PermissionScreen(
-//                onBackClick = { navController.popBackStack() },
-//                onRequestPermission = { permission ->
-//                    mainActivity.requestPermissionLauncher.launch(permission)
-//                },
-//                onOpenSettings = { intentAction ->
-//                    intentAction?.let {
-//                        val intent = Intent(it)
-//                        mainActivity.startActivity(intent)
-//                    }
-//                }
-//            )
             PermissionScreen(navController, mainActivity)
         }
     }

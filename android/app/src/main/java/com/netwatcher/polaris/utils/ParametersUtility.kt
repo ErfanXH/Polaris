@@ -43,7 +43,6 @@ private val lteBands = listOf(
     LteBand("41", 39650, 41589, 2496.0)
 )
 
-//@RequiresApi(Build.VERSION_CODES.Q)
 fun getCellInfo(cell: CellInfo?, networkType: String) : NetworkData? {
     return when (cell) {
         is CellInfoGsm -> getGsmInfo(cell, networkType)
@@ -53,7 +52,6 @@ fun getCellInfo(cell: CellInfo?, networkType: String) : NetworkData? {
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.Q)
 private fun getGsmInfo(cell: CellInfoGsm, networkType: String) : NetworkData {
     val arfcn = cell.cellIdentity.arfcn
     val lac = if (cell.cellIdentity.lac != Int.MAX_VALUE) cell.cellIdentity.lac.toString() else null
