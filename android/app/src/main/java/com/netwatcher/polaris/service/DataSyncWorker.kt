@@ -24,10 +24,10 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
     override suspend fun doWork(): Result {
         Log.d("DataSyncWorker", "Starting data sync work.")
 
-        if (!hasAllPermissions(applicationContext)) {
-            Log.w("DataSyncWorker", "Missing required permissions. Skipping sync.")
-            return Result.failure()
-        }
+//        if (!hasAllPermissions(applicationContext)) {
+//            Log.w("DataSyncWorker", "Missing required permissions. Skipping sync.")
+//            return Result.failure()
+//        }
 
         val dao = AppDatabaseHelper.getDatabase(applicationContext).networkDataDao()
 
