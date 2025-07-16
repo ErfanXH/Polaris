@@ -15,6 +15,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onSettingsClick: () -> Unit,
     onLogout: () -> Unit,
+    onPermissionsClick: () -> Unit,
     context: Context
 ) {
     LaunchedEffect(Unit) { viewModel.loadInitialState() }
@@ -25,11 +26,12 @@ fun HomeScreen(
         HomeTopBar(
             onRefresh = { viewModel.loadInitialState() },
             onSettingsClick = onSettingsClick,
+            onPermissionsClick = onPermissionsClick,
             onLogoutClick = {
                 coroutineScope.launch {
                     if (viewModel.onLogoutClick()) onLogout()
                 }
-            }
+            },
         )
 
         HomeStateContent(

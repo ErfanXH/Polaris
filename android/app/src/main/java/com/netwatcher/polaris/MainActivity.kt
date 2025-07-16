@@ -41,6 +41,7 @@ import com.netwatcher.polaris.presentation.auth.SplashScreen
 import com.netwatcher.polaris.presentation.auth.VerificationScreen
 import com.netwatcher.polaris.presentation.home.HomeScreen
 import com.netwatcher.polaris.presentation.home.HomeViewModel
+import com.netwatcher.polaris.presentation.permissions.PermissionScreen
 import com.netwatcher.polaris.presentation.settings.SettingsScreen
 import com.netwatcher.polaris.presentation.settings.SettingsViewModel
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
@@ -59,6 +60,45 @@ class MainActivity : ComponentActivity() {
         isWaitingForLocation = false
         checkLocationAndSetContent()
     }
+
+    /******************************************************/
+//    val requestPermissionLauncher = registerForActivityResult(
+//        ActivityResultContracts.RequestPermission()
+//    ) { isGranted ->
+//        if (isGranted) {
+//            // Permission granted, continue with app initialization
+//            if (hasAllPermissions()) {
+//                initializeApp()
+//            }
+//        } else {
+//            // Permission denied, show explanation or finish
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(
+//                    this,
+//                    Manifest.permission.ACCESS_FINE_LOCATION
+//                )) {
+//                showPermissionRationaleDialog()
+//            } else {
+//                Toast.makeText(
+//                    this,
+//                    "Permission required for app functionality",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//                finish()
+//            }
+//        }
+//    }
+//
+//    private fun showPermissionRationaleDialog() {
+//        AlertDialog.Builder(this)
+//            .setTitle("Permission Required")
+//            .setMessage("This app needs location permission to function properly")
+//            .setPositiveButton("Try Again") { _, _ ->
+//                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+//            }
+//            .setNegativeButton("Exit") { _, _ -> finish() }
+//            .show()
+//    }
+    /******************************************************/
 
     private fun checkAndRequestExactAlarmPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -207,7 +247,7 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val PERMISSION_REQUEST_CODE = 1
+        const val PERMISSION_REQUEST_CODE = 1
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2
 
         private val REQUIRED_PERMISSIONS = arrayOf(
@@ -342,6 +382,7 @@ fun PolarisNav(mainActivity: MainActivity) {
             HomeScreen(
                 viewModel = homeViewModel,
                 onSettingsClick = { navController.navigate("settings") },
+                onPermissionsClick = {navController.navigate("permissions")},
                 onLogout = {
                     navController.navigate("login")
                 },
@@ -359,7 +400,21 @@ fun PolarisNav(mainActivity: MainActivity) {
                 }
             )
         }
-
+        composable("permissions") {
+//            PermissionScreen(
+//                onBackClick = { navController.popBackStack() },
+//                onRequestPermission = { permission ->
+//                    mainActivity.requestPermissionLauncher.launch(permission)
+//                },
+//                onOpenSettings = { intentAction ->
+//                    intentAction?.let {
+//                        val intent = Intent(it)
+//                        mainActivity.startActivity(intent)
+//                    }
+//                }
+//            )
+            PermissionScreen(navController, mainActivity)
+        }
     }
 }
 
