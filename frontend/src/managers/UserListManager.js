@@ -105,7 +105,7 @@ const UserListManager = {
   },
   ban: async (credential) => {
     try {
-      const response = await api.get("/users/admin/ban_user", {
+      const response = await api.post("/users/admin/ban_user/", {
         number_or_email: credential,
       });
       return response.data;
@@ -115,7 +115,7 @@ const UserListManager = {
   },
   allow: async (credential) => {
     try {
-      const response = await api.get("/users/admin/allow_user", {
+      const response = await api.post("/users/admin/allow_user/", {
         number_or_email: credential,
       });
       return response.data;

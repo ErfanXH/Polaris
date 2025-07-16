@@ -14,6 +14,8 @@ export function useUserList() {
     queryKey: ["users"],
     queryFn: async () => {
       try {
+        // return await UserListManager.getAll();
+        const result = await UserListManager.getAll();
         return await UserListManager.getAll();
       } catch (err) {
         toast.error("Failed to load users");
