@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 fun HomeTopBar(
     onRefresh: () -> Unit,
     onSettingsClick: () -> Unit,
+    onPermissionsClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
     TopAppBar(
@@ -30,6 +32,9 @@ fun HomeTopBar(
         actions = {
             IconButton(onClick = onRefresh) {
                 Icon(Icons.Default.Sync, contentDescription = "Refresh")
+            }
+            IconButton(onClick = onPermissionsClick) {
+                Icon(Icons.Default.Security, contentDescription = "Permissions")
             }
             IconButton(onClick = onSettingsClick) {
                 Icon(Icons.Default.Settings, contentDescription = "Settings")
