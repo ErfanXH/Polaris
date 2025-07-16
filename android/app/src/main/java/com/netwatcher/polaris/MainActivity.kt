@@ -6,13 +6,13 @@ import android.app.Application
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
-import android.telephony.TelephonyManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         if (!hasAllPermissions()) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE)
@@ -350,8 +351,8 @@ fun PolarisNav(mainActivity: MainActivity) {
         composable("settings") {
             SettingsScreen(
                 viewModel = settingsViewModel,
-                onSimSelected = { simSlotId ->
-                    homeViewModel.setSelectedSim(simSlotId)
+                onSimSelected = { simSlotId, simSubsId ->
+                    homeViewModel.setSelectedSim(simSlotId, simSubsId)
                 },
                 onBack = {
                     navController.popBackStack()

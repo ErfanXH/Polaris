@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -48,7 +47,8 @@ class TestExecutionService : Service() {
         startForeground(NOTIF_ID, createNotification())
 
         val testSelection = TestConfigManager.getTestSelection(this)
-        val selectedSimSlotId = TestConfigManager.getSelectedSimId(this)
+        val selectedSimSlotId = TestConfigManager.getSelectedSimSlotId(this)
+        val selectedSimSubsId = TestConfigManager.getSelectedSimSubsId(this)
 
         serviceScope.launch {
             try {
@@ -58,7 +58,8 @@ class TestExecutionService : Service() {
                     Log.d("TestExecutionService", "Running network test for $selectedSimSlotId in background...")
                     repository.runNetworkTest(
                         testSelection = testSelection,
-                        simSlotIndex = selectedSimSlotId ?: 0
+                        simSlotIndex = selectedSimSlotId ?: 0,
+                        subscriptionId = selectedSimSubsId ?: -1
                     )
                     Log.d("TestExecutionService", "Network test finished and saved locally.")
                 }
@@ -76,10 +77,8 @@ class TestExecutionService : Service() {
 
     private fun createNotification(): Notification {
         val channelId = "network_test_channel"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Network Test Service", NotificationManager.IMPORTANCE_LOW)
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(channelId, "Network Test Service", NotificationManager.IMPORTANCE_LOW)
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle("Polaris Test Running")

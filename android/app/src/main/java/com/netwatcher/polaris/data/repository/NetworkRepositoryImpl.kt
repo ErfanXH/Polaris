@@ -199,19 +199,35 @@ class NetworkRepositoryImpl(
         smsTestUtility.measureSmsDeliveryTime(context)?.toDouble()
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+//    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    override suspend fun runNetworkTest(simSlotIndex: Int, testSelection: TestSelection): NetworkData {
+    override suspend fun runNetworkTest(simSlotIndex: Int, subscriptionId: Int, testSelection: TestSelection): NetworkData {
+        println("simSlotIndex: $simSlotIndex")
         val location = getCurrentLocation()
 
         val sm = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
         val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
-        val allCellsInfo = tm.allCellInfo.filter { it.isRegistered } ?: emptyList()
-        println("all cells: \n $allCellsInfo")
+        val allCellsInfo = try {
+            tm.allCellInfo?.filter { it.isRegistered } ?: emptyList()
+        } catch (e: Exception) {
+            Log.e("NetworkTest", "Error getting cell info", e)
+            emptyList()
+        }
+        println("all cells: $allCellsInfo")
+
+        if (allCellsInfo.isEmpty()) {
+            Log.w("NetworkTest", "No cell info available - may be due to background restrictions")
+            return NetworkData.empty()
+        }
+
         val subscriptionList = sm.activeSubscriptionInfoList ?: emptyList()
         println("subscription List: $subscriptionList")
-        println("simSlotIndex: $simSlotIndex")
+
+        val networkTypeInt = tm.createForSubscriptionId(subscriptionId).dataNetworkType
+        val networkType = networkTypeToString(networkTypeInt)
+        println("networkType: $networkType")
+
         val subInfo = sm.getActiveSubscriptionInfoForSimSlotIndex(simSlotIndex)
         println("subInfo: $subInfo")
 
@@ -223,7 +239,8 @@ class NetworkRepositoryImpl(
                 allCellsInfo?.getOrNull(indexInList)
             }
         println("target cell: $targetCell")
-        val res = getCellInfo(targetCell)
+        val res = getCellInfo(targetCell, networkType)
+        println(res)
 
         val httpUploadThroughput =
             if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
@@ -258,5 +275,21 @@ class NetworkRepositoryImpl(
                 networkData.latitude == -1.0 ||
                 networkData.longitude == -1.0 ||
                 networkData.networkType == "Others")
+    }
+
+    private fun networkTypeToString(networkType: Int): String {
+        return when (networkType) {
+            NETWORK_TYPE_GPRS -> "GPRS"
+            NETWORK_TYPE_EDGE -> "EDGE"
+            NETWORK_TYPE_CDMA -> "CDMA"
+            NETWORK_TYPE_UMTS -> "UMTS"
+            NETWORK_TYPE_HSDPA -> "HSDPA"
+            NETWORK_TYPE_HSUPA -> "HSUPA"
+            NETWORK_TYPE_HSPA -> "HSPA"
+            NETWORK_TYPE_HSPAP -> "HSPA+"
+            NETWORK_TYPE_LTE -> "LTE"
+            NETWORK_TYPE_NR -> "5G"
+            else -> "Others ($networkType)"
+        }
     }
 }

@@ -43,52 +43,49 @@ private val lteBands = listOf(
     LteBand("41", 39650, 41589, 2496.0)
 )
 
-@RequiresApi(Build.VERSION_CODES.Q)
-fun getCellInfo(cell: CellInfo?) : NetworkData? {
+//@RequiresApi(Build.VERSION_CODES.Q)
+fun getCellInfo(cell: CellInfo?, networkType: String) : NetworkData? {
     return when (cell) {
-        is CellInfoGsm -> getGsmInfo(cell)
-        is CellInfoWcdma -> getWcdmaInfo(cell)
-        is CellInfoLte -> getLteInfo(cell)
+        is CellInfoGsm -> getGsmInfo(cell, networkType)
+        is CellInfoWcdma -> getWcdmaInfo(cell, networkType)
+        is CellInfoLte -> getLteInfo(cell, networkType)
         else -> null
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.Q)
-private fun getGsmInfo(cell: CellInfoGsm) : NetworkData {
+//@RequiresApi(Build.VERSION_CODES.Q)
+private fun getGsmInfo(cell: CellInfoGsm, networkType: String) : NetworkData {
     val arfcn = cell.cellIdentity.arfcn
     val lac = if (cell.cellIdentity.lac != Int.MAX_VALUE) cell.cellIdentity.lac.toString() else null
     val cellId = if (cell.cellIdentity.cid != Int.MAX_VALUE) cell.cellIdentity.cid.toString() else null
+    val net = if (networkType != "GPRS" && networkType != "EDGE" && networkType != "CDMA") "GSM" else networkType
+    val rssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) cell.cellSignalStrength.javaClass.getMethod("getRssi").invoke(cell.cellSignalStrength) as? Int else null
     return NetworkData(
-        0.0, 0.0, "", "GSM",
-        null, lac, cellId, null, "",
+        0.0, 0.0, "", net, null, lac, cellId, null, "",
         arfcn, getGsmFrequency(arfcn), getGsmFrequencyBand(arfcn),
-        null, null, null, null,
-        cell.cellSignalStrength.javaClass.getMethod("getRssi").invoke(cell.cellSignalStrength) as? Int,
-        null,
+        null, null, null, null, rssi, null,
         0.0,0.0,0.0,0.0,0.0, 0.0, ""
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.Q)
-private fun getWcdmaInfo(cell: CellInfoWcdma) : NetworkData {
+private fun getWcdmaInfo(cell: CellInfoWcdma, networkType: String) : NetworkData {
     val uarfcn = cell.cellIdentity.uarfcn
     var ecN0 = -1
     val lac = if (cell.cellIdentity.lac != Int.MAX_VALUE) cell.cellIdentity.lac.toString() else null
     val cellId = if (cell.cellIdentity.cid != Int.MAX_VALUE) cell.cellIdentity.cid.toString() else null
+    val net = if (networkType != "HSDPA" && networkType != "HSUPA" && networkType != "UMTS" && networkType != "HSPA" && networkType != "HSPA+") "3G" else networkType
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         ecN0 = cell.cellSignalStrength.ecNo
     }
     return NetworkData(
-        0.0, 0.0, "", "WCDMA",
-        null, lac, cellId, null, "",
+        0.0, 0.0, "", net, null, lac, cellId, null, "",
         uarfcn, getWcdmaFrequency(uarfcn), "WCDMA Band ${getWcdmaFrequencyBand(uarfcn)}",
         null, null, cell.cellSignalStrength.dbm, ecN0, null, null,
         0.0,0.0,0.0,0.0,0.0, 0.0, ""
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.Q)
-private fun getLteInfo(cell: CellInfoLte) : NetworkData {
+private fun getLteInfo(cell: CellInfoLte, networkType: String) : NetworkData {
     val earfcn = cell.cellIdentity.earfcn
     val cellId = if (cell.cellIdentity.ci != Int.MAX_VALUE) cell.cellIdentity.ci.toString() else null
     return NetworkData(
@@ -127,32 +124,3 @@ fun getLTEFrequency(earfcn: Int): Double? {
 fun getLTEFrequencyBand(earfcn: Int): String? {
     return lteBands.find { earfcn in it.dlEarfcnStart..it.dlEarfcnEnd }?.band
 }
-
-//fun getRscp(cellInfo: CellInfo?): Int? {
-//    return when (cellInfo) {
-//        is CellInfoWcdma -> {
-//            try {
-//                val method = cellInfo.cellSignalStrength.javaClass.getMethod("getRscp")
-//                method.invoke(cellInfo.cellSignalStrength) as? Int
-//            } catch (e: Exception) {
-//                null
-//            }
-//        }
-//
-//        else -> null
-//    }
-//}
-//fun getRxLev(cellInfo: CellInfo?): Int? {
-//    return when (cellInfo) {
-//        is CellInfoGsm -> {
-//            try {
-//                val method = cellInfo.cellSignalStrength.javaClass.getMethod("getRssi")
-//                method.invoke(cellInfo.cellSignalStrength) as? Int
-//            } catch (e: Exception) {
-//                null
-//            }
-//        }
-//
-//        else -> null
-//    }
-//}

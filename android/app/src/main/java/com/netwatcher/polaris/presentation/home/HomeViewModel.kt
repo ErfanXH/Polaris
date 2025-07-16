@@ -1,8 +1,6 @@
 package com.netwatcher.polaris.presentation.home
 
 import android.app.Application
-import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,9 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.netwatcher.polaris.di.TokenManager
 import com.netwatcher.polaris.domain.model.TestSelection
-import com.netwatcher.polaris.presentation.home.HomeUiState
 import com.netwatcher.polaris.domain.repository.NetworkRepository
-import com.netwatcher.polaris.service.TestExecutionService
 import com.netwatcher.polaris.utils.TestAlarmScheduler
 import com.netwatcher.polaris.utils.TestConfigManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,16 +29,22 @@ class HomeViewModel(
         TestConfigManager.getSelectedSimSlotId(application)
     )
 
-    fun setSelectedSim(simSlotId: Int) {
+    private var selectedSimSubsId: Int? by mutableStateOf(
+        TestConfigManager.getSelectedSimSubsId(application)
+    )
+
+    fun setSelectedSim(simSlotId: Int, simSubsId: Int) {
         selectedSimSlotId = simSlotId
+        selectedSimSubsId = simSubsId
         TestConfigManager.setSelectedSimSlotId(getApplication(), simSlotId)
+        TestConfigManager.setSelectedSimSubsId(getApplication(), simSubsId)
     }
 
     fun runNetworkTest(testSelection: TestSelection) {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
-                val result = repository.runNetworkTest(selectedSimSlotId ?: 0, testSelection)
+                val result = repository.runNetworkTest(selectedSimSlotId ?: 0, selectedSimSubsId ?: 0, testSelection)
                 _uiState.value = HomeUiState.Success(result)
 
                 TestAlarmScheduler.rescheduleTest(getApplication())

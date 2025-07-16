@@ -51,17 +51,45 @@ class SmsTestUtility(private val context: Context) {
     }
 
     private fun getTestPhoneNumber(context: Context): String {
-//        return TestConfigManager.getPreferences(context)
-//            .getString(TestConfigManager.KEY_SMS_TEST_NUMBER, "+989303009264") ?: "+989303009264"
         val defaultNumber = "+989303009264"
         val number = TestConfigManager.getPreferences(context)
             .getString(TestConfigManager.KEY_SMS_TEST_NUMBER, defaultNumber) ?: defaultNumber
 
-        return if (number.isBlank() || !number.matches(Regex("^\\+[0-9]{10,15}$"))) {
-            Log.w("SmsTestUtility", "Invalid phone number, using default")
-            defaultNumber
+        return if (number.isNotBlank()) {
+            val correctedNumber = prepareTestPhoneNumber(number)
+
+            if (correctedNumber.isNullOrBlank()) {
+                Log.w("SmsTestUtility", "Invalid phone number, using default")
+                defaultNumber
+            } else {
+                correctedNumber
+            }
         } else {
-            number
+            defaultNumber
+        }
+    }
+
+    private fun prepareTestPhoneNumber(number: String) : String? {
+        val digitsOnly = number.replace(Regex("[^0-9]"), "")
+
+        return when {
+            // Case 1: Already in +98 format (e.g. +989303009264)
+            number.startsWith("+98") && digitsOnly.length == 11 -> number
+
+            // Case 2: Starts with 98 (e.g. 989303009264)
+            digitsOnly.startsWith("98") && digitsOnly.length == 11 -> "+$digitsOnly"
+
+            // Case 3: Starts with 0 (e.g. 09303009264)
+            digitsOnly.startsWith("0") && digitsOnly.length == 11 -> {
+                "+98" + digitsOnly.substring(1)
+            }
+
+            // Case 4: No prefix, 9 digits (e.g. 9303009264)
+            digitsOnly.length == 10 -> "+98$digitsOnly"
+
+            else -> {
+                null
+            }
         }
     }
 

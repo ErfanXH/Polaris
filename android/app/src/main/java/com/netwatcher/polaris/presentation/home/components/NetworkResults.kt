@@ -25,7 +25,7 @@ fun NetworkResults(networkData: NetworkData) {
         ) { _: NetworkData -> },
 
         Triple("Cell Info", when (networkData.networkType) {
-            "LTE", "IWLAN", "5G" -> listOf(
+            "LTE", "5G" -> listOf(
                 "Technology" to (networkData.networkType),
                 "TAC" to (networkData.tac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
@@ -35,7 +35,7 @@ fun NetworkResults(networkData: NetworkData) {
                 "ARFCN" to (networkData.arfcn?.toString() ?: "N/A"),
                 "Frequency Band" to (networkData.frequencyBand ?: "N/A")
             )
-            "WCDMA", "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS" -> listOf(
+            "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS", "3G" -> listOf(
                 "Technology" to (networkData.networkType),
                 "LAC" to (networkData.lac ?: "N/A"),
                 "Cell ID" to (networkData.cellId ?: "N/A"),
@@ -64,7 +64,7 @@ fun NetworkResults(networkData: NetworkData) {
                 "RSRP" to (networkData.rsrp?.let { String.format("%01d dBm", it) } ?: "N/A"),
                 "RSRQ" to (networkData.rsrq?.let { String.format("%01d dB", it) } ?: "N/A"),
             )
-            "WCDMA", "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS" -> listOf(
+            "WCDMA", "HSPA", "HSPA+", "HSDPA", "HSUPA", "UMTS", "3G" -> listOf(
                 "RSCP" to (networkData.rscp?.let { String.format("%01d dBm", it) } ?: "N/A"),
                 "Ec/N0" to (networkData.ecIo?.let { String.format("%01d dBm", it) } ?: "N/A")
             )
