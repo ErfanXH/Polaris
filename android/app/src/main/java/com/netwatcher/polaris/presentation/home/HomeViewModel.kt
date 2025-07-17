@@ -66,8 +66,6 @@ class HomeViewModel(
     fun loadInitialState() {
         viewModelScope.launch {
             try {
-                val r = repository.getUserInfo()
-                Log.d("userInfo", r.isSuccess.toString())
                 val lastResult = repository.getAllNetworkData().firstOrNull()?.lastOrNull()
                 _uiState.value = if (lastResult != null) {
                     HomeUiState.Success(lastResult)
