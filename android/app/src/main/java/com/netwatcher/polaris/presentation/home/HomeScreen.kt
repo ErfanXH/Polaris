@@ -3,9 +3,10 @@ package com.netwatcher.polaris.presentation.home
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.netwatcher.polaris.presentation.home.components.HomeStateContent
 import com.netwatcher.polaris.presentation.home.components.HomeTopBar
 import kotlinx.coroutines.launch
@@ -22,7 +23,11 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.background(Color.White)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         HomeTopBar(
             onRefresh = { viewModel.loadInitialState() },
             onSettingsClick = onSettingsClick,
