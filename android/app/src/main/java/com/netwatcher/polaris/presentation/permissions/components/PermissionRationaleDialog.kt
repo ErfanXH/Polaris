@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import com.netwatcher.polaris.utils.AppPermission
 
@@ -19,14 +21,12 @@ fun PermissionRationaleDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Permission Required") },
+        title = { Text("Permission Required", style = MaterialTheme.typography.titleMedium) },
         text = {
             Column {
-                Text("This app requires ${permission.name.substringAfterLast('.')} permission to function properly.")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(permission.description)
+                Text("${permission.name.uppercase()} is ${permission.description.lowercase()}.")
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Please grant this permission in system settings.")
+                Text("Please go to ${permission.guide}")
             }
         },
         confirmButton = {

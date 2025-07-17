@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.netwatcher.polaris.MainActivity.Companion.PERMISSION_REQUEST_CODE
 import com.netwatcher.polaris.utils.AppPermission
+import com.netwatcher.polaris.utils.isBatteryOptimizationDisabled
 import com.netwatcher.polaris.utils.permissionStatus
 
 @Composable
@@ -35,9 +36,16 @@ fun PermissionsList(
         }
 
         items(permissions) { permission ->
+            val isGranted = when (permission.name) {
+                "Ignore Battery Optimizations" -> context.isBatteryOptimizationDisabled()
+                else -> permission.permissionString?.let {
+                    permissionStatus(context, it)
+                } ?: false
+            }
+
             PermissionItemCard(
                 permission = permission,
-                isGranted = permissionStatus(context, permission.name),
+                isGranted = isGranted,
                 onRequestPermission = {
                     if (permission.settingsIntent != null && !permissionStatus(context, permission.name)) {
                         onShowRationale(permission)

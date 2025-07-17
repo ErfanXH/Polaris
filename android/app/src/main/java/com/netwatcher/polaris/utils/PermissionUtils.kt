@@ -12,7 +12,9 @@ import android.net.Uri
 data class AppPermission(
     val name: String,
     val description: String,
-    val settingsIntent: Intent? = null
+    val guide: String,
+    val settingsIntent: Intent? = null,
+    val permissionString: String? = null
 )
 
 fun requiredPermissions(context: Context): List<AppPermission> {
@@ -24,85 +26,109 @@ fun requiredPermissions(context: Context): List<AppPermission> {
 
     val permissions = mutableListOf(
         AppPermission(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            "Precise location for accurate network measurements",
+            "precise location",
+            "Required for accurate network measurements.",
+            "Permissions > Location > Turn on the 'Use precise location' and Select 'Allow all the time'",
+            appSettingsIntent,
 //            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ),
+        AppPermission(
+            "approximate location",
+            "Required as fallback when precise location is unavailable.",
+            "Permissions > Location > Select 'Allow all the time'",
+            appSettingsIntent,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ),
+        AppPermission(
+            "PHONE STATE",
+            "Required to read SIM card information, network type, and signal strength.",
+            "Permissions > Phone > Select 'Allow'",
+            appSettingsIntent,
+            Manifest.permission.READ_PHONE_STATE
+        ),
+        AppPermission(
+            "Receive SMS",
+            "Required to receive and verify the SMS delivery tests.",
+            "Permissions > SMS > Select 'Allow'",
+            appSettingsIntent,
+            Manifest.permission.RECEIVE_SMS
+        ),
+        AppPermission(
+            "Send SMS",
+            "Required to send SMS delivery tests.",
+            "Permissions > SMS > Select 'Allow'",
+            appSettingsIntent,
+            Manifest.permission.SEND_SMS
+        ),
+        AppPermission(
+            "Read SMS",
+            "Required to read SMS delivery reports.",
+            "Permissions > SMS > Select 'Allow'",
+            appSettingsIntent,
+            Manifest.permission.READ_SMS
+        ),
+        AppPermission(
+            "NETWORK STATE",
+            "Required to monitor network connectivity and changes.",
+            "",
+            appSettingsIntent,
+            Manifest.permission.ACCESS_NETWORK_STATE
+        ),
+        AppPermission(
+            "CHANGE NETWORK STATE",
+            "Required to modify network settings for testing purposes.",
+            "",
+            appSettingsIntent,
+            Manifest.permission.CHANGE_NETWORK_STATE
+        ),
+        AppPermission(
+            "WiFi State",
+            "Required to scan WiFi networks and check connection status.",
+            "",
+            appSettingsIntent,
+            Manifest.permission.ACCESS_WIFI_STATE
+        ),
+        AppPermission(
+            "Change WiFi State",
+            "Required to enable/disable WiFi for network tests.",
+            "",
+            appSettingsIntent,
+            Manifest.permission.CHANGE_WIFI_STATE
+        ),
+        AppPermission(
+            "FOREGROUND SERVICE",
+            "Required for continuous network monitoring in the background.",
+            "",
+            appSettingsIntent,
+            Manifest.permission.FOREGROUND_SERVICE
+        ),
+        AppPermission(
+            "Auto-start",
+            "Required to automatically restart tests after device reboot.",
+            "Special Permissions > Auto-start > Enable for Polaris",
 //            appSettingsIntent
-            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).apply {
-                data = Uri.fromParts("package", packageName, null)
-            }
+            Intent(Settings.ACTION_SETTINGS),
+            Manifest.permission.RECEIVE_BOOT_COMPLETED
         ),
         AppPermission(
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            "Approximate location for basic network info",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.READ_PHONE_STATE,
-            "Required to read SIM and network information",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.SEND_SMS,
-            "Required for SMS delivery tests",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.RECEIVE_SMS,
-            "Required to verify SMS delivery",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.READ_SMS,
-            "Required to read SMS delivery reports",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            "Required to check network connectivity",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.CHANGE_NETWORK_STATE,
-            "Required to modify network settings",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.ACCESS_WIFI_STATE,
-            "Required to check WiFi status",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.FOREGROUND_SERVICE,
-            "Required for background operations",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.RECEIVE_BOOT_COMPLETED,
-            "Required to restart tests after reboot",
-            appSettingsIntent
-        ),
-        AppPermission(
-            Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-            "Please disable battery optimizations to allow background execution.",
-            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+            "Unrestricted Battery Usage",
+            "Prevents system from restricting background operations.",
+            "Battery > Battery Optimization > Select 'Don't optimize'",
+            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+            Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
         )
     )
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         permissions.add(
             AppPermission(
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                "Required for background network monitoring",
+                "BACKGROUND LOCATION",
+                "Required for background network monitoring.",
+                "",
 //                Settings.ACTION_LOCATION_SOURCE_SETTINGS
-                appSettingsIntent
-            )
-        )
-        permissions.add(
-            AppPermission(
-                Manifest.permission.FOREGROUND_SERVICE_LOCATION,
-                "Required for location-based foreground services",
-                appSettingsIntent
+                appSettingsIntent,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
         )
     }
@@ -110,9 +136,11 @@ fun requiredPermissions(context: Context): List<AppPermission> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         permissions.add(
             AppPermission(
-                Manifest.permission.SCHEDULE_EXACT_ALARM,
-                "Required for precise test scheduling",
-                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                "SCHEDULE EXACT ALARM",
+                "Required for precise timing of network tests.",
+                "Special Permissions > Alarms & Reminders > Enable 'Allow exact alarms'",
+                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM),
+                Manifest.permission.SCHEDULE_EXACT_ALARM
             )
         )
     }
@@ -120,9 +148,23 @@ fun requiredPermissions(context: Context): List<AppPermission> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         permissions.add(
             AppPermission(
-                Manifest.permission.POST_NOTIFICATIONS,
-                "Required to show test notifications",
-                appSettingsIntent
+                "NOTIFICATIONS",
+                "Required to show test notifications.",
+                "Notifications > Select 'Allow sound and vibration'",
+                appSettingsIntent,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        )
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        permissions.add(
+            AppPermission(
+                "FOREGROUND LOCATION",
+                "Required for location-based foreground services.",
+                "",
+                appSettingsIntent,
+                Manifest.permission.FOREGROUND_SERVICE_LOCATION
             )
         )
     }
@@ -132,4 +174,9 @@ fun requiredPermissions(context: Context): List<AppPermission> {
 
 fun permissionStatus(context: Context, permission: String): Boolean {
     return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+}
+
+fun Context.isBatteryOptimizationDisabled(): Boolean {
+    val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+    return powerManager.isIgnoringBatteryOptimizations(packageName)
 }

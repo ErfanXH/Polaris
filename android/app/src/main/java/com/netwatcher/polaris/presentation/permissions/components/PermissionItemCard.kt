@@ -54,7 +54,7 @@ fun PermissionItemCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = permission.name.substringAfterLast('.'),
+                        text = permission.name.uppercase(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
