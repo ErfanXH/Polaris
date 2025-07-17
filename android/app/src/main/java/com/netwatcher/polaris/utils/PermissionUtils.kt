@@ -26,7 +26,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
 
     val permissions = mutableListOf(
         AppPermission(
-            "precise location",
+            "Precise Location",
             "Required for accurate network measurements.",
             "Permissions > Location > Turn on the 'Use precise location' and Select 'Allow all the time'",
             appSettingsIntent,
@@ -34,14 +34,14 @@ fun requiredPermissions(context: Context): List<AppPermission> {
             Manifest.permission.ACCESS_FINE_LOCATION
         ),
         AppPermission(
-            "approximate location",
+            "Approximate Location",
             "Required as fallback when precise location is unavailable.",
             "Permissions > Location > Select 'Allow all the time'",
             appSettingsIntent,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ),
         AppPermission(
-            "PHONE STATE",
+            "Phone State",
             "Required to read SIM card information, network type, and signal strength.",
             "Permissions > Phone > Select 'Allow'",
             appSettingsIntent,
@@ -69,14 +69,14 @@ fun requiredPermissions(context: Context): List<AppPermission> {
             Manifest.permission.READ_SMS
         ),
         AppPermission(
-            "NETWORK STATE",
+            "Network State",
             "Required to monitor network connectivity and changes.",
             "",
             appSettingsIntent,
             Manifest.permission.ACCESS_NETWORK_STATE
         ),
         AppPermission(
-            "CHANGE NETWORK STATE",
+            "Change Network State",
             "Required to modify network settings for testing purposes.",
             "",
             appSettingsIntent,
@@ -97,7 +97,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
             Manifest.permission.CHANGE_WIFI_STATE
         ),
         AppPermission(
-            "FOREGROUND SERVICE",
+            "Foreground Service",
             "Required for continuous network monitoring in the background.",
             "",
             appSettingsIntent,
@@ -123,7 +123,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         permissions.add(
             AppPermission(
-                "BACKGROUND LOCATION",
+                "Background Location",
                 "Required for background network monitoring.",
                 "",
 //                Settings.ACTION_LOCATION_SOURCE_SETTINGS
@@ -136,7 +136,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         permissions.add(
             AppPermission(
-                "SCHEDULE EXACT ALARM",
+                "Schedule Exact Alarm",
                 "Required for precise timing of network tests.",
                 "Special Permissions > Alarms & Reminders > Enable 'Allow exact alarms'",
                 Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM),
@@ -148,7 +148,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         permissions.add(
             AppPermission(
-                "NOTIFICATIONS",
+                "Notifications",
                 "Required to show test notifications.",
                 "Notifications > Select 'Allow sound and vibration'",
                 appSettingsIntent,
@@ -160,7 +160,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         permissions.add(
             AppPermission(
-                "FOREGROUND LOCATION",
+                "Foreground Location",
                 "Required for location-based foreground services.",
                 "",
                 appSettingsIntent,
