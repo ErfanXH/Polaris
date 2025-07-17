@@ -32,7 +32,13 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         val dao = AppDatabaseHelper.getDatabase(applicationContext).networkDataDao()
 
         return try {
-            val unsynced = dao.getUnsyncedData(NetworkDataDao.getEmail())
+            val email = CookieManager.getEmail().firstOrNull()
+            if (email.isNullOrBlank()) {
+                Log.e("DataSyncWorker","No User Registered")
+                Result.failure()
+            }
+
+            val unsynced = dao.getUnsyncedData(email)
             if (unsynced.isNotEmpty()) {
                 Log.d("DataSyncWorker", "Found ${unsynced.size} unsynced items. Syncing...")
                 val success = syncDataWithServer(dao, unsynced)

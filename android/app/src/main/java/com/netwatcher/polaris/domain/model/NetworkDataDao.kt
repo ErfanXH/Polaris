@@ -10,15 +10,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class NetworkDataDao {
-    companion object {
-        private var gmail: String? = ""
-        fun setEmail(userEmail: String?) {
-            gmail = userEmail
-        }
-        fun getEmail(): String? {
-            return gmail
-        }
-    }
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun addNetworkData(networkDataEntity: NetworkData)
 

@@ -64,23 +64,12 @@ class NetworkRepositoryImpl(
         }
     }
 
-    override suspend fun getUserInfo(): Result<Unit> {
-        return try {
-            val response = api.getUserInfo(token = getAuthToken().toString())
-            if (response.isSuccessful) {
-                NetworkDataDao.setEmail(response.body()?.email)
-                Result.success(Unit)
-            } else {
-                val errorMessage = response.errorBody()?.string() ?: "Failed to Get User Info"
-                Result.failure(Exception(errorMessage))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     private suspend fun getAuthToken(): String? {
         return CookieManager.getToken().firstOrNull()
+    }
+
+    private suspend fun getAuthEmail(): String? {
+        return CookieManager.getEmail().firstOrNull()
     }
 
     private val fusedLocationClient by lazy {
@@ -219,22 +208,18 @@ class NetworkRepositoryImpl(
             Log.e("NetworkTest", "Error getting cell info", e)
             emptyList()
         }
-        println("all cells: $allCellsInfo")
 
         if (allCellsInfo.isEmpty()) {
-            Log.w("NetworkTest", "No cell info available - may be due to background restrictions")
+            Log.w("NetworkTest", "No cell info available")
             return NetworkData.empty()
         }
 
         val subscriptionList = sm.activeSubscriptionInfoList ?: emptyList()
-        println("subscription List: $subscriptionList")
 
         val networkTypeInt = tm.createForSubscriptionId(subscriptionId).dataNetworkType
         val networkType = networkTypeToString(networkTypeInt)
-        println("networkType: $networkType")
 
         val subInfo = sm.getActiveSubscriptionInfoForSimSlotIndex(simSlotIndex)
-        println("subInfo: $subInfo")
 
         val targetCell: CellInfo? =
             if (subscriptionList.size == 1) {
@@ -244,7 +229,7 @@ class NetworkRepositoryImpl(
                     subscriptionList.indexOfFirst { it.simSlotIndex == subInfo.simSlotIndex }
                 allCellsInfo?.getOrNull(indexInList)
             }
-        println("target cell: $targetCell")
+
         val res = getCellInfo(targetCell, networkType)
         println(res)
 
@@ -283,9 +268,8 @@ class NetworkRepositoryImpl(
             dnsResponse,
             webResponse,
             smsDeliveryTime,
-            NetworkDataDao.getEmail()
+            getAuthEmail()
         )
-        println("Network Data: $networkData")
 
         if (isValidNetworkData(networkData, targetCell)) {
             addNetworkData(networkData)

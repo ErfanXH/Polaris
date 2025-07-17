@@ -17,5 +17,4 @@ interface NetworkRepository {
     suspend fun addNetworkData(networkData: NetworkData)
     fun getAllNetworkData(): Flow<List<NetworkData>>
     suspend fun uploadNetworkDataBatch(data: RequestBody): Result<Unit>
-    suspend fun getUserInfo(): Result<Unit>
 }
