@@ -3,6 +3,7 @@
 package com.netwatcher.polaris.presentation.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -50,29 +51,31 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            if (simList.size > 1) {
-                SimSelectionSection(
-                    simList = simList,
-                    selectedSimSubsId = selectedSimSubsId,
-                    selectedSimSlotId = selectedSimSlotId,
-                    onSimSelected = { slotId, subsId ->
-                        viewModel.selectSim(slotId, subsId)
-                        onSimSelected(slotId, subsId)
-                    }
-                )
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+            items(1) {
+                if (simList.size > 1) {
+                    SimSelectionSection(
+                        simList = simList,
+                        selectedSimSubsId = selectedSimSubsId,
+                        selectedSimSlotId = selectedSimSlotId,
+                        onSimSelected = { slotId, subsId ->
+                            viewModel.selectSim(slotId, subsId)
+                            onSimSelected(slotId, subsId)
+                        }
+                    )
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                }
+
+                SyncIntervalSection(viewModel = viewModel)
+                Divider(modifier = Modifier.padding(vertical = 16.dp))
+
+                TestConfigurationSection(viewModel = viewModel)
             }
-
-            SyncIntervalSection(viewModel = viewModel)
-            Divider(modifier = Modifier.padding(vertical = 16.dp))
-
-            TestConfigurationSection(viewModel = viewModel)
         }
     }
 }
