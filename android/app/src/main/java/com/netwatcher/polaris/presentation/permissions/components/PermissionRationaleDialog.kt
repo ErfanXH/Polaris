@@ -1,16 +1,13 @@
 package com.netwatcher.polaris.presentation.permissions.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.toUpperCase
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Composable
 import com.netwatcher.polaris.utils.AppPermission
 
 @Composable
@@ -21,14 +18,13 @@ fun PermissionRationaleDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        icon = { Icon(
+            Icons.Outlined.Policy,
+            contentDescription = "Permission Icon",
+            tint = MaterialTheme.colorScheme.onBackground
+        ) },
         title = { Text("Permission Required", style = MaterialTheme.typography.titleMedium) },
-        text = {
-            Column {
-                Text("${permission.name.uppercase()} is ${permission.description.lowercase()}.")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Please go to ${permission.guide}")
-            }
-        },
+        text = { Text("This app needs the '${permission.name}' permission.\nPlease grant it in the device settings:\n${permission.guide}") },
         confirmButton = {
             TextButton(
                 onClick = { onNavigateToSettings(permission) }
