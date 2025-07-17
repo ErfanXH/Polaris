@@ -2,7 +2,7 @@ package com.netwatcher.polaris.presentation.home.components
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,37 +21,28 @@ fun HomeContent(
         mutableStateOf(TestConfigManager.getTestSelection(context))
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(vertical = 24.dp)
     ) {
-        RunTestButton(
-            onClick = { onRunTest(testSelection) },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        item {
+            RunTestButton(onClick = { onRunTest(testSelection) })
+        }
 
-        Spacer(Modifier.height(16.dp))
-
-        TestSelectionSection(
-            initialSelection = testSelection,
-            onSelectionChanged = {
-                TestConfigManager.setTestSelection(context, it)
-                testSelection = it
-            }
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            "Last Test Results",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
+        item {
+            TestSelectionSection(
+                initialSelection = testSelection,
+                onSelectionChanged = {
+                    TestConfigManager.setTestSelection(context, it)
+                    testSelection = it
+                }
             )
+        }
 
-        Spacer(Modifier.height(16.dp))
-
-        NetworkResults(networkData = networkData)
+        networkResults(networkData)
     }
 }

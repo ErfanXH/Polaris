@@ -1,14 +1,15 @@
 package com.netwatcher.polaris.presentation.home.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.netwatcher.polaris.domain.model.TestSelection
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TestSelectionSection(
     modifier: Modifier = Modifier,
@@ -17,48 +18,46 @@ fun TestSelectionSection(
 ) {
     var selection by remember { mutableStateOf(initialSelection) }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalAlignment = Alignment.Start
+    val testItems = listOf(
+        "Upload" to selection.runUploadTest,
+        "Download" to selection.runDownloadTest,
+        "Ping" to selection.runPingTest,
+        "DNS" to selection.runDnsTest,
+        "Web" to selection.runWebTest,
+        "SMS" to selection.runSmsTest
+    )
+
+    NetworkInfoCard(
+        modifier = modifier,
+        title = "Select Tests to Run",
+        icon = Icons.Outlined.Checklist
     ) {
-        Text(
-            text = "Select Executing Tests",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            maxItemsInEachRow = 3
+        ) {
+            testItems.forEach { (label, isSelected) ->
+                TestToggleButton(
+                    modifier = Modifier.width(100.dp),
+                    label = label,
+                    selected = isSelected,
+                    onCheckedChange = {
+                        selection = when (label) {
+                            "Upload" -> selection.copy(runUploadTest = !selection.runUploadTest)
+                            "Download" -> selection.copy(runDownloadTest = !selection.runDownloadTest)
+                            "Ping" -> selection.copy(runPingTest = !selection.runPingTest)
+                            "DNS" -> selection.copy(runDnsTest = !selection.runDnsTest)
+                            "Web" -> selection.copy(runWebTest = !selection.runWebTest)
+                            "SMS" -> selection.copy(runSmsTest = !selection.runSmsTest)
+                            else -> selection
+                        }
+                        onSelectionChanged(selection)
+                    }
+                )
 
-        val testItems = listOf(
-            Triple("Upload", selection.runUploadTest) { value: Boolean ->
-                selection = selection.copy(runUploadTest = value)
-                onSelectionChanged(selection)
-            },
-            Triple("Download", selection.runDownloadTest) { value: Boolean ->
-                selection = selection.copy(runDownloadTest = value)
-                onSelectionChanged(selection)
-            },
-            Triple("Ping", selection.runPingTest) { value: Boolean ->
-                selection = selection.copy(runPingTest = value)
-                onSelectionChanged(selection)
-            },
-            Triple("DNS", selection.runDnsTest) { value: Boolean ->
-                selection = selection.copy(runDnsTest = value)
-                onSelectionChanged(selection)
-            },
-            Triple("Web", selection.runWebTest) { value: Boolean ->
-                selection = selection.copy(runWebTest = value)
-                onSelectionChanged(selection)
-            },
-            Triple("SMS", selection.runSmsTest) { value: Boolean ->
-                selection = selection.copy(runSmsTest = value)
-                onSelectionChanged(selection)
             }
-        )
-
-        FlowTestGrid(testItems)
+        }
     }
 }

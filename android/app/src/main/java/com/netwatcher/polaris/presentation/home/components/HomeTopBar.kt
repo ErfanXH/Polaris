@@ -9,8 +9,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,7 +23,7 @@ fun HomeTopBar(
 ) {
     TopAppBar(
         title = {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Home, contentDescription = "Home")
                 Spacer(Modifier.width(12.dp))
                 Text("Home", style = MaterialTheme.typography.titleMedium)
@@ -40,14 +40,13 @@ fun HomeTopBar(
                 Icon(Icons.Default.Settings, contentDescription = "Settings")
             }
             IconButton(onClick = onLogoutClick) {
-                Icon(Icons.Default.Logout, contentDescription = "Logout")
+                Icon(Icons.Filled.Logout, contentDescription = "Logout")
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = Color.Black,
-            navigationIconContentColor = Color.Black,
-            actionIconContentColor = Color.Black
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
