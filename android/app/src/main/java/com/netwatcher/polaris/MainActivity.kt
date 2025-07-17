@@ -193,7 +193,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     Toast.makeText(
                         this,
-                        "Permissions are required for the app to function. Visit Permissions Screen.",
+                        "Permissions are essentially required! Visit Permissions Screen.",
                         Toast.LENGTH_LONG
                     ).show()
 //                    finish()
