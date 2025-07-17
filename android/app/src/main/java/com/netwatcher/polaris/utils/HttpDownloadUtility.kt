@@ -1,6 +1,6 @@
 package com.netwatcher.polaris.utils
 
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -22,7 +22,7 @@ object HttpDownloadUtility {
     }
 
     private suspend fun getAuthToken(): String {
-        return TokenManager.getToken().firstOrNull().toString()
+        return CookieManager.getToken().firstOrNull().toString()
     }
 
     suspend fun measureDownloadThroughput(): Double = withContext(Dispatchers.IO) {
@@ -72,12 +72,14 @@ object HttpDownloadUtility {
             val bitsReceived = totalBytesReceived * 8
             val throughputMbps = bitsReceived / durationSeconds / 1_000_000
 
-            println("[DEBUG] Test completed - " +
-                    "Duration: ${"%.2f".format(durationSeconds)}s, " +
-                    "Total received: $totalBytesReceived bytes, " +
-                    "Successful requests: $successfulRequests, " +
-                    "Failed requests: $failedRequests, " +
-                    "Throughput: ${"%.2f".format(throughputMbps)} Mbps")
+            println(
+                "[DEBUG] Test completed - " +
+                        "Duration: ${"%.2f".format(durationSeconds)}s, " +
+                        "Total received: $totalBytesReceived bytes, " +
+                        "Successful requests: $successfulRequests, " +
+                        "Failed requests: $failedRequests, " +
+                        "Throughput: ${"%.2f".format(throughputMbps)} Mbps"
+            )
 
             throughputMbps
         } catch (e: Exception) {

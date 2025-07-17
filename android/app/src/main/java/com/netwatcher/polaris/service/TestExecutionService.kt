@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import com.netwatcher.polaris.AppDatabaseHelper
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.utils.TestConfigManager
 import com.netwatcher.polaris.utils.*
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +39,10 @@ class TestExecutionService : Service() {
         Log.d("TestExecutionService", "Starting foreground service for test execution...")
 
         if (!hasAllPermissions(this)) {
-            Log.w("TestExecutionService", "Required permissions are missing, aborting test execution.")
+            Log.w(
+                "TestExecutionService",
+                "Required permissions are missing, aborting test execution."
+            )
             stopSelf()
             return START_NOT_STICKY
         }
@@ -52,18 +55,20 @@ class TestExecutionService : Service() {
 
         serviceScope.launch {
             try {
-                val token = TokenManager.getToken().first()
+                val token = CookieManager.getToken().first()
 
                 if (!token.isNullOrEmpty()) {
-                    Log.d("TestExecutionService", "Running network test for $selectedSimSlotId in background...")
+                    Log.d(
+                        "TestExecutionService",
+                        "Running network test for $selectedSimSlotId in background..."
+                    )
                     repository.runNetworkTest(
                         testSelection = testSelection,
                         simSlotIndex = selectedSimSlotId ?: 0,
                         subscriptionId = selectedSimSubsId ?: -1
                     )
                     Log.d("TestExecutionService", "Network test finished and saved locally.")
-                }
-                else {
+                } else {
                     Log.d("TestExecutionService", "No token available - skipping network test")
                 }
             } catch (e: Exception) {
@@ -77,7 +82,11 @@ class TestExecutionService : Service() {
 
     private fun createNotification(): Notification {
         val channelId = "network_test_channel"
-        val channel = NotificationChannel(channelId, "Network Test Service", NotificationManager.IMPORTANCE_LOW)
+        val channel = NotificationChannel(
+            channelId,
+            "Network Test Service",
+            NotificationManager.IMPORTANCE_LOW
+        )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, channelId)

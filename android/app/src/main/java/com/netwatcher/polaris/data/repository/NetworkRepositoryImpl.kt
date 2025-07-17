@@ -16,7 +16,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.netwatcher.polaris.data.remote.NetworkDataApi
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.domain.model.TestSelection
@@ -80,7 +80,7 @@ class NetworkRepositoryImpl(
     }
 
     private suspend fun getAuthToken(): String? {
-        return TokenManager.getToken().firstOrNull()
+        return CookieManager.getToken().firstOrNull()
     }
 
     private val fusedLocationClient by lazy {
@@ -199,13 +199,18 @@ class NetworkRepositoryImpl(
         smsTestUtility.measureSmsDeliveryTime(context)?.toDouble()
     }
 
-//    @RequiresApi(Build.VERSION_CODES.Q)
+    //    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    override suspend fun runNetworkTest(simSlotIndex: Int, subscriptionId: Int, testSelection: TestSelection): NetworkData {
+    override suspend fun runNetworkTest(
+        simSlotIndex: Int,
+        subscriptionId: Int,
+        testSelection: TestSelection
+    ): NetworkData {
         println("simSlotIndex: $simSlotIndex")
         val location = getCurrentLocation()
 
-        val sm = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+        val sm =
+            context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
         val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
         val allCellsInfo = try {
@@ -235,7 +240,8 @@ class NetworkRepositoryImpl(
             if (subscriptionList.size == 1) {
                 allCellsInfo?.firstOrNull()
             } else {
-                val indexInList = subscriptionList.indexOfFirst { it.simSlotIndex == subInfo.simSlotIndex }
+                val indexInList =
+                    subscriptionList.indexOfFirst { it.simSlotIndex == subInfo.simSlotIndex }
                 allCellsInfo?.getOrNull(indexInList)
             }
         println("target cell: $targetCell")
@@ -253,12 +259,30 @@ class NetworkRepositoryImpl(
             if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
 
         val networkData = NetworkData(
-            location?.latitude ?: -1.0, location?.longitude ?: -1.0,
+            location?.latitude ?: -1.0,
+            location?.longitude ?: -1.0,
             SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(Date()),
-            res?.networkType, res?.tac, res?.lac, res?.cellId,
-            null, tm.networkOperator, res?.arfcn, res?.frequency, res?.frequencyBand,
-            res?.rsrp, res?.rsrq, res?.rscp, res?.ecIo, res?.rxLev, res?.ssRsrp,
-            httpUploadThroughput, httpDownloadThroughput, pingTime, dnsResponse, webResponse, smsDeliveryTime,
+            res?.networkType,
+            res?.tac,
+            res?.lac,
+            res?.cellId,
+            null,
+            tm.networkOperator,
+            res?.arfcn,
+            res?.frequency,
+            res?.frequencyBand,
+            res?.rsrp,
+            res?.rsrq,
+            res?.rscp,
+            res?.ecIo,
+            res?.rxLev,
+            res?.ssRsrp,
+            httpUploadThroughput,
+            httpDownloadThroughput,
+            pingTime,
+            dnsResponse,
+            webResponse,
+            smsDeliveryTime,
             NetworkDataDao.getEmail()
         )
         println("Network Data: $networkData")

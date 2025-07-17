@@ -1,11 +1,11 @@
 package com.netwatcher.polaris
 
 import android.app.Application
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 
 class PolarisApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        TokenManager.init(this) // ✅ Best place for global singleton init
+        CookieManager.init(this) // ✅ Best place for global singleton init
     }
 }
