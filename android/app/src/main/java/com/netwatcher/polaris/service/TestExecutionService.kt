@@ -10,7 +10,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.netwatcher.polaris.AppDatabaseHelper
+import com.netwatcher.polaris.data.local.AppDatabaseHelper
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.di.CookieManager

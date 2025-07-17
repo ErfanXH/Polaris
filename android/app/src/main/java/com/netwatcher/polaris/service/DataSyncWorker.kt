@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
-import com.netwatcher.polaris.AppDatabaseHelper
+import com.netwatcher.polaris.data.local.AppDatabaseHelper
 import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.domain.model.Measurement

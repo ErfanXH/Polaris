@@ -69,6 +69,7 @@ class AuthRepositoryImpl(
                 val body = response.body()
                 if (body != null) {
                     CookieManager.saveToken(body.access)
+                    CookieManager.saveEmail(body.email)
                     Result.success(Unit)
                 } else {
                     Result.failure(Exception("Empty response"))

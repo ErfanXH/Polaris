@@ -48,6 +48,7 @@ import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.TestAlarmScheduler
+import com.netwatcher.polaris.data.local.AppDatabaseHelper
 
 class MainActivity : ComponentActivity() {
 
@@ -342,7 +343,7 @@ fun PolarisNav(mainActivity: MainActivity) {
             HomeScreen(
                 viewModel = homeViewModel,
                 onSettingsClick = { navController.navigate("settings") },
-                onPermissionsClick = {navController.navigate("permissions")},
+                onPermissionsClick = { navController.navigate("permissions") },
                 onLogout = {
                     navController.navigate("login")
                 },

@@ -177,15 +177,15 @@ fun LoginScreen(
                 Text("Login")
             }
 
-            if (uiState is AuthUiState.Loading) {
-                Spacer(modifier = Modifier.height(16.dp))
-                CircularProgressIndicator()
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = onNavigateToSignUp) {
                 Text("Don't have an account? Sign up")
+            }
+
+            if (uiState is AuthUiState.Loading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                CircularProgressIndicator()
             }
         }
     }
