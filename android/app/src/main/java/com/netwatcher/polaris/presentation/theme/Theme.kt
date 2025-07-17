@@ -51,7 +51,8 @@ val CustomLightColorScheme = lightColorScheme(
     error = errorLight,
     onError = Color.White,
     surfaceVariant = surfaceVariantLight,
-    inverseOnSurface = inverseOnSurfaceLight
+    inverseOnSurface = inverseOnSurfaceLight,
+    onTertiaryContainer = buttonGreenLight
 )
 
 val CustomDarkColorScheme = darkColorScheme(
@@ -66,7 +67,8 @@ val CustomDarkColorScheme = darkColorScheme(
     onSurface = textPrimaryDark,
     error = errorDark,
     onError = Color.Black,
-    inverseOnSurface = inverseOnSurfaceDark
+    inverseOnSurface = inverseOnSurfaceDark,
+    onTertiaryContainer = buttonGreenDark
 )
 
 @Composable
