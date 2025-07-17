@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.domain.model.TestSelection
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.TestAlarmScheduler
@@ -44,7 +44,11 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
-                val result = repository.runNetworkTest(selectedSimSlotId ?: 0, selectedSimSubsId ?: 0, testSelection)
+                val result = repository.runNetworkTest(
+                    selectedSimSlotId ?: 0,
+                    selectedSimSubsId ?: 0,
+                    testSelection
+                )
                 _uiState.value = HomeUiState.Success(result)
 
                 TestAlarmScheduler.rescheduleTest(getApplication())
@@ -78,7 +82,7 @@ class HomeViewModel(
 
     suspend fun onLogoutClick(): Boolean {
         return try {
-            TokenManager.clearToken()
+            CookieManager.clearAll()
             true
         } catch (e: Exception) {
             false

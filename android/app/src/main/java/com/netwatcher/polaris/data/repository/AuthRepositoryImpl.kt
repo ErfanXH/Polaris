@@ -4,8 +4,7 @@ import com.netwatcher.polaris.data.remote.AuthApi
 import com.netwatcher.polaris.domain.model.LoginRequest
 import com.netwatcher.polaris.domain.model.SignUpRequest
 import com.netwatcher.polaris.domain.repository.AuthRepository
-import android.util.Log
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.domain.model.LoginResult
 import com.netwatcher.polaris.domain.model.ResetPasswordRequest
 import com.netwatcher.polaris.domain.model.SendResetCodeRequest
@@ -39,12 +38,13 @@ class AuthRepositoryImpl(
 
     override suspend fun login(request: LoginRequest): LoginResult {
         return try {
-            val response = api.login(request) // ← This is the LOGIN call
+            val response = api.login(request)
             when {
                 response.isSuccessful -> {
                     val body = response.body()
                     if (body != null) {
-                        TokenManager.saveToken(body.access)
+                        CookieManager.saveToken(body.access)
+                        CookieManager.saveEmail(body.email)
                         LoginResult.Success
                     } else {
                         LoginResult.Error("Empty response")
@@ -68,7 +68,7 @@ class AuthRepositoryImpl(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    TokenManager.saveToken(body.access)
+                    CookieManager.saveToken(body.access)
                     Result.success(Unit)
                 } else {
                     Result.failure(Exception("Empty response"))

@@ -7,7 +7,7 @@ import androidx.work.WorkerParameters
 import com.google.gson.Gson
 import com.netwatcher.polaris.AppDatabaseHelper
 import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.domain.model.Measurement
 import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
@@ -53,8 +53,11 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private suspend fun syncDataWithServer(dao: NetworkDataDao, unsynced: List<NetworkData>): Boolean {
-        val token = TokenManager.getToken().firstOrNull() ?: return false
+    private suspend fun syncDataWithServer(
+        dao: NetworkDataDao,
+        unsynced: List<NetworkData>
+    ): Boolean {
+        val token = CookieManager.getToken().firstOrNull() ?: return false
 
         val payload = MeasurementRequest(
             unsynced.map {

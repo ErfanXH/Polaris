@@ -1,7 +1,7 @@
 package com.netwatcher.polaris.utils
 
 import android.util.Log
-import com.netwatcher.polaris.di.TokenManager
+import com.netwatcher.polaris.di.CookieManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -31,7 +31,7 @@ object HttpUploadUtility {
     private val OCTET_STREAM: MediaType = "application/octet-stream".toMediaType()
 
     private suspend fun getAuthToken(): String {
-        return TokenManager.getToken().firstOrNull().toString()
+        return CookieManager.getToken().firstOrNull().toString()
     }
 
     suspend fun measureUploadThroughput(): Double = withContext(Dispatchers.IO) {
