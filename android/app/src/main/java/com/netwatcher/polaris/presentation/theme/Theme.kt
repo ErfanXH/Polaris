@@ -49,7 +49,9 @@ val CustomLightColorScheme = lightColorScheme(
     surface = cardBgLight,
     onSurface = textPrimaryLight,
     error = errorLight,
-    onError = Color.White
+    onError = Color.White,
+    surfaceVariant = surfaceVariantLight,
+    inverseOnSurface = inverseOnSurfaceLight
 )
 
 val CustomDarkColorScheme = darkColorScheme(
@@ -63,7 +65,8 @@ val CustomDarkColorScheme = darkColorScheme(
     surface = cardBgDark,
     onSurface = textPrimaryDark,
     error = errorDark,
-    onError = Color.Black
+    onError = Color.Black,
+    inverseOnSurface = inverseOnSurfaceDark
 )
 
 @Composable

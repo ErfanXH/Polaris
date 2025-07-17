@@ -29,6 +29,8 @@ val editorOutsideBgLight = Color(0xFFEAECF1)
 val toolbarBgLight = Color(0xFFF0F0F0)
 val buttonBgLight = Color(0xFFD4AF37)
 val buttonHoverLight = Color(0xFFB7950B)
+val surfaceVariantLight = Color(0xF5F5F5F5)
+val inverseOnSurfaceLight = Color(0xD3D3D3D3)
 
 // Dark Theme Colors
 val primaryBgDark = Color(0xFF121212)
@@ -49,3 +51,4 @@ val editorOutsideBgDark = Color(0xFF121416)
 val toolbarBgDark = Color(0xFF555454)
 val buttonBgDark = Color(0xFFD4AF37)
 val buttonHoverDark = Color(0xFFFFD700)
+val inverseOnSurfaceDark = Color(0xD3D3D3D3)
