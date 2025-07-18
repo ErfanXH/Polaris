@@ -189,7 +189,6 @@ class NetworkRepositoryImpl(
         smsTestUtility.measureSmsDeliveryTime(context)?.toDouble()
     }
 
-    //    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
     override suspend fun runNetworkTest(
         simSlotIndex: Int,
@@ -232,7 +231,6 @@ class NetworkRepositoryImpl(
             }
 
         val res = getCellInfo(targetCell, networkType)
-        println(res)
 
         val httpUploadThroughput =
             if (testSelection.runUploadTest) measureUploadThroughput() else -1.0

@@ -160,12 +160,23 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
+                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }
+            val notificationGranted = REQUIRED_PERMISSIONS_API_33.all {
+                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }
+            return basePermissionsGranted && backgroundLocationGranted && notificationGranted
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }
             return basePermissionsGranted && backgroundLocationGranted
         }
+
         return basePermissionsGranted
     }
 
