@@ -2,6 +2,7 @@ package com.netwatcher.polaris.presentation.home
 
 import android.app.Application
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,7 +22,6 @@ class HomeViewModel(
     private val repository: NetworkRepository,
     application: Application
 ) : AndroidViewModel(application) {
-
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
@@ -49,7 +49,14 @@ class HomeViewModel(
                     selectedSimSubsId ?: 0,
                     testSelection
                 )
-                _uiState.value = HomeUiState.Success(result)
+                if (result.isValid()) {
+                    _uiState.value = HomeUiState.Success(result)
+                }
+                else {
+                    val context = getApplication<Application>().applicationContext
+                    Toast.makeText(context,"Network Test Failed!", Toast.LENGTH_SHORT).show()
+                    loadInitialState()
+                }
 
                 TestAlarmScheduler.rescheduleTest(getApplication())
                 Log.d("HomeViewModel", "Manual test run. Background test rescheduled.")

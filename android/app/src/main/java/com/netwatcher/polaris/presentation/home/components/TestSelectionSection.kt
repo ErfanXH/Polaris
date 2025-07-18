@@ -21,10 +21,10 @@ fun TestSelectionSection(
     val testItems = listOf(
         "Upload" to selection.runUploadTest,
         "Download" to selection.runDownloadTest,
+        "SMS" to selection.runSmsTest,
         "Ping" to selection.runPingTest,
         "DNS" to selection.runDnsTest,
-        "Web" to selection.runWebTest,
-        "SMS" to selection.runSmsTest
+        "Web" to selection.runWebTest
     )
 
     NetworkInfoCard(
@@ -47,10 +47,10 @@ fun TestSelectionSection(
                         selection = when (label) {
                             "Upload" -> selection.copy(runUploadTest = !selection.runUploadTest)
                             "Download" -> selection.copy(runDownloadTest = !selection.runDownloadTest)
+                            "SMS" -> selection.copy(runSmsTest = !selection.runSmsTest)
                             "Ping" -> selection.copy(runPingTest = !selection.runPingTest)
                             "DNS" -> selection.copy(runDnsTest = !selection.runDnsTest)
                             "Web" -> selection.copy(runWebTest = !selection.runWebTest)
-                            "SMS" -> selection.copy(runSmsTest = !selection.runSmsTest)
                             else -> selection
                         }
                         onSelectionChanged(selection)

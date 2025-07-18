@@ -16,6 +16,7 @@ import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.utils.TestConfigManager
 import com.netwatcher.polaris.utils.*
+import com.netwatcher.polaris.utils.LocationUtility.isLocationEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -43,6 +44,12 @@ class TestExecutionService : Service() {
                 "TestExecutionService",
                 "Required permissions are missing, aborting test execution."
             )
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        if (!isLocationEnabled(this)) {
+            Log.w("TestExecutionService", "Location is disabled, stopping service...")
             stopSelf()
             return START_NOT_STICKY
         }

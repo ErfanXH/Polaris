@@ -79,6 +79,7 @@ class NetworkRepositoryImpl(
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine { cont ->
         if (!LocationUtility.isLocationEnabled(context)) {
+            Log.w("NetworkRepository", "Location is disabled, continue with previous...")
             cont.resume(null)
             return@suspendCoroutine
         }
@@ -262,12 +263,12 @@ class NetworkRepositoryImpl(
             res?.ecIo,
             res?.rxLev,
             res?.ssRsrp,
-            httpUploadThroughput,
-            httpDownloadThroughput,
-            pingTime,
-            dnsResponse,
-            webResponse,
-            smsDeliveryTime,
+            httpUploadThroughput ?: -1.0,
+            httpDownloadThroughput ?: -1.0,
+            pingTime ?: -1.0,
+            dnsResponse ?: -1.0,
+            webResponse ?: -1.0,
+            smsDeliveryTime ?: -1.0,
             getAuthEmail()
         )
 
