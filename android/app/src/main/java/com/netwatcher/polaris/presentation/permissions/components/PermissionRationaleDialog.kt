@@ -9,6 +9,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.netwatcher.polaris.utils.AppPermission
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun PermissionRationaleDialog(
@@ -16,19 +21,27 @@ fun PermissionRationaleDialog(
     onDismiss: () -> Unit,
     onNavigateToSettings: (AppPermission) -> Unit
 ) {
+    val guideText = buildAnnotatedString {
+        append("This app needs the '${permission.name}' permission.\n")
+        append("Please grant it in the device settings:\n")
+        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+        append(permission.guide)
+        pop()
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(
-            Icons.Outlined.Policy,
-            contentDescription = "Permission Icon",
-            tint = MaterialTheme.colorScheme.onBackground
-        ) },
+        icon = {
+            Icon(
+                Icons.Outlined.Policy,
+                contentDescription = "Permission Icon",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+        },
         title = { Text("Permission Required", style = MaterialTheme.typography.titleMedium) },
-        text = { Text("This app needs the '${permission.name}' permission.\nPlease grant it in the device settings:\n${permission.guide}") },
+        text = { Text(guideText) },
         confirmButton = {
-            TextButton(
-                onClick = { onNavigateToSettings(permission) }
-            ) {
+            TextButton(onClick = { onNavigateToSettings(permission) }) {
                 Text("Open Settings")
             }
         },
