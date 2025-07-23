@@ -1,6 +1,7 @@
 package com.netwatcher.polaris.utils
 
 import android.Manifest
+import android.app.AlarmManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -24,21 +25,21 @@ fun requiredPermissions(context: Context): List<AppPermission> {
         data = Uri.fromParts("package", packageName, null)
     }
 
+    val scheduleExactAlarmIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+        data = Uri.parse("package:$packageName")
+    }
+
+    val ignoreBatteryOptimizationIntent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+        data = Uri.parse("package:$packageName")
+    }
+
     val permissions = mutableListOf(
         AppPermission(
-            "Precise Location",
+            "Location",
             "Required for accurate network measurements.",
             "Permissions > Location > Turn on the 'Use precise location' and Select 'Allow all the time'",
             appSettingsIntent,
-//            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             Manifest.permission.ACCESS_FINE_LOCATION
-        ),
-        AppPermission(
-            "Approximate Location",
-            "Required as fallback when precise location is unavailable.",
-            "Permissions > Location > Select 'Allow all the time'",
-            appSettingsIntent,
-            Manifest.permission.ACCESS_COARSE_LOCATION
         ),
         AppPermission(
             "Phone State",
@@ -69,53 +70,10 @@ fun requiredPermissions(context: Context): List<AppPermission> {
             Manifest.permission.READ_SMS
         ),
         AppPermission(
-            "Network State",
-            "Required to monitor network connectivity and changes.",
-            "",
-            appSettingsIntent,
-            Manifest.permission.ACCESS_NETWORK_STATE
-        ),
-        AppPermission(
-            "Change Network State",
-            "Required to modify network settings for testing purposes.",
-            "",
-            appSettingsIntent,
-            Manifest.permission.CHANGE_NETWORK_STATE
-        ),
-        AppPermission(
-            "WiFi State",
-            "Required to scan WiFi networks and check connection status.",
-            "",
-            appSettingsIntent,
-            Manifest.permission.ACCESS_WIFI_STATE
-        ),
-        AppPermission(
-            "Change WiFi State",
-            "Required to enable/disable WiFi for network tests.",
-            "",
-            appSettingsIntent,
-            Manifest.permission.CHANGE_WIFI_STATE
-        ),
-        AppPermission(
-            "Foreground Service",
-            "Required for continuous network monitoring in the background.",
-            "",
-            appSettingsIntent,
-            Manifest.permission.FOREGROUND_SERVICE
-        ),
-        AppPermission(
-            "Auto-start",
-            "Required to automatically restart tests after device reboot.",
-            "Special Permissions > Auto-start > Enable for Polaris",
-//            appSettingsIntent
-            Intent(Settings.ACTION_SETTINGS),
-            Manifest.permission.RECEIVE_BOOT_COMPLETED
-        ),
-        AppPermission(
             "Unrestricted Battery Usage",
             "Prevents system from restricting background operations.",
             "Battery > Battery Optimization > Select 'Don't optimize'",
-            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+            ignoreBatteryOptimizationIntent,
             Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
         )
     )
@@ -125,8 +83,7 @@ fun requiredPermissions(context: Context): List<AppPermission> {
             AppPermission(
                 "Background Location",
                 "Required for background network monitoring.",
-                "",
-//                Settings.ACTION_LOCATION_SOURCE_SETTINGS
+                "Permissions > Location > Turn on the 'Use precise location' and Select 'Allow all the time'",
                 appSettingsIntent,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
@@ -139,7 +96,8 @@ fun requiredPermissions(context: Context): List<AppPermission> {
                 "Schedule Exact Alarm",
                 "Required for precise timing of network tests.",
                 "Special Permissions > Alarms & Reminders > Enable 'Allow exact alarms'",
-                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM),
+//                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM),
+                scheduleExactAlarmIntent,
                 Manifest.permission.SCHEDULE_EXACT_ALARM
             )
         )
@@ -150,21 +108,9 @@ fun requiredPermissions(context: Context): List<AppPermission> {
             AppPermission(
                 "Notifications",
                 "Required to show test notifications.",
-                "Notifications > Select 'Allow sound and vibration'",
+                "Notifications > Select 'Notifications' > Select 'Allow sound and vibration'",
                 appSettingsIntent,
                 Manifest.permission.POST_NOTIFICATIONS
-            )
-        )
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-        permissions.add(
-            AppPermission(
-                "Foreground Location",
-                "Required for location-based foreground services.",
-                "",
-                appSettingsIntent,
-                Manifest.permission.FOREGROUND_SERVICE_LOCATION
             )
         )
     }
@@ -179,4 +125,12 @@ fun permissionStatus(context: Context, permission: String): Boolean {
 fun Context.isBatteryOptimizationDisabled(): Boolean {
     val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
     return powerManager.isIgnoringBatteryOptimizations(packageName)
+}
+
+fun Context.isScheduleExactAlarmEnabled(): Boolean {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        return alarmManager.canScheduleExactAlarms()
+    }
+    return true
 }
