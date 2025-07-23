@@ -13,7 +13,7 @@ import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.utils.TimeStampConverter
-import com.netwatcher.polaris.utils.hasAllPermissions
+import com.netwatcher.polaris.utils.PermissionManager.hasAllPermissions
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
