@@ -13,7 +13,7 @@ import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.utils.TimeStampConverter
-import com.netwatcher.polaris.utils.hasAllPermissions
+import com.netwatcher.polaris.utils.PermissionManager.hasAllPermissions
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -74,7 +74,6 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     network_type = it.networkType,
                     tac = it.tac,
                     lac = it.lac,
-                    rac = it.rac,
                     cell_id = it.cellId,
                     plmn_id = it.plmnId,
                     arfcn = it.arfcn,
@@ -85,7 +84,6 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     rscp = it.rscp,
                     ecIo = it.ecIo,
                     rxLev = it.rxLev,
-                    ssRsrp = it.ssRsrp,
                     http_upload = it.httpUploadThroughput,
                     http_download = it.httpDownloadThroughput,
                     ping_time = it.pingTime,

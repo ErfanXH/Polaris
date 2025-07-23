@@ -59,9 +59,9 @@ private fun getGsmInfo(cell: CellInfoGsm, networkType: String) : NetworkData {
     val net = if (networkType != "GPRS" && networkType != "EDGE" && networkType != "CDMA") "GSM" else networkType
     val rssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) cell.cellSignalStrength.javaClass.getMethod("getRssi").invoke(cell.cellSignalStrength) as? Int else null
     return NetworkData(
-        0.0, 0.0, "", net, null, lac, cellId, null, "",
+        0.0, 0.0, "", net, null, lac, cellId, "",
         arfcn, getGsmFrequency(arfcn), getGsmFrequencyBand(arfcn),
-        null, null, null, null, rssi, null,
+        null, null, null, null, rssi,
         0.0,0.0,0.0,0.0,0.0, 0.0, ""
     )
 }
@@ -76,9 +76,9 @@ private fun getWcdmaInfo(cell: CellInfoWcdma, networkType: String) : NetworkData
         ecN0 = cell.cellSignalStrength.ecNo
     }
     return NetworkData(
-        0.0, 0.0, "", net, null, lac, cellId, null, "",
+        0.0, 0.0, "", net, null, lac, cellId, "",
         uarfcn, getWcdmaFrequency(uarfcn), "WCDMA Band ${getWcdmaFrequencyBand(uarfcn)}",
-        null, null, cell.cellSignalStrength.dbm, ecN0, null, null,
+        null, null, cell.cellSignalStrength.dbm, ecN0, null,
         0.0,0.0,0.0,0.0,0.0, 0.0, ""
     )
 }
@@ -88,11 +88,11 @@ private fun getLteInfo(cell: CellInfoLte, networkType: String) : NetworkData {
     val cellId = if (cell.cellIdentity.ci != Int.MAX_VALUE) cell.cellIdentity.ci.toString() else null
     return NetworkData(
         0.0, 0.0, "", "LTE",
-        cell.cellIdentity.tac.toString(), null, cellId, null, "",
+        cell.cellIdentity.tac.toString(), null, cellId, "",
         earfcn, getLTEFrequency(earfcn), "LTE Band ${getLTEFrequencyBand(earfcn)}",
         cell.cellSignalStrength.rsrp, cell.cellSignalStrength.rsrq,
-        null, null, null, null,
-        0.0,0.0,0.0,0.0,0.0, 0.0, ""
+        null, null, null, 0.0,0.0,0.0,
+        0.0,0.0, 0.0, ""
     )
 }
 

@@ -29,15 +29,6 @@ fun PermissionScreen(
 ) {
     val permissionStates by viewModel.permissionStates.collectAsState()
 
-    // ActivityResultLauncher for requesting multiple permissions
-    val multiplePermissionsLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = {
-            // After the user responds, refresh the states
-            viewModel.updatePermissionStates(context)
-        }
-    )
-
     // Re-check permissions when the user returns to the screen (e.g., from settings)
     DisposableEffect(navController) {
         val observer = LifecycleEventObserver { _, event ->
@@ -51,7 +42,6 @@ fun PermissionScreen(
         }
     }
 
-    // Handle rationale dialog display
     viewModel.showRationaleDialog?.let { permission ->
         PermissionRationaleDialog(
             permission = permission,
@@ -78,27 +68,9 @@ fun PermissionScreen(
                 .padding(padding)
                 .fillMaxSize(),
             permissionStates = permissionStates,
-            onGrantAllClick = {
-                val permissionsToRequest = permissionStates
-                    .filter { !it.isGranted && it.permission.settingsIntent == null }
-                    .mapNotNull { it.permission.permissionString }
-                    .toTypedArray()
-
-                if (permissionsToRequest.isNotEmpty()) {
-                    multiplePermissionsLauncher.launch(permissionsToRequest)
-                } else {
-                    Toast.makeText(context, "All standard permissions granted.", Toast.LENGTH_SHORT).show()
-                }
-            },
             onPermissionClick = { itemState ->
                 val permission = itemState.permission
-                if (permission.settingsIntent != null) {
-                    // For special permissions, show rationale or navigate to settings
-                    viewModel.onShowRationale(permission)
-                } else if (permission.permissionString != null) {
-                    // For standard runtime permissions
-                    multiplePermissionsLauncher.launch(arrayOf(permission.permissionString))
-                }
+                viewModel.onShowRationale(permission)
             }
         )
     }

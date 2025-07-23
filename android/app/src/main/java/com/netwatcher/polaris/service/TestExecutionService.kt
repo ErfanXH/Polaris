@@ -15,13 +15,13 @@ import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.utils.TestConfigManager
-import com.netwatcher.polaris.utils.*
 import com.netwatcher.polaris.utils.LocationUtility.isLocationEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.netwatcher.polaris.utils.PermissionManager.hasAllPermissions
 
 class TestExecutionService : Service() {
 

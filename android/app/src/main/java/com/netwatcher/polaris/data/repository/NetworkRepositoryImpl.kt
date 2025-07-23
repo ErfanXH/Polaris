@@ -3,12 +3,10 @@ package com.netwatcher.polaris.data.repository
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import android.os.Build
 import android.os.Looper
 import android.telephony.*
 import android.telephony.TelephonyManager.*
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -250,7 +248,6 @@ class NetworkRepositoryImpl(
             res?.tac,
             res?.lac,
             res?.cellId,
-            null,
             tm.networkOperator,
             res?.arfcn,
             res?.frequency,
@@ -260,7 +257,6 @@ class NetworkRepositoryImpl(
             res?.rscp,
             res?.ecIo,
             res?.rxLev,
-            res?.ssRsrp,
             httpUploadThroughput ?: -1.0,
             httpDownloadThroughput ?: -1.0,
             pingTime ?: -1.0,
