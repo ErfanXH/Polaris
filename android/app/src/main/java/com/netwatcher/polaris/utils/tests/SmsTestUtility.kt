@@ -1,4 +1,4 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.tests
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.telephony.SmsManager
 import android.util.Log
+import com.netwatcher.polaris.utils.TestConfigManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

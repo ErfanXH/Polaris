@@ -1,4 +1,4 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.tests
 
 import com.netwatcher.polaris.di.CookieManager
 import kotlinx.coroutines.Dispatchers
@@ -26,20 +26,17 @@ object HttpDownloadUtility {
     }
 
     suspend fun measureDownloadThroughput(): Double = withContext(Dispatchers.IO) {
-        println("[DEBUG] Starting download throughput test")
-
         val startTime = System.nanoTime()
         var totalBytesReceived = 0L
         var successfulRequests = 0
         var failedRequests = 0
 
         try {
-            println("[DEBUG] Starting download loop...")
-
+            println("Starting download ...")
             while (true) {
                 val elapsedMs = (System.nanoTime() - startTime) / 1_000_000
                 if (elapsedMs >= TEST_DURATION_MS) {
-                    println("[DEBUG] Test duration reached ($TEST_DURATION_MS ms)")
+                    println("Test duration reached ($TEST_DURATION_MS ms)")
                     break
                 }
 
@@ -56,15 +53,15 @@ object HttpDownloadUtility {
                             val bytes = it.body?.bytes() ?: byteArrayOf()
                             totalBytesReceived += bytes.size
                             successfulRequests++
-                            println("[DEBUG] Download successful (${bytes.size} bytes) - Total: $totalBytesReceived bytes")
+                            println("Download successful (${bytes.size} bytes) - Total: $totalBytesReceived bytes")
                         } else {
                             failedRequests++
-                            println("[WARN] Download failed - Code: ${it.code} - Message: ${it.message}")
+                            println("Download failed - Code: ${it.code} - Message: ${it.message}")
                         }
                     }
                 } catch (e: IOException) {
                     failedRequests++
-                    println("[ERROR] Network error: ${e.message}")
+                    println("Network error: ${e.message}")
                 }
             }
 
@@ -73,7 +70,7 @@ object HttpDownloadUtility {
             val throughputMbps = bitsReceived / durationSeconds / 1_000_000
 
             println(
-                "[DEBUG] Test completed - " +
+                "Download Test completed - " +
                         "Duration: ${"%.2f".format(durationSeconds)}s, " +
                         "Total received: $totalBytesReceived bytes, " +
                         "Successful requests: $successfulRequests, " +
@@ -83,7 +80,7 @@ object HttpDownloadUtility {
 
             throughputMbps
         } catch (e: Exception) {
-            println("[ERROR] Unexpected error: ${e.javaClass.simpleName} - ${e.message}")
+            println("Error: ${e.message}")
             -1.0
         }
     }

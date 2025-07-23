@@ -21,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import com.netwatcher.polaris.utils.PermissionManager.hasAllPermissions
+import com.netwatcher.polaris.utils.permissions.PermissionManager.hasAllPermissions
 
 class TestExecutionService : Service() {
 

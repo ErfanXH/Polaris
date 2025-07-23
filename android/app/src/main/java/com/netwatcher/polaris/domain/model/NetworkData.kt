@@ -72,6 +72,6 @@ data class NetworkData (
     }
 
     fun isValid(): Boolean {
-        return !(latitude == -1.0 || longitude == -1.0 || networkType == "OTHERS")
+        return !(latitude == -1.0 || longitude == -1.0 || networkType == "OTHERS" || timestamp == "INVALID")
     }
 }

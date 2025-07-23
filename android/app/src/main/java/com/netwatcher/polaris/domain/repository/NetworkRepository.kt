@@ -7,7 +7,10 @@ import kotlinx.coroutines.flow.Flow
 import okhttp3.RequestBody
 
 interface NetworkRepository {
-    suspend fun runNetworkTest(simSlotIndex: Int, subscriptionId: Int, testSelection: TestSelection): NetworkData
+    suspend fun runNetworkTest(
+        simSlotIndex: Int,
+        subscriptionId: Int,
+        testSelection: TestSelection): NetworkData
     suspend fun getCurrentLocation(): Location?
     suspend fun pingTest(): Double?
     suspend fun dnsTest(): Double?
