@@ -8,12 +8,10 @@ import com.google.gson.Gson
 import com.netwatcher.polaris.data.local.AppDatabaseHelper
 import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.di.CookieManager
-import com.netwatcher.polaris.domain.model.Measurement
 import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
-import com.netwatcher.polaris.utils.TimeStampConverter
-import com.netwatcher.polaris.utils.PermissionManager.hasAllPermissions
+import com.netwatcher.polaris.utils.measurements.measurementConverter
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -23,11 +21,6 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result {
         Log.d("DataSyncWorker", "Starting data sync work.")
-
-//        if (!hasAllPermissions(applicationContext)) {
-//            Log.w("DataSyncWorker", "Missing required permissions. Skipping sync.")
-//            return Result.failure()
-//        }
 
         val dao = AppDatabaseHelper.getDatabase(applicationContext).networkDataDao()
 
@@ -67,30 +60,7 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
         val payload = MeasurementRequest(
             unsynced.map {
-                Measurement(
-                    latitude = it.latitude,
-                    longitude = it.longitude,
-                    timestamp = TimeStampConverter(it.timestamp),
-                    network_type = it.networkType,
-                    tac = it.tac,
-                    lac = it.lac,
-                    cell_id = it.cellId,
-                    plmn_id = it.plmnId,
-                    arfcn = it.arfcn,
-                    frequency = it.frequency,
-                    frequency_band = it.frequencyBand,
-                    rsrp = it.rsrp,
-                    rsrq = it.rsrq,
-                    rscp = it.rscp,
-                    ecIo = it.ecIo,
-                    rxLev = it.rxLev,
-                    http_upload = it.httpUploadThroughput,
-                    http_download = it.httpDownloadThroughput,
-                    ping_time = it.pingTime,
-                    dns_response = it.dnsResponse,
-                    web_response = it.webResponse,
-                    sms_delivery_time = it.smsDeliveryTime
-                )
+                measurementConverter(it)
             }
         )
 

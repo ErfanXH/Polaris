@@ -3,11 +3,11 @@ package com.netwatcher.polaris.presentation.permissions
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.netwatcher.polaris.utils.AppPermission
-import com.netwatcher.polaris.utils.isBatteryOptimizationDisabled
-import com.netwatcher.polaris.utils.isScheduleExactAlarmEnabled
-import com.netwatcher.polaris.utils.permissionStatus
-import com.netwatcher.polaris.utils.requiredPermissions
+import com.netwatcher.polaris.utils.permissions.AppPermission
+import com.netwatcher.polaris.utils.permissions.isBatteryOptimizationDisabled
+import com.netwatcher.polaris.utils.permissions.isScheduleExactAlarmEnabled
+import com.netwatcher.polaris.utils.permissions.permissionStatus
+import com.netwatcher.polaris.utils.permissions.requiredPermissions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

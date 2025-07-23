@@ -8,12 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import com.netwatcher.polaris.utils.AppPermission
-import androidx.compose.ui.text.AnnotatedString
+import com.netwatcher.polaris.utils.permissions.AppPermission
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
 @Composable
 fun PermissionRationaleDialog(

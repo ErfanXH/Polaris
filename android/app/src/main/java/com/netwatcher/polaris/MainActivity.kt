@@ -1,16 +1,9 @@
 package com.netwatcher.polaris
 
 import android.app.Activity
-import android.app.AlarmManager
 import android.app.Application
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -52,9 +45,9 @@ import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.TestAlarmScheduler
 import com.netwatcher.polaris.data.local.AppDatabaseHelper
-import com.netwatcher.polaris.utils.PermissionManager
-import com.netwatcher.polaris.utils.PermissionManager.checkAndRequestExactAlarmPermission
-import com.netwatcher.polaris.utils.PermissionManager.checkBatteryOptimizations
+import com.netwatcher.polaris.utils.permissions.PermissionManager
+import com.netwatcher.polaris.utils.permissions.PermissionManager.checkAndRequestExactAlarmPermission
+import com.netwatcher.polaris.utils.permissions.PermissionManager.checkBatteryOptimizations
 
 class MainActivity : ComponentActivity() {
 

@@ -1,4 +1,4 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.permissions
 
 import android.Manifest
 import android.app.AlarmManager

@@ -8,16 +8,10 @@ import android.content.Intent
 import android.util.Log
 import com.netwatcher.polaris.receiver.AlarmReceiver
 
-/**
- * Utility object for scheduling the background network test execution using AlarmManager.
- */
 object TestAlarmScheduler {
     private const val ALARM_REQUEST_CODE = 1001
-    private const val TEST_INTERVAL_MINUTES = 5L // Interval for background tests
+    private const val TEST_INTERVAL_MINUTES = 5L
 
-    /**
-     * Schedules a precise alarm to trigger the AlarmReceiver.
-     */
     @SuppressLint("ScheduleExactAlarm")
     private fun schedule(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -41,9 +35,6 @@ object TestAlarmScheduler {
         Log.d("TestAlarmScheduler", "Next test alarm set for $TEST_INTERVAL_MINUTES minutes later.")
     }
 
-    /**
-     * Cancels any previously scheduled test alarm.
-     */
     private fun cancel(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AlarmReceiver::class.java)
@@ -57,17 +48,10 @@ object TestAlarmScheduler {
         Log.d("TestAlarmScheduler", "Test alarm cancelled.")
     }
 
-    /**
-     * Schedules the next test.
-     */
     fun scheduleTest(context: Context) {
         schedule(context)
     }
 
-    /**
-     * Cancels the existing alarm and schedules a new one.
-     * This is used to reset the timer after a manual test run.
-     */
     fun rescheduleTest(context: Context) {
         cancel(context)
         schedule(context)

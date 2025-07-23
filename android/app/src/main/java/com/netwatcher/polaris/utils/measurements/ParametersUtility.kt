@@ -1,15 +1,10 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.measurements
 
 import android.os.Build
 import android.telephony.CellInfo
 import android.telephony.CellInfoGsm
 import android.telephony.CellInfoLte
-import android.telephony.CellInfoNr
 import android.telephony.CellInfoWcdma
-import android.telephony.CellSignalStrengthLte
-import android.telephony.CellSignalStrengthNr
-import android.telephony.TelephonyManager
-import androidx.annotation.RequiresApi
 import com.netwatcher.polaris.domain.model.NetworkData
 
 data class GsmBand(val band: String, val arfcnStart: Int, val arfcnEnd: Int, val dlFreqStartMHz: Double)
@@ -47,7 +42,7 @@ fun getCellInfo(cell: CellInfo?, networkType: String) : NetworkData? {
     return when (cell) {
         is CellInfoGsm -> getGsmInfo(cell, networkType)
         is CellInfoWcdma -> getWcdmaInfo(cell, networkType)
-        is CellInfoLte -> getLteInfo(cell, networkType)
+        is CellInfoLte -> getLteInfo(cell)
         else -> null
     }
 }
@@ -83,7 +78,7 @@ private fun getWcdmaInfo(cell: CellInfoWcdma, networkType: String) : NetworkData
     )
 }
 
-private fun getLteInfo(cell: CellInfoLte, networkType: String) : NetworkData {
+private fun getLteInfo(cell: CellInfoLte) : NetworkData {
     val earfcn = cell.cellIdentity.earfcn
     val cellId = if (cell.cellIdentity.ci != Int.MAX_VALUE) cell.cellIdentity.ci.toString() else null
     return NetworkData(

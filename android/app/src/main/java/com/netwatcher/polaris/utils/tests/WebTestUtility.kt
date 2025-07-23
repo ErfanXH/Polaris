@@ -1,4 +1,4 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.tests
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
