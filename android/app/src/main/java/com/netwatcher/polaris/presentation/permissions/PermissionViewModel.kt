@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.netwatcher.polaris.utils.AppPermission
 import com.netwatcher.polaris.utils.isBatteryOptimizationDisabled
+import com.netwatcher.polaris.utils.isScheduleExactAlarmEnabled
 import com.netwatcher.polaris.utils.permissionStatus
 import com.netwatcher.polaris.utils.requiredPermissions
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,7 @@ class PermissionsViewModel : ViewModel() {
         _permissionStates.value = requiredPermissions(context).map { permission ->
             val isGranted = when (permission.permissionString) {
                 "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" -> context.isBatteryOptimizationDisabled()
+                "android.permission.SCHEDULE_EXACT_ALARM" -> context.isScheduleExactAlarmEnabled()
                 else -> permission.permissionString?.let { permissionStatus(context, it) } ?: true
             }
             PermissionItemState(permission = permission, isGranted = isGranted)
