@@ -139,7 +139,7 @@ const PolarisLanding = () => {
         </Container>
       </AppBar>
 
-      <Hero theme={theme} />
+      <Hero theme={theme} isDark={isDark} />
 
       <Features theme={theme} isDark={isDark} />
 

@@ -2,7 +2,7 @@ import { Container, Box, Chip, Typography, Button } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import PhoneMockup from "./PhoneMockup";
 
-const Hero = ({ theme }) => {
+const Hero = ({ theme, isDark }) => {
   return (
     <Container
       maxWidth="lg"
@@ -107,7 +107,7 @@ const Hero = ({ theme }) => {
         }}
       >
         <PhoneMockup
-          imageUrl="/phone.jpeg"
+          imageUrl={isDark ? "/phone_dark.jpeg" : "/phone.jpeg"}
           altText="Polaris app main screen showing network analysis"
         />
       </Box>
