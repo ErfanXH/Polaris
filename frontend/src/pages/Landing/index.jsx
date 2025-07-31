@@ -5,22 +5,20 @@ import {
   Grid,
   Typography,
   useTheme,
-  List,
-  ListItem,
   Divider,
-  Link,
   AppBar,
   Toolbar,
   IconButton,
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Download, WifiTethering, Menu as MenuIcon } from "@mui/icons-material";
+import { Download, Menu as MenuIcon } from "@mui/icons-material";
 import { useState } from "react";
 import Features from "./components/Features";
 import Hero from "./components/Hero";
 import Faq from "./components/Faq";
 import Downloads from "./components/Downloads";
+import logo from "/logo.svg";
 
 const PolarisLanding = () => {
   const theme = useTheme();
@@ -59,16 +57,16 @@ const PolarisLanding = () => {
                 flexGrow: 1,
               }}
             >
-              <WifiTethering color="primary" sx={{ mr: 1 }} />
-              <Typography
-                variant="h6"
+              <Box
+                component="img"
+                src={logo}
+                alt="Polaris Logo"
                 sx={{
-                  fontWeight: 700,
+                  height: { xs: 28, md: 36 },
+                  width: "auto",
                   mr: 4,
                 }}
-              >
-                Polaris
-              </Typography>
+              />
 
               <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
                 <Button color="inherit" href="#features">
@@ -79,6 +77,12 @@ const PolarisLanding = () => {
                 </Button>
                 <Button color="inherit" href="#download">
                   Download
+                </Button>
+                <Button color="inherit" href="/login">
+                  Login
+                </Button>
+                <Button color="inherit" href="/dashboard">
+                  Dashboard
                 </Button>
               </Box>
             </Box>
@@ -93,7 +97,7 @@ const PolarisLanding = () => {
                 sx={{
                   px: 3,
                   fontWeight: 600,
-                  display: { xs: "none", sm: "flex" },
+                  display: { xs: "none", sm: "none", md: "flex" },
                 }}
               >
                 Download APK
@@ -133,6 +137,12 @@ const PolarisLanding = () => {
                 <MenuItem onClick={handleMenuClose} href="#download">
                   Download
                 </MenuItem>
+                <MenuItem onClick={handleMenuClose} href="/login">
+                  Login
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose} href="/dashboard">
+                  Dashboard
+                </MenuItem>
               </Menu>
             </Box>
           </Toolbar>
@@ -156,18 +166,16 @@ const PolarisLanding = () => {
       >
         <Container maxWidth="lg">
           <Grid>
-            <Typography
-              variant="h6"
+            <Box
+              component="img"
+              src={logo}
+              alt="Polaris Logo"
               sx={{
-                fontWeight: 700,
-                mb: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
+                height: 32,
+                width: "auto",
+                mb: 2,
               }}
-            >
-              <WifiTethering color="primary" /> Polaris
-            </Typography>
+            />
             <Typography variant="body2" color="text.secondary">
               Professional mobile network analysis tools for engineers,
               technicians, and enthusiasts.
