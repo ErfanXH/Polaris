@@ -14,18 +14,19 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.netwatcher.polaris.R
 import com.netwatcher.polaris.domain.model.LoginRequest
 
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel,
     onNavigateToSignUp: () -> Unit,
     onNavigateToVerification: (numberOrEmail: String, password: String) -> Unit,
     onNavigateToResetPassword: () -> Unit,
     onSuccess: () -> Unit
 ) {
-    val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
+    val viewModel: AuthViewModel = hiltViewModel()
+    val uiState by viewModel.authUiState.collectAsState()
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -36,11 +37,11 @@ fun LoginScreen(
     var passwordError by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // ✅ LaunchedEffect for UI side effects like Snackbar and Navigation
     LaunchedEffect(uiState) {
         when (uiState) {
             is AuthUiState.Error -> {
                 snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
+                viewModel.resetState()
             }
 
             AuthUiState.Success -> {
@@ -53,40 +54,12 @@ fun LoginScreen(
             }
 
             AuthUiState.RequiresVerification -> {
+                viewModel.resetState()
                 onNavigateToVerification(numberOrEmail, password)
             }
 
             else -> {}
         }
-    }
-
-    val validateInputs: () -> Boolean = {
-        var isValid = true
-
-        numberOrEmailError = when {
-            numberOrEmail.isBlank() -> {
-                isValid = false
-                "Email or phone is required"
-            }
-
-            else -> null
-        }
-
-        passwordError = when {
-            password.isBlank() -> {
-                isValid = false
-                "Password is required"
-            }
-
-            password.length < 6 -> {
-                isValid = false
-                "Password must be at least 6 characters"
-            }
-
-            else -> null
-        }
-
-        isValid
     }
 
     Scaffold(
@@ -162,14 +135,16 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    if (validateInputs()) {
+                    val (isValid, errors) = viewModel.validateLoginInputs(numberOrEmail, password)
+
+                    if (isValid) {
+                        numberOrEmailError = null
+                        passwordError = null
                         focusManager.clearFocus(force = true)
-                        viewModel.login(
-                            LoginRequest(
-                                numberOrEmail = numberOrEmail,
-                                password = password
-                            )
-                        )
+                        viewModel.login(LoginRequest(numberOrEmail, password))
+                    } else {
+                        numberOrEmailError = errors["numberOrEmail"]
+                        passwordError = errors["password"]
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

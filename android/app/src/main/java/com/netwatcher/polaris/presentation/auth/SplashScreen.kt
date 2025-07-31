@@ -7,17 +7,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.CircularProgressIndicator
-import com.netwatcher.polaris.di.CookieManager
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.netwatcher.polaris.data.local.CookieManager
 import kotlinx.coroutines.flow.firstOrNull
 
 @Composable
 fun SplashScreen(onTokenValidated: (Boolean) -> Unit) {
+    val viewModel: AuthViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
-        val token = CookieManager.getToken().firstOrNull()
-        onTokenValidated(!token.isNullOrEmpty())
+        val isAuthenticated = viewModel.isUserLoggedIn()
+        onTokenValidated(isAuthenticated)
     }
 
-    // Optional loading UI while checking token
     Box(modifier = Modifier.fillMaxSize()) {
         CircularProgressIndicator(
             modifier = Modifier.align(Alignment.Center)

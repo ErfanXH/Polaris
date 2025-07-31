@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.netwatcher.polaris.R
 import com.netwatcher.polaris.domain.model.VerificationRequest
 import com.netwatcher.polaris.domain.model.VerificationRetryRequest
@@ -30,12 +31,12 @@ enum class VerificationAction {
 
 @Composable
 fun VerificationScreen(
-    viewModel: AuthViewModel,
     numberOrEmail: String,
     password: String,
     onBack: () -> Unit,
     onVerified: () -> Unit
 ) {
+    val viewModel: AuthViewModel = hiltViewModel()
     val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
     val snackbarHostState = remember { SnackbarHostState() }
     var lastAction by remember { mutableStateOf<VerificationAction?>(null) }
@@ -44,8 +45,8 @@ fun VerificationScreen(
     val focusRequesters = List(5) { remember { FocusRequester() } }
 
     var codeDigits = remember { mutableStateListOf("", "", "", "", "") }
+    val code = codeDigits.joinToString("")
 
-    // Show error/success messages
     LaunchedEffect(uiState) {
         when (uiState) {
             is AuthUiState.Error -> snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
@@ -68,9 +69,6 @@ fun VerificationScreen(
             else -> {}
         }
     }
-
-    val isCodeValid = codeDigits.all { it.length == 1 }
-    val code = codeDigits.joinToString("")
 
     Scaffold(
         snackbarHost = {
@@ -142,20 +140,15 @@ fun VerificationScreen(
 
             Button(
                 onClick = {
-                    if (isCodeValid) {
+                    var error = viewModel.validateVerificationCode(code)
+                    if (error == null) {
                         focusManager.clearFocus(force = true)
                         lastAction = VerificationAction.VERIFY
-                        viewModel.verify(
-                            VerificationRequest(
-                                numberOrEmail = numberOrEmail,
-                                password = password,
-                                code = code
-                            )
-                        )
+                        viewModel.verify(numberOrEmail, password, code)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = isCodeValid
+                enabled = viewModel.validateVerificationCode(code) == null
             ) {
                 Text("Verify")
             }

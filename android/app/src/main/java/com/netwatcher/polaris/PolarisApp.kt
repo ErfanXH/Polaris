@@ -1,11 +1,23 @@
 package com.netwatcher.polaris
 
 import android.app.Application
-import com.netwatcher.polaris.di.CookieManager
+import androidx.hilt.work.HiltWorkerFactory
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
+import androidx.work.Configuration
 
-class PolarisApp : Application() {
+@HiltAndroidApp
+class PolarisApp : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var hiltWorkerFactory: HiltWorkerFactory
+
     override fun onCreate() {
         super.onCreate()
-        CookieManager.init(this) // ✅ Best place for global singleton init
     }
+
+    override fun getWorkManagerConfiguration(): Configuration =
+        Configuration.Builder()
+            .setWorkerFactory(hiltWorkerFactory)
+            .build()
 }

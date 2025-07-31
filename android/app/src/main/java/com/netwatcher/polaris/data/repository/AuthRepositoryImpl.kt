@@ -4,22 +4,20 @@ import com.netwatcher.polaris.data.remote.AuthApi
 import com.netwatcher.polaris.domain.model.LoginRequest
 import com.netwatcher.polaris.domain.model.SignUpRequest
 import com.netwatcher.polaris.domain.repository.AuthRepository
-import com.netwatcher.polaris.di.CookieManager
+import com.netwatcher.polaris.data.local.CookieManager
 import com.netwatcher.polaris.domain.model.LoginResult
 import com.netwatcher.polaris.domain.model.ResetPasswordRequest
 import com.netwatcher.polaris.domain.model.SendResetCodeRequest
 import com.netwatcher.polaris.domain.model.VerificationRequest
 import com.netwatcher.polaris.domain.model.VerificationRetryRequest
 import com.netwatcher.polaris.domain.model.VerifyResetCodeRequest
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * Concrete implementation of the [AuthRepository] interface.
- * This class handles the actual data operations for authentication,
- * such as making network requests or interacting with a local database.
- * For this example, it simulates a network call.
- */
-class AuthRepositoryImpl(
-    private val api: AuthApi
+@Singleton
+class AuthRepositoryImpl @Inject constructor(
+    private val api: AuthApi,
+    private val cookieManager: CookieManager
 ) : AuthRepository {
 
     override suspend fun signUp(request: SignUpRequest): Result<Unit> {
@@ -43,8 +41,8 @@ class AuthRepositoryImpl(
                 response.isSuccessful -> {
                     val body = response.body()
                     if (body != null) {
-                        CookieManager.saveToken(body.access)
-                        CookieManager.saveEmail(body.email)
+                        cookieManager.saveToken(body.access)
+                        cookieManager.saveEmail(body.email)
                         LoginResult.Success
                     } else {
                         LoginResult.Error("Empty response")
@@ -68,8 +66,8 @@ class AuthRepositoryImpl(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    CookieManager.saveToken(body.access)
-                    CookieManager.saveEmail(body.email)
+                    cookieManager.saveToken(body.access)
+                    cookieManager.saveEmail(body.email)
                     Result.success(Unit)
                 } else {
                     Result.failure(Exception("Empty response"))

@@ -21,11 +21,7 @@ object HttpDownloadUtility {
             .build()
     }
 
-    private suspend fun getAuthToken(): String {
-        return CookieManager.getToken().firstOrNull().toString()
-    }
-
-    suspend fun measureDownloadThroughput(): Double = withContext(Dispatchers.IO) {
+    suspend fun measureDownloadThroughput(token: String?): Double = withContext(Dispatchers.IO) {
         println("[DEBUG] Starting download throughput test")
 
         val startTime = System.nanoTime()
@@ -44,7 +40,7 @@ object HttpDownloadUtility {
                 }
 
                 val request = Request.Builder()
-                    .addHeader("Authorization", getAuthToken())
+                    .addHeader("Authorization", token.toString())
                     .url(DOWNLOAD_URL)
                     .get()
                     .build()
