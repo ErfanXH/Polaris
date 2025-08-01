@@ -1,22 +1,15 @@
 package com.netwatcher.polaris
 
-import android.Manifest
-import android.app.AlarmManager
-import android.app.AlertDialog
-import android.content.Context
-import android.content.Intent
-import android.content.pm.ActivityInfo
+
+import android.app.Activity
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
-import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -25,6 +18,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.netwatcher.polaris.presentation.auth.LoginScreen
 import com.netwatcher.polaris.presentation.auth.ResetPasswordScreen
 import com.netwatcher.polaris.presentation.auth.SignUpScreen
@@ -38,6 +35,9 @@ import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.TestAlarmScheduler
 import dagger.hilt.android.AndroidEntryPoint
+import com.netwatcher.polaris.utils.permission.PermissionManager
+import com.netwatcher.polaris.utils.permission.PermissionManager.checkAndRequestExactAlarmPermission
+import com.netwatcher.polaris.utils.permission.PermissionManager.checkBatteryOptimizations
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -46,38 +46,81 @@ class MainActivity : ComponentActivity() {
     private var isContentSet = false
 
     private val locationSettingsLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        isWaitingForLocation = false
-        checkLocationAndSetContent()
-    }
-
-    private fun checkAndRequestExactAlarmPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            if (!alarmManager.canScheduleExactAlarms()) {
-                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                intent.data = Uri.parse("package:$packageName")
-                startActivity(intent)
-            }
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            isWaitingForLocation = false
+            checkLocationAndSetContent()
+        } else {
+            Toast.makeText(this, "Location is required", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        if (!hasAllPermissions()) {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE)
+        val ungranted = PermissionManager.getUngrantedPermissions(
+            this,
+            PermissionManager.getInitialPermissions()
+        )
+        if (ungranted.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this,
+                ungranted.toTypedArray(),
+                PERMISSION_REQUEST_CODE
+            )
         } else {
-            checkNotificationPermission()
+            handlePostPermissionFlow()
+        }
+    }
+
+    private fun handlePostPermissionFlow() {
+        requestBackgroundLocationIfNeeded()
+        requestNotificationPermissionIfNeeded()
+        initializeApp()
+    }
+
+    private fun requestBackgroundLocationIfNeeded() {
+        val perms = PermissionManager.getBackgroundLocationPermission()
+        if (perms.isNotEmpty()) {
+            val permission = perms.first()
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(permission),
+                    BACKGROUND_PERMISSION_REQUEST_CODE
+                )
+            }
+        }
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        val perms = PermissionManager.getNotificationPermission()
+        if (perms.isNotEmpty()) {
+            val permission = perms.first()
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(permission),
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                )
+            }
         }
     }
 
     private fun initializeApp() {
         checkBatteryOptimizations()
         checkAndRequestExactAlarmPermission()
-        // Schedule the first test and the periodic sync
         TestAlarmScheduler.scheduleTest(this)
         DataSyncScheduler.schedulePeriodicSync(this)
         checkLocationAndSetContent()
@@ -87,49 +130,38 @@ class MainActivity : ComponentActivity() {
         if (LocationUtility.isLocationEnabled(this)) {
             setAppContent()
         } else {
-            showLocationEnableDialog()
+            promptEnableLocation()
         }
     }
 
-    private fun checkNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    REQUIRED_PERMISSIONS_API_33,
-                    NOTIFICATION_PERMISSION_REQUEST_CODE
-                )
+    private fun promptEnableLocation() {
+        val request = LocationRequest.create().setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        val settingsRequest = LocationSettingsRequest.Builder()
+            .addLocationRequest(request)
+            .setAlwaysShow(true)
+            .build()
+
+        val settingsClient = LocationServices.getSettingsClient(this)
+        val task = settingsClient.checkLocationSettings(settingsRequest)
+
+        task.addOnSuccessListener {
+            checkLocationAndSetContent()
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                locationSettingsLauncher.launch(intentSenderRequest)
             } else {
-                initializeApp() // Already granted, so initialize
+                Toast.makeText(this, "Unable to prompt location settings", Toast.LENGTH_SHORT)
+                    .show()
             }
-        } else {
-            initializeApp() // Not needed for older APIs
         }
-    }
-
-    private fun showLocationEnableDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Location Required")
-            .setMessage("Please enable location services to use this app")
-            .setPositiveButton("Enable") { _, _ ->
-                isWaitingForLocation = true
-                LocationUtility.requestEnableLocation(this, locationSettingsLauncher)
-            }
-            .setNegativeButton("Exit") { _, _ ->
-                finish()
-            }
-            .setCancelable(false)
-            .show()
     }
 
     private fun setAppContent() {
         if (isContentSet) return
         isContentSet = true
-
         setContent {
             PolarisTheme {
                 PolarisNav()
@@ -145,94 +177,41 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun hasAllPermissions(): Boolean {
-        val basePermissionsGranted = REQUIRED_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
-                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-            }
-            val notificationGranted = REQUIRED_PERMISSIONS_API_33.all {
-                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-            }
-            return basePermissionsGranted && backgroundLocationGranted && notificationGranted
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val backgroundLocationGranted = REQUIRED_PERMISSIONS_API_29.all {
-                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-            }
-            return basePermissionsGranted && backgroundLocationGranted
-        }
-
-        return basePermissionsGranted
-    }
-
-    private fun checkBatteryOptimizations() {
-        val intent = Intent()
-        val packageName = packageName
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-            intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-            intent.data = Uri.parse("package:$packageName")
-            startActivity(intent)
-        }
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<String>,
+        permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        val allGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
-                if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-
+                if (allGranted) {
+                    handlePostPermissionFlow()
                 } else {
                     Toast.makeText(
                         this,
-                        "Permissions are essentially required! Visit Permissions Screen.",
+                        "Some Required Permissions Denied. Go to Permissions Screen.",
                         Toast.LENGTH_LONG
                     ).show()
 //                    finish()
+                    handlePostPermissionFlow()
                 }
-                checkNotificationPermission()
             }
 
+            BACKGROUND_PERMISSION_REQUEST_CODE,
             NOTIFICATION_PERMISSION_REQUEST_CODE -> {
-                initializeApp()
+                Log.d("Permission", "Handled request code: $requestCode")
             }
         }
     }
 
     companion object {
-        const val PERMISSION_REQUEST_CODE = 1
-        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2
-
-        private val REQUIRED_PERMISSIONS = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.CHANGE_NETWORK_STATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS,
-        )
-
-        @RequiresApi(Build.VERSION_CODES.Q)
-        private val REQUIRED_PERMISSIONS_API_29 = arrayOf(
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-        )
-
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        private val REQUIRED_PERMISSIONS_API_33 = arrayOf(
-            Manifest.permission.POST_NOTIFICATIONS
-        )
+        private const val PERMISSION_REQUEST_CODE = 100
+        private const val BACKGROUND_PERMISSION_REQUEST_CODE = 101
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 102
     }
 }
 

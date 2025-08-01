@@ -1,15 +1,10 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.measurements
 
 import android.os.Build
 import android.telephony.CellInfo
 import android.telephony.CellInfoGsm
 import android.telephony.CellInfoLte
-import android.telephony.CellInfoNr
 import android.telephony.CellInfoWcdma
-import android.telephony.CellSignalStrengthLte
-import android.telephony.CellSignalStrengthNr
-import android.telephony.TelephonyManager
-import androidx.annotation.RequiresApi
 import com.netwatcher.polaris.domain.model.NetworkData
 
 data class GsmBand(val band: String, val arfcnStart: Int, val arfcnEnd: Int, val dlFreqStartMHz: Double)
@@ -47,7 +42,7 @@ fun getCellInfo(cell: CellInfo?, networkType: String) : NetworkData? {
     return when (cell) {
         is CellInfoGsm -> getGsmInfo(cell, networkType)
         is CellInfoWcdma -> getWcdmaInfo(cell, networkType)
-        is CellInfoLte -> getLteInfo(cell, networkType)
+        is CellInfoLte -> getLteInfo(cell)
         else -> null
     }
 }
@@ -59,9 +54,9 @@ private fun getGsmInfo(cell: CellInfoGsm, networkType: String) : NetworkData {
     val net = if (networkType != "GPRS" && networkType != "EDGE" && networkType != "CDMA") "GSM" else networkType
     val rssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) cell.cellSignalStrength.javaClass.getMethod("getRssi").invoke(cell.cellSignalStrength) as? Int else null
     return NetworkData(
-        0.0, 0.0, "", net, null, lac, cellId, null, "",
+        0.0, 0.0, "", net, null, lac, cellId, "",
         arfcn, getGsmFrequency(arfcn), getGsmFrequencyBand(arfcn),
-        null, null, null, null, rssi, null,
+        null, null, null, null, rssi,
         0.0,0.0,0.0,0.0,0.0, 0.0, ""
     )
 }
@@ -76,23 +71,23 @@ private fun getWcdmaInfo(cell: CellInfoWcdma, networkType: String) : NetworkData
         ecN0 = cell.cellSignalStrength.ecNo
     }
     return NetworkData(
-        0.0, 0.0, "", net, null, lac, cellId, null, "",
+        0.0, 0.0, "", net, null, lac, cellId, "",
         uarfcn, getWcdmaFrequency(uarfcn), "WCDMA Band ${getWcdmaFrequencyBand(uarfcn)}",
-        null, null, cell.cellSignalStrength.dbm, ecN0, null, null,
+        null, null, cell.cellSignalStrength.dbm, ecN0, null,
         0.0,0.0,0.0,0.0,0.0, 0.0, ""
     )
 }
 
-private fun getLteInfo(cell: CellInfoLte, networkType: String) : NetworkData {
+private fun getLteInfo(cell: CellInfoLte) : NetworkData {
     val earfcn = cell.cellIdentity.earfcn
     val cellId = if (cell.cellIdentity.ci != Int.MAX_VALUE) cell.cellIdentity.ci.toString() else null
     return NetworkData(
         0.0, 0.0, "", "LTE",
-        cell.cellIdentity.tac.toString(), null, cellId, null, "",
+        cell.cellIdentity.tac.toString(), null, cellId, "",
         earfcn, getLTEFrequency(earfcn), "LTE Band ${getLTEFrequencyBand(earfcn)}",
         cell.cellSignalStrength.rsrp, cell.cellSignalStrength.rsrq,
-        null, null, null, null,
-        0.0,0.0,0.0,0.0,0.0, 0.0, ""
+        null, null, null, 0.0,0.0,0.0,
+        0.0,0.0, 0.0, ""
     )
 }
 

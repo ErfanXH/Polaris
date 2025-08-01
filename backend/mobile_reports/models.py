@@ -21,31 +21,15 @@ class Device(models.Model):
 
 
 class Measurement(models.Model):
-    NETWORK_TYPES = {
-        'GSM'    : 'GSM'    ,
-        'GPRS'   : 'GPRS'   ,
-        'EDGE'   : 'EDGE'   ,
-        'UMTS'   : 'UMTS'   ,
-        'HSPA'   : 'HSPA'   ,
-        'WCDMA'  : 'WCDMA'  ,
-        '3G'     : '3G'     ,
-        'HSPA+'  : 'HSPA+'  ,
-        'LTE'    : 'LTE'    ,
-        '5G'     : '5G'     ,
-        'LTE-Adv': 'LTE-Adv',
-        'UNKNOWN': 'UNKNOWN',
-    }
-    
-    NETWORK_TYPES_MAP = {v: k for k, v in NETWORK_TYPES.items()}
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_measurements')
     latitude = models.FloatField()
     longitude = models.FloatField()
     timestamp = models.DateTimeField(null=True, blank=True,unique=True)
-    network_type = models.CharField(max_length=10, choices=NETWORK_TYPES)
+    network_type = models.CharField(max_length=15)
     lac = models.CharField(max_length=100, null=True, blank=True)  # Location Area Code
     tac = models.CharField(max_length=100, null=True, blank=True)  # Tracking Area Code
-    rac = models.CharField(max_length=100, null=True, blank=True)  # routing Area Code
+    #rac = models.CharField(max_length=100, null=True, blank=True)  # routing Area Code
     cell_id = models.CharField(max_length=100, null=True, blank=True)
     plmn_id = models.CharField(max_length=100, null=True, blank=True) # Public Land Mobile Network
     arfcn = models.IntegerField(null=True, blank=True)  # Absolute Radio Frequency Channel Number
@@ -56,7 +40,7 @@ class Measurement(models.Model):
     rscp = models.IntegerField(null=True, blank=True)
     ecIo = models.IntegerField(null=True, blank=True)
     rxLev = models.IntegerField(null=True, blank=True)
-    ssRsrp = models.IntegerField(null=True, blank=True)
+    #ssRsrp = models.IntegerField(null=True, blank=True)
     http_upload = models.FloatField()
     http_download = models.FloatField()
     ping_time = models.FloatField()

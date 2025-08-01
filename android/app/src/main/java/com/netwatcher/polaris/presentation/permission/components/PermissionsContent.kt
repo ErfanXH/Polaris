@@ -23,7 +23,6 @@ import com.netwatcher.polaris.presentation.permission.PermissionItemState
 fun PermissionsContent(
     modifier: Modifier = Modifier,
     permissionStates: List<PermissionItemState>,
-    onGrantAllClick: () -> Unit,
     onPermissionClick: (PermissionItemState) -> Unit
 ) {
     val grantedCount = permissionStates.count { it.isGranted }
@@ -66,11 +65,6 @@ fun PermissionsContent(
                             fontWeight = FontWeight.Bold,
                             color = if (allGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                         )
-                        if (!allGranted) {
-                            Button(onClick = onGrantAllClick) {
-                                Text("Grant All Missing")
-                            }
-                        }
                     }
                 }
             }

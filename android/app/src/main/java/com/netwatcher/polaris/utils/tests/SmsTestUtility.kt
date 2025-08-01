@@ -1,4 +1,4 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.tests
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.telephony.SmsManager
 import android.util.Log
+import com.netwatcher.polaris.utils.TestConfigManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -74,10 +75,10 @@ class SmsTestUtility(private val context: Context) {
 
         return when {
             // Case 1: Already in +98 format (e.g. +989303009264)
-            number.startsWith("+98") && digitsOnly.length == 11 -> number
+            number.startsWith("+98") && digitsOnly.length == 12 -> number
 
             // Case 2: Starts with 98 (e.g. 989303009264)
-            digitsOnly.startsWith("98") && digitsOnly.length == 11 -> "+$digitsOnly"
+            digitsOnly.startsWith("98") && digitsOnly.length == 12 -> "+$digitsOnly"
 
             // Case 3: Starts with 0 (e.g. 09303009264)
             digitsOnly.startsWith("0") && digitsOnly.length == 11 -> {

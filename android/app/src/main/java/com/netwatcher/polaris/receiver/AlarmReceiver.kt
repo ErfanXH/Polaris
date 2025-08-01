@@ -10,7 +10,7 @@ import com.netwatcher.polaris.utils.TestAlarmScheduler
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        Log.d("AlarmReceiver", "Alarm triggered or Boot completed: ${intent?.action}")
+        Log.d("AlarmReceiver", "Alarm triggered or Boot completed.")
 
         if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
             Log.d("AlarmReceiver", "Boot completed — rescheduling test alarm.")

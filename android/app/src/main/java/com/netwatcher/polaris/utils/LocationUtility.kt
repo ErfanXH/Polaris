@@ -1,10 +1,7 @@
 package com.netwatcher.polaris.utils
 
 import android.content.Context
-import android.content.Intent
 import android.location.LocationManager
-import android.provider.Settings
-import androidx.activity.result.ActivityResultLauncher
 
 object LocationUtility {
 
@@ -16,10 +13,5 @@ object LocationUtility {
         } catch (e: Exception) {
             false
         }
-    }
-
-    fun requestEnableLocation(context: Context, launcher: ActivityResultLauncher<Intent>) {
-        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-        launcher.launch(intent)
     }
 }

@@ -6,22 +6,17 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
-import com.netwatcher.polaris.data.local.AppDatabaseHelper
 import com.netwatcher.polaris.data.local.CookieManager
 import com.netwatcher.polaris.data.remote.NetworkDataApi
-import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.domain.model.Measurement
 import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
-import com.netwatcher.polaris.utils.TimeStampConverter
-import com.netwatcher.polaris.utils.hasAllPermissions
+import com.netwatcher.polaris.utils.measurements.measurementConverter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import javax.inject.Inject
 
 @HiltWorker
 class DataSyncWorker @AssistedInject constructor(
@@ -36,10 +31,6 @@ class DataSyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         Log.d("DataSyncWorker", "Starting data sync work.")
 
-//        if (!hasAllPermissions(applicationContext)) {
-//            Log.w("DataSyncWorker", "Missing required permissions. Skipping sync.")
-//            return Result.failure()
-//        }
 
         return try {
             val email = cookieManager.getEmail().firstOrNull()
@@ -77,32 +68,7 @@ class DataSyncWorker @AssistedInject constructor(
 
         val payload = MeasurementRequest(
             unsynced.map {
-                Measurement(
-                    latitude = it.latitude,
-                    longitude = it.longitude,
-                    timestamp = TimeStampConverter(it.timestamp),
-                    network_type = it.networkType,
-                    tac = it.tac,
-                    lac = it.lac,
-                    rac = it.rac,
-                    cell_id = it.cellId,
-                    plmn_id = it.plmnId,
-                    arfcn = it.arfcn,
-                    frequency = it.frequency,
-                    frequency_band = it.frequencyBand,
-                    rsrp = it.rsrp,
-                    rsrq = it.rsrq,
-                    rscp = it.rscp,
-                    ecIo = it.ecIo,
-                    rxLev = it.rxLev,
-                    ssRsrp = it.ssRsrp,
-                    http_upload = it.httpUploadThroughput,
-                    http_download = it.httpDownloadThroughput,
-                    ping_time = it.pingTime,
-                    dns_response = it.dnsResponse,
-                    web_response = it.webResponse,
-                    sms_delivery_time = it.smsDeliveryTime
-                )
+                measurementConverter(it)
             }
         )
 

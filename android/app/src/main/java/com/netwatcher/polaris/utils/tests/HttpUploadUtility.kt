@@ -1,8 +1,6 @@
-package com.netwatcher.polaris.utils
+package com.netwatcher.polaris.utils.tests
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -10,7 +8,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-import java.util.Random
 import java.util.concurrent.TimeUnit
 
 object HttpUploadUtility {
@@ -74,10 +71,7 @@ object HttpUploadUtility {
 
     private fun calculateThroughput(startTime: Long, bytesSent: Long): Double {
         val durationSeconds = (System.nanoTime() - startTime) / 1_000_000_000.0
-//        if (bytesSent > 0)
-        Log.d("Upload", "$bytesSent in $durationSeconds")
         return (bytesSent * 8) / (durationSeconds * 1_000_000)  // Mbps
-//        return -1.0
     }
 
     private fun generateTestData(): ByteArray {

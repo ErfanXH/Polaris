@@ -3,12 +3,10 @@ package com.netwatcher.polaris.data.repository
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import android.os.Build
 import android.os.Looper
 import android.telephony.*
 import android.telephony.TelephonyManager.*
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -22,6 +20,13 @@ import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.domain.model.TestSelection
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.*
+import com.netwatcher.polaris.utils.measurements.getCellInfo
+import com.netwatcher.polaris.utils.tests.DnsUtility
+import com.netwatcher.polaris.utils.tests.HttpDownloadUtility
+import com.netwatcher.polaris.utils.tests.HttpUploadUtility
+import com.netwatcher.polaris.utils.tests.PingUtility
+import com.netwatcher.polaris.utils.tests.SmsTestUtility
+import com.netwatcher.polaris.utils.tests.WebTestUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -196,85 +201,78 @@ class NetworkRepositoryImpl(
         subscriptionId: Int,
         testSelection: TestSelection
     ): NetworkData {
-        println("simSlotIndex: $simSlotIndex")
-        val location = getCurrentLocation()
+        try{
+            val location = getCurrentLocation()
 
-        val sm =
-            context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
-        val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            val sm =
+                context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
-        val allCellsInfo = try {
-            tm.allCellInfo?.filter { it.isRegistered } ?: emptyList()
-        } catch (e: Exception) {
-            Log.e("NetworkTest", "Error getting cell info", e)
-            emptyList()
-        }
-
-        if (allCellsInfo.isEmpty()) {
-            Log.w("NetworkTest", "No cell info available")
-            return NetworkData.empty()
-        }
-
-        val subscriptionList = sm.activeSubscriptionInfoList ?: emptyList()
-
-        val networkTypeInt = tm.createForSubscriptionId(subscriptionId).dataNetworkType
-        val networkType = networkTypeToString(networkTypeInt)
-
-        val subInfo = sm.getActiveSubscriptionInfoForSimSlotIndex(simSlotIndex)
-
-        val targetCell: CellInfo? =
-            if (subscriptionList.size == 1) {
-                allCellsInfo?.firstOrNull()
-            } else {
-                val indexInList =
-                    subscriptionList.indexOfFirst { it.simSlotIndex == subInfo.simSlotIndex }
-                allCellsInfo?.getOrNull(indexInList)
+            val allCellsInfo = try {
+                tm.allCellInfo?.filter { it.isRegistered } ?: emptyList()
+            } catch (e: Exception) {
+                Log.e("NetworkTest", "Error getting cell info", e)
+                emptyList()
             }
 
-        val res = getCellInfo(targetCell, networkType)
+            if (allCellsInfo.isEmpty()) {
+                Log.w("NetworkTest", "No cell info available")
+                return NetworkData.empty()
+            }
 
-        val httpUploadThroughput =
-            if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
-        val httpDownloadThroughput =
-            if (testSelection.runDownloadTest) measureDownloadThroughput() else -1.0
-        val pingTime = if (testSelection.runPingTest) pingTest() else -1.0
-        val dnsResponse = if (testSelection.runDnsTest) dnsTest() else -1.0
-        val webResponse = if (testSelection.runWebTest) measureWebResponseTime() else -1.0
-        val smsDeliveryTime =
-            if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
+            val subscriptionList = sm.activeSubscriptionInfoList ?: emptyList()
 
-        val networkData = NetworkData(
-            location?.latitude ?: -1.0,
-            location?.longitude ?: -1.0,
-            SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(Date()),
-            res?.networkType,
-            res?.tac,
-            res?.lac,
-            res?.cellId,
-            null,
-            tm.networkOperator,
-            res?.arfcn,
-            res?.frequency,
-            res?.frequencyBand,
-            res?.rsrp,
-            res?.rsrq,
-            res?.rscp,
-            res?.ecIo,
-            res?.rxLev,
-            res?.ssRsrp,
-            httpUploadThroughput ?: -1.0,
-            httpDownloadThroughput ?: -1.0,
-            pingTime ?: -1.0,
-            dnsResponse ?: -1.0,
-            webResponse ?: -1.0,
-            smsDeliveryTime ?: -1.0,
-            getAuthEmail()
-        )
+            val networkTypeInt = tm.createForSubscriptionId(subscriptionId).dataNetworkType
+            val networkType = networkTypeToString(networkTypeInt)
 
-        if (isValidNetworkData(networkData, targetCell)) {
-            addNetworkData(networkData)
+            val subInfo = sm.getActiveSubscriptionInfoForSimSlotIndex(simSlotIndex)
+
+            val targetCell: CellInfo? =
+                if (subscriptionList.size == 1) {
+                    allCellsInfo?.firstOrNull()
+                } else {
+                    val indexInList =
+                        subscriptionList.indexOfFirst { it.simSlotIndex == subInfo.simSlotIndex }
+                    allCellsInfo?.getOrNull(indexInList)
+                }
+
+            val res = getCellInfo(targetCell, networkType)
+
+            val httpUploadThroughput =
+                if (testSelection.runUploadTest) measureUploadThroughput() else -1.0
+            val httpDownloadThroughput =
+                if (testSelection.runDownloadTest) measureDownloadThroughput() else -1.0
+            val pingTime = if (testSelection.runPingTest) pingTest() else -1.0
+            val dnsResponse = if (testSelection.runDnsTest) dnsTest() else -1.0
+            val webResponse = if (testSelection.runWebTest) measureWebResponseTime() else -1.0
+            val smsDeliveryTime =
+                if (testSelection.runSmsTest) measureSmsDeliveryTime()?.toDouble() else -1.0
+
+            val networkData = NetworkData(
+                location?.latitude ?: -1.0,
+                location?.longitude ?: -1.0,
+                SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(Date()),
+                res?.networkType,
+                res?.tac, res?.lac, res?.cellId, tm.networkOperator,
+                res?.arfcn, res?.frequency, res?.frequencyBand,
+                res?.rsrp, res?.rsrq, res?.rscp, res?.ecIo, res?.rxLev,
+                httpUploadThroughput ?: -1.0,
+                httpDownloadThroughput ?: -1.0,
+                pingTime ?: -1.0,
+                dnsResponse ?: -1.0,
+                webResponse ?: -1.0,
+                smsDeliveryTime ?: -1.0,
+                getAuthEmail()
+            )
+
+            if (isValidNetworkData(networkData, targetCell)) {
+                addNetworkData(networkData)
+            }
+            return networkData
         }
-        return networkData
+        catch (e: Exception) {
+            return NetworkData.invalid()
+        }
     }
 
     private fun isValidNetworkData(networkData: NetworkData?, cellInfo: CellInfo?): Boolean {

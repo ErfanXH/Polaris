@@ -1,14 +1,10 @@
 package com.netwatcher.polaris.presentation.permission
 
 import android.app.Application
-import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.netwatcher.polaris.domain.usecase.permission.PermissionUseCase
-import com.netwatcher.polaris.utils.AppPermission
-import com.netwatcher.polaris.utils.isBatteryOptimizationDisabled
-import com.netwatcher.polaris.utils.permissionStatus
-import com.netwatcher.polaris.utils.requiredPermissions
+import com.netwatcher.polaris.utils.permission.AppPermission
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

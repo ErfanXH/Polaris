@@ -1,9 +1,6 @@
 package com.netwatcher.polaris.presentation.permission
 
-import android.content.Context
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -16,9 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.permission.components.PermissionRationaleDialog
 import com.netwatcher.polaris.presentation.permission.components.PermissionsContent
 import com.netwatcher.polaris.presentation.permission.components.PermissionTopBar
@@ -31,16 +26,6 @@ fun PermissionScreen(
     val context = viewModel.context
     val permissionStates by viewModel.permissionStates.collectAsState()
 
-    // ActivityResultLauncher for requesting multiple permissions
-    val multiplePermissionsLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = {
-            // After the user responds, refresh the states
-            viewModel.updatePermissionStates()
-        }
-    )
-
-    // Re-check permissions when the user returns to the screen (e.g., from settings)
     DisposableEffect(navController) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -52,8 +37,7 @@ fun PermissionScreen(
             navController.currentBackStackEntry?.lifecycle?.removeObserver(observer)
         }
     }
-
-    // Handle rationale dialog display
+    
     viewModel.showRationaleDialog?.let { permission ->
         PermissionRationaleDialog(
             permission = permission,
@@ -81,28 +65,9 @@ fun PermissionScreen(
                 .padding(padding)
                 .fillMaxSize(),
             permissionStates = permissionStates,
-            onGrantAllClick = {
-                val permissionsToRequest = permissionStates
-                    .filter { !it.isGranted && it.permission.settingsIntent == null }
-                    .mapNotNull { it.permission.permissionString }
-                    .toTypedArray()
-
-                if (permissionsToRequest.isNotEmpty()) {
-                    multiplePermissionsLauncher.launch(permissionsToRequest)
-                } else {
-                    Toast.makeText(context, "All standard permissions granted.", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            },
             onPermissionClick = { itemState ->
                 val permission = itemState.permission
-                if (permission.settingsIntent != null) {
-                    // For special permissions, show rationale or navigate to settings
-                    viewModel.onShowRationale(permission)
-                } else if (permission.permissionString != null) {
-                    // For standard runtime permissions
-                    multiplePermissionsLauncher.launch(arrayOf(permission.permissionString))
-                }
+                viewModel.onShowRationale(permission)
             }
         )
     }

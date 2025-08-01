@@ -10,13 +10,9 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.netwatcher.polaris.data.local.AppDatabaseHelper
 import com.netwatcher.polaris.data.local.CookieManager
-import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
-import com.netwatcher.polaris.di.NetworkModule
 import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.TestConfigManager
-import com.netwatcher.polaris.utils.*
 import com.netwatcher.polaris.utils.LocationUtility.isLocationEnabled
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +21,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.netwatcher.polaris.utils.permission.PermissionManager.hasAllPermissions
 
 @AndroidEntryPoint
 class TestExecutionService : Service() {
