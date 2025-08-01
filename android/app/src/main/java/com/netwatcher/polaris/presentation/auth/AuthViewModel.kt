@@ -116,7 +116,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun verify(numberOrEmail: String, code: String, password: String) {
+    fun verify(numberOrEmail: String, password: String, code: String) {
         _authUiState.value = AuthUiState.Loading
         val request = VerificationRequest(numberOrEmail, password, code)
         viewModelScope.launch {

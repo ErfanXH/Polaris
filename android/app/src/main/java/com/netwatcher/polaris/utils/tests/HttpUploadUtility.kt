@@ -11,7 +11,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 object HttpUploadUtility {
-    private const val UPLOAD_URL = "http://194.62.43.37/api/mobile/HTTPTest/upload/"
+    private const val UPLOAD_URL = "http://45.149.77.43:9000/api/mobile/HTTPTest/upload/"
     private const val TEST_DURATION_MS = 5000
     private const val CHUNK_SIZE = 1024 * 512   // 512KB
     private const val TEST_DATA_SIZE = 3072 * 1024  // 3MB
