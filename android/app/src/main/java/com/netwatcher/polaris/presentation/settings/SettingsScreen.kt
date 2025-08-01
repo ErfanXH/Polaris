@@ -11,16 +11,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.netwatcher.polaris.presentation.home.HomeViewModel
 import com.netwatcher.polaris.presentation.settings.components.SimSelectionSection
 import com.netwatcher.polaris.presentation.settings.components.SyncIntervalSection
 import com.netwatcher.polaris.presentation.settings.components.TestConfigurationSection
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel,
-    onSimSelected: (Int, Int) -> Unit,
+    navController: NavController,
     onBack: () -> Unit
 ) {
+    val viewModel: SettingsViewModel = hiltViewModel()
     val simList by viewModel.simList.collectAsState()
     val selectedSimSlotId by viewModel.selectedSimSlotId.collectAsState()
     val selectedSimSubsId by viewModel.selectedSimSubsId.collectAsState()
@@ -30,17 +34,21 @@ fun SettingsScreen(
             val defaultSimSlotId = simList.first().simSlotIndex
             val defaultSimSubsId = simList.first().subscriptionId
             viewModel.selectSim(defaultSimSlotId, defaultSimSubsId)
-            onSimSelected(defaultSimSlotId, defaultSimSubsId)
+            try {
+                navController.getBackStackEntry("home")
+                    .savedStateHandle["refresh_home"] = true
+            } catch (e: IllegalArgumentException) {
+            }
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings", style = MaterialTheme.typography.titleMedium,) },
+                title = { Text("Settings", style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back",)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -65,7 +73,11 @@ fun SettingsScreen(
                         selectedSimSlotId = selectedSimSlotId,
                         onSimSelected = { slotId, subsId ->
                             viewModel.selectSim(slotId, subsId)
-                            onSimSelected(slotId, subsId)
+                            try {
+                                navController.getBackStackEntry("home")
+                                    .savedStateHandle["refresh_home"] = true
+                            } catch (e: IllegalArgumentException) {
+                            }
                         }
                     )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))

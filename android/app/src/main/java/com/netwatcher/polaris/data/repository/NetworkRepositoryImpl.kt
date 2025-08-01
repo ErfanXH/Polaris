@@ -13,8 +13,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.netwatcher.polaris.data.local.CookieManager
 import com.netwatcher.polaris.data.remote.NetworkDataApi
-import com.netwatcher.polaris.di.CookieManager
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.domain.model.TestSelection
@@ -41,7 +41,8 @@ import kotlin.coroutines.suspendCoroutine
 class NetworkRepositoryImpl(
     private val context: Context,
     val networkDataDao: NetworkDataDao,
-    private val api: NetworkDataApi
+    private val api: NetworkDataApi,
+    private val cookieManager: CookieManager
 ) : NetworkRepository {
     // Local Database
     override suspend fun addNetworkData(networkData: NetworkData) {
@@ -70,11 +71,11 @@ class NetworkRepositoryImpl(
     }
 
     private suspend fun getAuthToken(): String? {
-        return CookieManager.getToken().firstOrNull()
+        return cookieManager.getToken().firstOrNull()
     }
 
     private suspend fun getAuthEmail(): String? {
-        return CookieManager.getEmail().firstOrNull()
+        return cookieManager.getEmail().firstOrNull()
     }
 
     private val fusedLocationClient by lazy {
@@ -142,11 +143,11 @@ class NetworkRepositoryImpl(
     }
 
     override suspend fun measureUploadThroughput(): Double {
-        return HttpUploadUtility.measureUploadThroughput()
+        return HttpUploadUtility.measureUploadThroughput(cookieManager.getToken().firstOrNull())
     }
 
     override suspend fun measureDownloadThroughput(): Double {
-        return HttpDownloadUtility.measureDownloadThroughput()
+        return HttpDownloadUtility.measureDownloadThroughput(cookieManager.getToken().firstOrNull())
     }
 
     override suspend fun pingTest(): Double? = withContext(Dispatchers.IO) {

@@ -1,7 +1,7 @@
 package com.netwatcher.polaris
 
+
 import android.app.Activity
-import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -11,12 +11,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,29 +22,24 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
-import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
-import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.domain.repository.NetworkRepository
-import com.netwatcher.polaris.presentation.auth.AuthViewModel
 import com.netwatcher.polaris.presentation.auth.LoginScreen
 import com.netwatcher.polaris.presentation.auth.ResetPasswordScreen
 import com.netwatcher.polaris.presentation.auth.SignUpScreen
 import com.netwatcher.polaris.presentation.auth.SplashScreen
 import com.netwatcher.polaris.presentation.auth.VerificationScreen
 import com.netwatcher.polaris.presentation.home.HomeScreen
-import com.netwatcher.polaris.presentation.home.HomeViewModel
-import com.netwatcher.polaris.presentation.permissions.PermissionScreen
+import com.netwatcher.polaris.presentation.permission.PermissionScreen
 import com.netwatcher.polaris.presentation.settings.SettingsScreen
-import com.netwatcher.polaris.presentation.settings.SettingsViewModel
 import com.netwatcher.polaris.presentation.theme.PolarisTheme
 import com.netwatcher.polaris.utils.DataSyncScheduler
 import com.netwatcher.polaris.utils.LocationUtility
 import com.netwatcher.polaris.utils.TestAlarmScheduler
-import com.netwatcher.polaris.data.local.AppDatabaseHelper
-import com.netwatcher.polaris.utils.permissions.PermissionManager
-import com.netwatcher.polaris.utils.permissions.PermissionManager.checkAndRequestExactAlarmPermission
-import com.netwatcher.polaris.utils.permissions.PermissionManager.checkBatteryOptimizations
+import dagger.hilt.android.AndroidEntryPoint
+import com.netwatcher.polaris.utils.permission.PermissionManager
+import com.netwatcher.polaris.utils.permission.PermissionManager.checkAndRequestExactAlarmPermission
+import com.netwatcher.polaris.utils.permission.PermissionManager.checkBatteryOptimizations
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private var isWaitingForLocation = false
@@ -70,9 +61,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        val ungranted = PermissionManager.getUngrantedPermissions(this, PermissionManager.getInitialPermissions())
+        val ungranted = PermissionManager.getUngrantedPermissions(
+            this,
+            PermissionManager.getInitialPermissions()
+        )
         if (ungranted.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, ungranted.toTypedArray(), PERMISSION_REQUEST_CODE)
+            ActivityCompat.requestPermissions(
+                this,
+                ungranted.toTypedArray(),
+                PERMISSION_REQUEST_CODE
+            )
         } else {
             handlePostPermissionFlow()
         }
@@ -88,8 +86,16 @@ class MainActivity : ComponentActivity() {
         val perms = PermissionManager.getBackgroundLocationPermission()
         if (perms.isNotEmpty()) {
             val permission = perms.first()
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(permission), BACKGROUND_PERMISSION_REQUEST_CODE)
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(permission),
+                    BACKGROUND_PERMISSION_REQUEST_CODE
+                )
             }
         }
     }
@@ -98,8 +104,16 @@ class MainActivity : ComponentActivity() {
         val perms = PermissionManager.getNotificationPermission()
         if (perms.isNotEmpty()) {
             val permission = perms.first()
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(permission), NOTIFICATION_PERMISSION_REQUEST_CODE)
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(permission),
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                )
             }
         }
     }
@@ -139,7 +153,8 @@ class MainActivity : ComponentActivity() {
                 val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
                 locationSettingsLauncher.launch(intentSenderRequest)
             } else {
-                Toast.makeText(this, "Unable to prompt location settings", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Unable to prompt location settings", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -149,7 +164,7 @@ class MainActivity : ComponentActivity() {
         isContentSet = true
         setContent {
             PolarisTheme {
-                PolarisNav(this)
+                PolarisNav()
             }
         }
     }
@@ -176,7 +191,11 @@ class MainActivity : ComponentActivity() {
                 if (allGranted) {
                     handlePostPermissionFlow()
                 } else {
-                    Toast.makeText(this, "Some Required Permissions Denied. Go to Permissions Screen.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this,
+                        "Some Required Permissions Denied. Go to Permissions Screen.",
+                        Toast.LENGTH_LONG
+                    ).show()
 //                    finish()
                     handlePostPermissionFlow()
                 }
@@ -197,30 +216,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PolarisNav(mainActivity: MainActivity) {
+fun PolarisNav() {
     val navController = rememberNavController()
-    val authViewModel = remember { AuthViewModel(NetworkModule.authRepository) }
-
-    val database = AppDatabaseHelper.getDatabase(mainActivity)
-
-    val homeViewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(
-            repository = NetworkRepositoryImpl(
-                context = mainActivity.applicationContext,
-                networkDataDao = database.networkDataDao(),
-                api = NetworkModule.networkDataApi
-            ),
-            application = mainActivity.application
-        )
-    )
-
-    val settingsViewModel: SettingsViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return SettingsViewModel(mainActivity.application) as T
-            }
-        }
-    )
 
     NavHost(
         navController = navController,
@@ -228,8 +225,8 @@ fun PolarisNav(mainActivity: MainActivity) {
     ) {
         composable("splash") {
             SplashScreen(
-                onTokenValidated = { isLoggedIn ->
-                    navController.navigate(if (isLoggedIn) "home" else "login") {
+                onTokenValidated = { isAuthenticated ->
+                    navController.navigate(if (isAuthenticated) "home" else "login") {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
@@ -238,7 +235,6 @@ fun PolarisNav(mainActivity: MainActivity) {
 
         composable("sign_up") {
             SignUpScreen(
-                viewModel = authViewModel,
                 onNavigateToLogin = { navController.navigate("login") },
                 onNavigateToVerification = { email, password ->
                     navController.navigate("verification?numberOrEmail=$email&password=$password")
@@ -247,7 +243,6 @@ fun PolarisNav(mainActivity: MainActivity) {
         }
         composable("login") {
             LoginScreen(
-                viewModel = authViewModel,
                 onNavigateToSignUp = { navController.navigate("sign_up") },
                 onNavigateToVerification = { numberOrEmail, password ->
                     navController.navigate("verification?numberOrEmail=$numberOrEmail&password=$password")
@@ -272,7 +267,6 @@ fun PolarisNav(mainActivity: MainActivity) {
             val numberOrEmail = backStackEntry.arguments?.getString("numberOrEmail") ?: ""
             val password = backStackEntry.arguments?.getString("password") ?: ""
             VerificationScreen(
-                viewModel = authViewModel,
                 numberOrEmail = numberOrEmail,
                 password = password,
                 onBack = { navController.popBackStack() },
@@ -287,7 +281,6 @@ fun PolarisNav(mainActivity: MainActivity) {
         }
         composable("reset_password") {
             ResetPasswordScreen(
-                viewModel = authViewModel,
                 onSuccess = {
                     navController.navigate("login") {
                         popUpTo("reset_password") { inclusive = true }
@@ -302,41 +295,24 @@ fun PolarisNav(mainActivity: MainActivity) {
         }
         composable("home") {
             HomeScreen(
-                viewModel = homeViewModel,
+                navController = navController,
                 onSettingsClick = { navController.navigate("settings") },
                 onPermissionsClick = { navController.navigate("permissions") },
                 onLogout = {
                     navController.navigate("login")
                 },
-                context = mainActivity
             )
         }
         composable("settings") {
             SettingsScreen(
-                viewModel = settingsViewModel,
-                onSimSelected = { simSlotId, simSubsId ->
-                    homeViewModel.setSelectedSim(simSlotId, simSubsId)
-                },
+                navController = navController,
                 onBack = {
                     navController.popBackStack()
                 }
             )
         }
         composable("permissions") {
-            PermissionScreen(navController, mainActivity)
+            PermissionScreen(navController)
         }
-    }
-}
-
-class HomeViewModelFactory(
-    private val repository: NetworkRepository,
-    private val application: Application
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(repository, application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

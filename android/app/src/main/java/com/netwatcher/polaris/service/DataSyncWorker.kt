@@ -2,39 +2,47 @@ package com.netwatcher.polaris.service
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
-import com.netwatcher.polaris.data.local.AppDatabaseHelper
-import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.di.CookieManager
+import com.netwatcher.polaris.data.local.CookieManager
+import com.netwatcher.polaris.data.remote.NetworkDataApi
 import com.netwatcher.polaris.domain.model.MeasurementRequest
 import com.netwatcher.polaris.domain.model.NetworkData
 import com.netwatcher.polaris.domain.model.NetworkDataDao
 import com.netwatcher.polaris.utils.measurements.measurementConverter
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
-class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+@HiltWorker
+class DataSyncWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val cookieManager: CookieManager,
+    private val networkDataApi: NetworkDataApi,
+    private val networkDataDao: NetworkDataDao
+) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         Log.d("DataSyncWorker", "Starting data sync work.")
 
-        val dao = AppDatabaseHelper.getDatabase(applicationContext).networkDataDao()
 
         return try {
-            val email = CookieManager.getEmail().firstOrNull()
+            val email = cookieManager.getEmail().firstOrNull()
             if (email.isNullOrBlank()) {
-                Log.e("DataSyncWorker","No User Registered")
+                Log.e("DataSyncWorker", "No User Registered")
                 Result.failure()
             }
 
-            val unsynced = dao.getUnsyncedData(email)
+            val unsynced = networkDataDao.getUnsyncedData(email)
             if (unsynced.isNotEmpty()) {
                 Log.d("DataSyncWorker", "Found ${unsynced.size} unsynced items. Syncing...")
-                val success = syncDataWithServer(dao, unsynced)
+                val success = syncDataWithServer(networkDataDao, unsynced)
                 if (success) {
                     Log.d("DataSyncWorker", "Sync successful.")
                     Result.success()
@@ -56,7 +64,7 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         dao: NetworkDataDao,
         unsynced: List<NetworkData>
     ): Boolean {
-        val token = CookieManager.getToken().firstOrNull() ?: return false
+        val token = cookieManager.getToken().firstOrNull() ?: return false
 
         val payload = MeasurementRequest(
             unsynced.map {
@@ -65,7 +73,7 @@ class DataSyncWorker(appContext: Context, workerParams: WorkerParameters) :
         )
 
         val json = Gson().toJson(payload).toRequestBody("application/json".toMediaType())
-        val response = NetworkModule.networkDataApi.uploadNetworkDataBatch(token, json)
+        val response = networkDataApi.uploadNetworkDataBatch(token, json)
 
         return if (response.isSuccessful) {
             dao.markAsSynced(unsynced.map { it.id })

@@ -10,29 +10,36 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.netwatcher.polaris.data.local.AppDatabaseHelper
-import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
-import com.netwatcher.polaris.di.NetworkModule
-import com.netwatcher.polaris.di.CookieManager
+import com.netwatcher.polaris.data.local.CookieManager
+import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.TestConfigManager
 import com.netwatcher.polaris.utils.LocationUtility.isLocationEnabled
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import com.netwatcher.polaris.utils.permissions.PermissionManager.hasAllPermissions
+import javax.inject.Inject
+import com.netwatcher.polaris.utils.permission.PermissionManager.hasAllPermissions
 
+@AndroidEntryPoint
 class TestExecutionService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO)
-    private lateinit var repository: NetworkRepositoryImpl
+
+    @Inject
+    lateinit var repository: NetworkRepository
+
+    @Inject
+    lateinit var cookieManager: CookieManager
+
 
     override fun onCreate() {
         super.onCreate()
         Log.d("TestExecutionService", "Service created.")
-        val dao = AppDatabaseHelper.getDatabase(this).networkDataDao()
-        repository = NetworkRepositoryImpl(this, dao, NetworkModule.networkDataApi)
+//        val dao = AppDatabaseHelper.getDatabase(this).networkDataDao()
+//        repository = NetworkRepositoryImpl(this, dao, NetworkModule.networkDataApi)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -62,7 +69,7 @@ class TestExecutionService : Service() {
 
         serviceScope.launch {
             try {
-                val token = CookieManager.getToken().first()
+                val token = cookieManager.getToken().first()
 
                 if (!token.isNullOrEmpty()) {
                     Log.d(

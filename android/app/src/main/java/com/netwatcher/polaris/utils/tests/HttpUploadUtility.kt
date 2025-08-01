@@ -1,8 +1,6 @@
 package com.netwatcher.polaris.utils.tests
 
-import com.netwatcher.polaris.di.CookieManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -28,11 +26,7 @@ object HttpUploadUtility {
 
     private val OCTET_STREAM: MediaType = "application/octet-stream".toMediaType()
 
-    private suspend fun getAuthToken(): String {
-        return CookieManager.getToken().firstOrNull().toString()
-    }
-
-    suspend fun measureUploadThroughput(): Double = withContext(Dispatchers.IO) {
+    suspend fun measureUploadThroughput(token: String?): Double = withContext(Dispatchers.IO) {
         val testData = generateTestData()
         val startTime = System.nanoTime()
         var totalBytesSent = 0L
@@ -40,7 +34,7 @@ object HttpUploadUtility {
 
         try {
             val requestBuilder = Request.Builder()
-                .addHeader("Authorization", getAuthToken())
+                .addHeader("Authorization", token.toString())
                 .url(UPLOAD_URL)
 
             while ((System.nanoTime() - startTime) / 1_000_000 < TEST_DURATION_MS) {

@@ -1,6 +1,5 @@
 package com.netwatcher.polaris.utils.tests
 
-import com.netwatcher.polaris.di.CookieManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -20,12 +19,8 @@ object HttpDownloadUtility {
             .writeTimeout(15, TimeUnit.SECONDS)
             .build()
     }
-
-    private suspend fun getAuthToken(): String {
-        return CookieManager.getToken().firstOrNull().toString()
-    }
-
-    suspend fun measureDownloadThroughput(): Double = withContext(Dispatchers.IO) {
+    
+    suspend fun measureDownloadThroughput(token: String?): Double = withContext(Dispatchers.IO) {
         val startTime = System.nanoTime()
         var totalBytesReceived = 0L
         var successfulRequests = 0
@@ -41,7 +36,7 @@ object HttpDownloadUtility {
                 }
 
                 val request = Request.Builder()
-                    .addHeader("Authorization", getAuthToken())
+                    .addHeader("Authorization", token.toString())
                     .url(DOWNLOAD_URL)
                     .get()
                     .build()

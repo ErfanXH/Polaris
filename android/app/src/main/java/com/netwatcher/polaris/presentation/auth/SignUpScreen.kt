@@ -14,15 +14,15 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.netwatcher.polaris.R
-import com.netwatcher.polaris.domain.model.SignUpRequest
 
 @Composable
 fun SignUpScreen(
-    viewModel: AuthViewModel,
     onNavigateToLogin: () -> Unit,
     onNavigateToVerification: (email: String, password: String) -> Unit
 ) {
+    val viewModel: AuthViewModel = hiltViewModel()
     val uiState by viewModel.authUiState.collectAsState(initial = AuthUiState.Idle)
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -32,71 +32,18 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
 
     var emailError by remember { mutableStateOf<String?>(null) }
-    var phoneError by remember { mutableStateOf<String?>(null) }
+    var phoneNumberError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Show Snack bar on API error
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Error) {
             snackbarHostState.showSnackbar((uiState as AuthUiState.Error).message)
+            viewModel.resetState()
         } else if (uiState is AuthUiState.Success) {
             viewModel.resetState()
             onNavigateToVerification(email, password)
         }
-    }
-
-    val validateInputs: () -> Boolean = {
-        var isValid = true
-
-        emailError = when {
-            email.isBlank() -> {
-                isValid = false
-                "Email is required"
-            }
-
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                isValid = false
-                "Invalid email format"
-            }
-
-            else -> null
-        }
-
-        phoneError = when {
-            phoneNumber.isBlank() -> {
-                isValid = false
-                "Phone number is required"
-            }
-
-            !phoneNumber.startsWith("09") -> {
-                isValid = false
-                "Phone number should start with '09'"
-            }
-
-            phoneNumber.length != 11 -> {
-                isValid = false
-                "Phone number should be 11 digits"
-            }
-
-            else -> null
-        }
-
-        passwordError = when {
-            password.isBlank() -> {
-                isValid = false
-                "Password is required"
-            }
-
-            password.length < 6 -> {
-                isValid = false
-                "Password must be at least 6 characters"
-            }
-
-            else -> null
-        }
-
-        isValid
     }
 
     Scaffold(
@@ -141,10 +88,10 @@ fun SignUpScreen(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
                 label = { Text("Phone Number") },
-                isError = phoneError != null,
+                isError = phoneNumberError != null,
                 modifier = Modifier.fillMaxWidth()
             )
-            phoneError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            phoneNumberError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -170,15 +117,18 @@ fun SignUpScreen(
 
             Button(
                 onClick = {
-                    if (validateInputs()) {
+                    val (isValid, errors) = viewModel.validateSignUpInputs(
+                        email,
+                        phoneNumber,
+                        password
+                    )
+                    if (isValid) {
                         focusManager.clearFocus(force = true)
-                        viewModel.signUp(
-                            SignUpRequest(
-                                email = email,
-                                phoneNumber = phoneNumber,
-                                password = password
-                            )
-                        )
+                        viewModel.signUp(email, phoneNumber, password)
+                    } else {
+                        emailError = errors["email"]
+                        phoneNumberError = errors["phoneNumber"]
+                        passwordError = errors["password"]
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
