@@ -5,11 +5,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.netwatcher.polaris.domain.model.TestSelection
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TestSelectionSection(
     modifier: Modifier = Modifier,
@@ -29,35 +27,57 @@ fun TestSelectionSection(
 
     NetworkInfoCard(
         modifier = modifier,
-        title = "Select Tests to Run",
+        title = "Select Tests",
         icon = Icons.Outlined.Checklist
     ) {
-        FlowRow(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            maxItemsInEachRow = 3
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            testItems.forEach { (label, isSelected) ->
-                TestToggleButton(
-                    modifier = Modifier.width(100.dp),
-                    label = label,
-                    selected = isSelected,
-                    onCheckedChange = {
-                        selection = when (label) {
-                            "Upload" -> selection.copy(runUploadTest = !selection.runUploadTest)
-                            "Download" -> selection.copy(runDownloadTest = !selection.runDownloadTest)
-                            "SMS" -> selection.copy(runSmsTest = !selection.runSmsTest)
-                            "Ping" -> selection.copy(runPingTest = !selection.runPingTest)
-                            "DNS" -> selection.copy(runDnsTest = !selection.runDnsTest)
-                            "Web" -> selection.copy(runWebTest = !selection.runWebTest)
-                            else -> selection
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                testItems.take(3).forEach { (label, isSelected) ->
+                    TestToggleButton(
+                        modifier = Modifier.weight(1f),
+                        label = label,
+                        selected = isSelected,
+                        onCheckedChange = {
+                            selection = updateSelection(selection, label)
+                            onSelectionChanged(selection)
                         }
-                        onSelectionChanged(selection)
-                    }
-                )
-
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                testItems.drop(3).forEach { (label, isSelected) ->
+                    TestToggleButton(
+                        modifier = Modifier.weight(1f),
+                        label = label,
+                        selected = isSelected,
+                        onCheckedChange = {
+                            selection = updateSelection(selection, label)
+                            onSelectionChanged(selection)
+                        }
+                    )
+                }
             }
         }
+    }
+}
+
+private fun updateSelection(current: TestSelection, label: String): TestSelection {
+    return when (label) {
+        "Upload" -> current.copy(runUploadTest = !current.runUploadTest)
+        "Download" -> current.copy(runDownloadTest = !current.runDownloadTest)
+        "SMS" -> current.copy(runSmsTest = !current.runSmsTest)
+        "Ping" -> current.copy(runPingTest = !current.runPingTest)
+        "DNS" -> current.copy(runDnsTest = !current.runDnsTest)
+        "Web" -> current.copy(runWebTest = !current.runWebTest)
+        else -> current
     }
 }

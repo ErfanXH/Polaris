@@ -19,6 +19,7 @@ import com.netwatcher.polaris.R
 import com.netwatcher.polaris.presentation.auth.components.ResetIdentifierStep
 import com.netwatcher.polaris.presentation.auth.components.ResetPasswordStep
 import com.netwatcher.polaris.presentation.auth.components.ResetVerificationStep
+import com.netwatcher.polaris.presentation.home.components.DotsLoader
 
 @Composable
 fun ResetPasswordScreen(
@@ -171,7 +172,7 @@ fun ResetPasswordScreen(
 
                 if (uiState is AuthUiState.Loading) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    CircularProgressIndicator()
+                    DotsLoader()
                 }
             }
 

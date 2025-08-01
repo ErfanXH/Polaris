@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.netwatcher.polaris.R
+import com.netwatcher.polaris.presentation.home.components.DotsLoader
 
 @Composable
 fun SignUpScreen(
@@ -138,7 +139,7 @@ fun SignUpScreen(
 
             if (uiState is AuthUiState.Loading) {
                 Spacer(modifier = Modifier.height(16.dp))
-                CircularProgressIndicator()
+                DotsLoader()
             }
             Spacer(modifier = Modifier.height(16.dp))
 

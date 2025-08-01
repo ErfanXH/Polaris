@@ -27,9 +27,9 @@ fun KeyMetricCard(networkData: NetworkData) {
             "SMS" to (networkData.smsDeliveryTime?.takeIf { it != -1.0 }?.let { "%.1f".format(it) } ?: "N/A")
         ),
         listOf(
+            "Ping" to (networkData.pingTime?.takeIf { it != -1.0 }?.let { "%.1f".format(it) } ?: "N/A"),
             "DNS" to (networkData.dnsResponse?.takeIf { it != -1.0 }?.let { "%.1f".format(it) } ?: "N/A"),
-            "Web" to (networkData.webResponse?.takeIf { it != -1.0 }?.let { "%.2f".format(it) } ?: "N/A"),
-            "Ping" to (networkData.pingTime?.takeIf { it != -1.0 }?.let { "%.1f".format(it) } ?: "N/A")
+            "Web" to (networkData.webResponse?.takeIf { it != -1.0 }?.let { "%.2f".format(it) } ?: "N/A")
         )
     )
     val units = listOf(listOf("Mbps", "Mbps", "ms"), listOf("ms", "ms", "ms"))

@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.netwatcher.polaris.R
 import com.netwatcher.polaris.domain.model.LoginRequest
+import com.netwatcher.polaris.presentation.home.components.DotsLoader
 
 @Composable
 fun LoginScreen(
@@ -70,7 +71,16 @@ fun LoginScreen(
                     .padding(top = 32.dp) // Adjust as needed
                     .wrapContentSize(Alignment.TopCenter) // 👈 Align top
             ) {
-                SnackbarHost(hostState = snackbarHostState)
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    snackbar = { snackbarData ->
+                        Snackbar(
+                            snackbarData = snackbarData,
+                            contentColor = MaterialTheme.colorScheme.onBackground,
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
             }
         }
     ) { padding ->
@@ -160,7 +170,7 @@ fun LoginScreen(
 
             if (uiState is AuthUiState.Loading) {
                 Spacer(modifier = Modifier.height(16.dp))
-                CircularProgressIndicator()
+                DotsLoader()
             }
         }
     }

@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.netwatcher.polaris.data.local.CookieManager
-import kotlinx.coroutines.flow.firstOrNull
+import com.netwatcher.polaris.presentation.home.components.DotsLoader
 
 @Composable
 fun SplashScreen(onTokenValidated: (Boolean) -> Unit) {
@@ -20,7 +18,7 @@ fun SplashScreen(onTokenValidated: (Boolean) -> Unit) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        CircularProgressIndicator(
+        DotsLoader(
             modifier = Modifier.align(Alignment.Center)
         )
     }
