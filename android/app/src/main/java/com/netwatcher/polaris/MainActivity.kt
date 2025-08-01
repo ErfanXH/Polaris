@@ -76,8 +76,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handlePostPermissionFlow() {
-        requestBackgroundLocationIfNeeded()
         requestNotificationPermissionIfNeeded()
+        requestBackgroundLocationIfNeeded()
         initializeApp()
     }
 

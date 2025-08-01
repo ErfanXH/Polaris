@@ -22,8 +22,8 @@ import com.netwatcher.polaris.domain.model.NetworkData
 fun KeyMetricCard(networkData: NetworkData) {
     val functionalTestData = listOf(
         listOf(
-            "Download" to (networkData.httpDownloadThroughput?.takeIf { it != -1.0 }?.let { "%.2f".format(it) } ?: "N/A"),
             "Upload" to (networkData.httpUploadThroughput?.takeIf { it != -1.0 }?.let { "%.2f".format(it) } ?: "N/A"),
+            "Download" to (networkData.httpDownloadThroughput?.takeIf { it != -1.0 }?.let { "%.2f".format(it) } ?: "N/A"),
             "SMS" to (networkData.smsDeliveryTime?.takeIf { it != -1.0 }?.let { "%.1f".format(it) } ?: "N/A")
         ),
         listOf(
