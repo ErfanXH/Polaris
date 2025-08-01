@@ -1,6 +1,5 @@
 package com.netwatcher.polaris.utils
 
-import com.netwatcher.polaris.di.CookieManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext

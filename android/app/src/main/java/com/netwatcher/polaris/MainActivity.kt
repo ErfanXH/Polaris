@@ -132,7 +132,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PolarisTheme {
-                PolarisNav(this)
+                PolarisNav()
             }
         }
     }
@@ -237,7 +237,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PolarisNav(mainActivity: MainActivity) {
+fun PolarisNav() {
     val navController = rememberNavController()
 
     NavHost(

@@ -14,6 +14,7 @@ import com.netwatcher.polaris.data.local.AppDatabaseHelper
 import com.netwatcher.polaris.data.local.CookieManager
 import com.netwatcher.polaris.data.repository.NetworkRepositoryImpl
 import com.netwatcher.polaris.di.NetworkModule
+import com.netwatcher.polaris.domain.repository.NetworkRepository
 import com.netwatcher.polaris.utils.TestConfigManager
 import com.netwatcher.polaris.utils.*
 import com.netwatcher.polaris.utils.LocationUtility.isLocationEnabled
@@ -31,7 +32,7 @@ class TestExecutionService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO)
 
     @Inject
-    lateinit var repository: NetworkRepositoryImpl
+    lateinit var repository: NetworkRepository
 
     @Inject
     lateinit var cookieManager: CookieManager
