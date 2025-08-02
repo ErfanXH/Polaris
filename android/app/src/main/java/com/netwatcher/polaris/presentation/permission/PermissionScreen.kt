@@ -10,6 +10,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -23,7 +24,7 @@ fun PermissionScreen(
     navController: NavController
 ) {
     val viewModel: PermissionsViewModel = hiltViewModel()
-    val context = viewModel.context
+    val context = LocalContext.current
     val permissionStates by viewModel.permissionStates.collectAsState()
 
     DisposableEffect(navController) {
@@ -37,7 +38,7 @@ fun PermissionScreen(
             navController.currentBackStackEntry?.lifecycle?.removeObserver(observer)
         }
     }
-    
+
     viewModel.showRationaleDialog?.let { permission ->
         PermissionRationaleDialog(
             permission = permission,
