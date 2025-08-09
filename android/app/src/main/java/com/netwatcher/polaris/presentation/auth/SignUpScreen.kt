@@ -55,7 +55,16 @@ fun SignUpScreen(
                     .padding(top = 32.dp) // Adjust as needed
                     .wrapContentSize(Alignment.TopCenter) // 👈 Align top
             ) {
-                SnackbarHost(hostState = snackbarHostState)
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    snackbar = { snackbarData ->
+                        Snackbar(
+                            snackbarData = snackbarData,
+                            contentColor = MaterialTheme.colorScheme.onBackground,
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
             }
         }
     ) { padding ->
