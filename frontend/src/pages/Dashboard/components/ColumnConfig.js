@@ -8,8 +8,7 @@ export const columnConfig = {
   },
   location: {
     label: "Location",
-    render: (row) =>
-      `${row.latitude?.toFixed(4)}, ${row.longitude?.toFixed(4)}`,
+    render: (row) => `${row.latitude?.toFixed(4)}-${row.longitude?.toFixed(4)}`,
   },
   network_type: {
     label: "Network",
