@@ -9,7 +9,6 @@ const DashboardManager = {
       throw JSON.stringify(error.response?.data) || error.message;
     }
   },
-  // () => mockData,
 };
 
 export default DashboardManager;

@@ -21,7 +21,6 @@ import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import SignUpManager from "../../managers/SignUpManager";
 
-// Zod validation schema
 const signUpSchema = z
   .object({
     email: z
@@ -33,8 +32,6 @@ const signUpSchema = z
       .min(1, "Phone number is required")
       .regex(/^\+?[0-9]{11}$/, "Must be a valid phone number (11 digits)"),
     password: z.string().min(8, "Password must be at least 8 characters"),
-    // .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-    // .regex(/[a-z]/, "Must contain at least one lowercase letter"),
     confirm_password: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirm_password, {
@@ -73,7 +70,7 @@ export default function SignUp() {
             state: {
               numberOrEmail: data.email,
               password: data.password,
-              from: "sign-up", // Indicate this came from signup
+              from: "sign-up",
             },
           }),
         pauseOnHover: false,
@@ -119,7 +116,6 @@ export default function SignUp() {
           width: "100%",
         }}
       >
-        {/* Logo Section */}
         <Box
           sx={{
             display: "flex",
@@ -139,7 +135,6 @@ export default function SignUp() {
           />
         </Box>
 
-        {/* Title */}
         <Typography
           variant="h5"
           sx={{
@@ -152,7 +147,6 @@ export default function SignUp() {
           Create your account
         </Typography>
 
-        {/* Phone Number Field */}
         <TextField
           {...register("phone_number")}
           label="Phone Number"
@@ -175,7 +169,6 @@ export default function SignUp() {
           }}
         />
 
-        {/* Email Field */}
         <TextField
           {...register("email")}
           label="Email Address"
@@ -198,7 +191,6 @@ export default function SignUp() {
           }}
         />
 
-        {/* Password Field */}
         <TextField
           {...register("password")}
           label="Password"
@@ -236,7 +228,6 @@ export default function SignUp() {
           }}
         />
 
-        {/* Confirm Password Field */}
         <TextField
           {...register("confirm_password")}
           label="Confirm Password"
@@ -274,7 +265,6 @@ export default function SignUp() {
           }}
         />
 
-        {/* Submit Button */}
         <Button
           type="submit"
           variant="contained"
@@ -294,7 +284,6 @@ export default function SignUp() {
           {loading ? "Creating Account..." : "Sign Up"}
         </Button>
 
-        {/* Divider */}
         <Divider
           sx={{
             my: 3,
@@ -307,7 +296,6 @@ export default function SignUp() {
           OR
         </Divider>
 
-        {/* Login Link */}
         <Stack
           direction="row"
           justifyContent="center"

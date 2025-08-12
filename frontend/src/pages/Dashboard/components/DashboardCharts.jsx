@@ -89,10 +89,6 @@ export function RsrpRsrqScatterChart({ option, chartRef }) {
   return <ChartContainer option={option} chartRef={chartRef} />;
 }
 
-// export function TestPerformanceRadarChart({ option, chartRef }) {
-//   return <ChartContainer option={option} chartRef={chartRef} />;
-// }
-
 export function SignalStrengthOverTimeChart({ option, chartRef }) {
   return <ChartContainer option={option} chartRef={chartRef} />;
 }

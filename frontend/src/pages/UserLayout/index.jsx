@@ -50,7 +50,6 @@ export default function UserLayout() {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    // { text: "Profile", icon: <PersonIcon />, path: "/profile" },
     { text: "Map", icon: <MapIcon />, path: "/map" },
     CookieManager.loadIsAdmin() && {
       text: "User List",
@@ -79,7 +78,6 @@ export default function UserLayout() {
         marginTop: isMobile ? 7 : 0,
       }}
     >
-      {/* Logo Section */}
       <Box
         sx={{
           display: "flex",
@@ -87,7 +85,7 @@ export default function UserLayout() {
           justifyContent: collapsed ? "center" : "flex-start",
           p: 2,
           borderBottom: `1px solid ${theme.palette.custom.border}`,
-          minHeight: 64, // Fixed height for logo area
+          minHeight: 64,
         }}
       >
         <Box
@@ -205,8 +203,6 @@ export default function UserLayout() {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-
-      {/* AppBar */}
       <AppBar
         position="fixed"
         sx={{
@@ -231,7 +227,7 @@ export default function UserLayout() {
             onClick={isMobile ? handleDrawerToggle : toggleCollapse}
             sx={{
               mr: 2,
-              color: theme.palette.text.primary, // Ensures icon is visible in both modes
+              color: theme.palette.text.primary,
             }}
           >
             <MenuIcon />
@@ -243,7 +239,7 @@ export default function UserLayout() {
             sx={{
               flexGrow: 1,
               fontWeight: 600,
-              color: theme.palette.text.primary, // Ensures text is visible in both modes
+              color: theme.palette.text.primary,
             }}
           >
             Network Monitoring Panel
@@ -261,7 +257,6 @@ export default function UserLayout() {
           flexShrink: { sm: 0 },
         }}
       >
-        {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -282,7 +277,6 @@ export default function UserLayout() {
           {drawer}
         </Drawer>
 
-        {/* Desktop Drawer */}
         <Drawer
           variant="permanent"
           sx={{
@@ -304,8 +298,6 @@ export default function UserLayout() {
           {drawer}
         </Drawer>
       </Box>
-
-      {/* Main Content */}
       <Box
         component="main"
         sx={{

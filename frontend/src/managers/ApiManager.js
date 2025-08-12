@@ -22,13 +22,13 @@ api.interceptors.request.use(
   }
 );
 
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response && error.response.status === 401) {
-//       cookie.RemoveToken();
-//       window.location.href = "/login";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      cookie.RemoveToken();
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);

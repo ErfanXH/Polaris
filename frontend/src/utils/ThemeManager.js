@@ -1,6 +1,5 @@
 import { createTheme } from "@mui/material/styles";
 
-// Helper function to get browser color scheme
 const getDefaultMode = () => {
   if (typeof window !== "undefined") {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches
@@ -10,30 +9,10 @@ const getDefaultMode = () => {
   return "light";
 };
 
-// Create theme based on mode
 export const createAppTheme = (mode = getDefaultMode()) => {
-  // Set the data-theme attribute on document element
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute("data-theme", mode);
   }
-
-  //   return createTheme({
-  //     palette: {
-  //       mode,
-  //       primary: {
-  //         main: "var(--accent-gold)",
-  //         dark: "var(--accent-gold-hover)",
-  //       },
-  //       background: {
-  //         default: "var(--primary-bg)",
-  //         paper: "var(--secondary-bg)",
-  //       },
-  //       text: {
-  //         primary: "var(--text-primary)",
-  //         secondary: "var(--text-secondary)",
-  //       },
-  //     },
-  //   });
 
   const themeVars = {
     light: {
@@ -101,7 +80,6 @@ export const createAppTheme = (mode = getDefaultMode()) => {
         primary: vars.textPrimary,
         secondary: vars.textSecondary,
       },
-      // Custom variables for specific components
       custom: {
         cardBg: vars.cardBg,
         statsBg: vars.statsBg,
@@ -115,16 +93,6 @@ export const createAppTheme = (mode = getDefaultMode()) => {
       },
     },
     components: {
-      // MuiButton: {
-      //   styleOverrides: {
-      //     root: {
-      //       backgroundColor: vars.buttonBg,
-      //       "&:hover": {
-      //         backgroundColor: vars.buttonHover,
-      //       },
-      //     },
-      //   },
-      // },
       MuiPaper: {
         styleOverrides: {
           root: {
@@ -159,5 +127,4 @@ export const createAppTheme = (mode = getDefaultMode()) => {
   });
 };
 
-// Default theme
 export default createAppTheme();

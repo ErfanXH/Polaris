@@ -2,27 +2,6 @@ import {
   formatDateTime,
   LocalizeDateTime,
 } from "../../../utils/DatetimeUtility";
-import * as echarts from "echarts";
-
-function getColorForNetworkType(networkType, theme) {
-  const colors = {
-    GSM: theme.palette.error.main,
-    GPRS: theme.palette.error.light,
-    EDGE: theme.palette.warning.main,
-    UMTS: theme.palette.warning.light,
-    HSPA: theme.palette.info.main,
-    "HSPA+": theme.palette.info.light,
-    LTE: theme.palette.success.main,
-    "5G": theme.palette.primary.main,
-    "LTE-Adv": theme.palette.secondary.main,
-  };
-  return colors[networkType] || theme.palette.text.secondary;
-}
-
-function getColorForArfcn(arfcn) {
-  const hue = ((parseInt(arfcn) || 0) * 137.508) % 360;
-  return `hsl(${hue}, 70%, 65%)`;
-}
 
 export function getNetworkTechPieOption(data, theme) {
   const counts = data.reduce((acc, item) => {
@@ -41,7 +20,6 @@ export function getNetworkTechPieOption(data, theme) {
       {
         name: "Network Type",
         type: "pie",
-        // radius: "50%",
         center: ["50%", "55%"],
         data: Object.entries(counts).map(([name, value]) => ({ name, value })),
         emphasis: {
@@ -53,21 +31,9 @@ export function getNetworkTechPieOption(data, theme) {
         },
       },
     ],
-    // toolbox: {
-    //   show: true,
-    //   feature: {
-    //     dataZoom: {
-    //       yAxisIndex: "none",
-    //     },
-    //     dataView: { readOnly: true },
-    //     restore: {},
-    //     saveAsImage: {},
-    //   },
-    // },
   };
 }
 
-// 2. ARFCN Pie Chart
 export function getArfcnPieOption(data, theme) {
   const counts = data.reduce((acc, item) => {
     const arfcn = item.arfcn;
@@ -84,7 +50,6 @@ export function getArfcnPieOption(data, theme) {
       {
         name: "ARFCN",
         type: "pie",
-        // radius: "50%",
         center: ["50%", "55%"],
         data: Object.entries(counts).map(([name, value]) => ({ name, value })),
       },
@@ -407,7 +372,6 @@ export function getBoxPlotOption(
     };
   }
 
-  // Compute box plot stats
   const q1 = percentile(values, 25);
   const median = percentile(values, 50);
   const q3 = percentile(values, 75);
@@ -421,7 +385,6 @@ export function getBoxPlotOption(
     xAxis: {
       type: "category",
       data: [xLabel],
-      // name: xLabel,
       nameLocation: "middle",
       nameGap: 30,
     },
@@ -454,7 +417,7 @@ export function getDistributionOption(
 ) {
   const values = data
     .map((item) => item[valueKey])
-    .filter((v) => typeof v === "number" && v > 0); // ✅ Only positive numbers
+    .filter((v) => typeof v === "number" && v > 0);
 
   if (values.length === 0) return { title: { text: "No valid data" } };
 

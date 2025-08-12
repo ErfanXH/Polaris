@@ -8,7 +8,6 @@ import {
   getArfcnPieOption,
   getFrequencyBandBarOption,
   getRsrpRsrqScatterOption,
-  // getTestPerformanceRadarOption,
   getSignalStrengthOverTimeOption,
   getMeasurementCountByHourOption,
   getMostFrequentCellsOption,
@@ -16,7 +15,6 @@ import {
   getBoxPlotOption,
   getDistributionOption,
 } from "../pages/Dashboard/components/DashboardConfig";
-import { formatDateTime, LocalizeDateTime } from "../utils/DatetimeUtility";
 
 export const useDashboardData = () => {
   const theme = useTheme();
@@ -40,8 +38,6 @@ export const useDashboardData = () => {
   const filteredData = useMemo(() => {
     let result = [...measurements];
     result = result.filter((m) => m.network_type !== "UNKNOWN");
-    // console.log(result);
-    // console.log(formatDateTime(result[0]?.timestamp));
 
     if (networkTypeFilter !== "all") {
       result = result.filter((m) => m.network_type === networkTypeFilter);

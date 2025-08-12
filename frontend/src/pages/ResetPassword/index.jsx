@@ -21,16 +21,14 @@ import Logo from "/logo.svg";
 import { toast } from "react-toastify";
 import ResetPasswordManager from "../../managers/ResetPasswordManager";
 
-// Zod validation schemas
 const numberOrEmailSchema = z.object({
   number_or_email: z
     .string()
     .min(1, "Email or phone number is required")
     .refine(
       (value) => {
-        // Check if it's a valid email OR a valid phone number
         const isEmail = z.string().email().safeParse(value).success;
-        const isPhone = /^\+?[0-9]{11}$/.test(value); // Basic international phone format
+        const isPhone = /^\+?[0-9]{11}$/.test(value);
         return isEmail || isPhone;
       },
       {
@@ -58,13 +56,12 @@ const passwordSchema = z
 export default function ResetPassword() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1 = email, 2 = code, 3 = new password
+  const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  // Form handlers for each step
   const {
     register: registerNumberOrEmail,
     handleSubmit: handleSubmitNumberOrEmail,
@@ -91,12 +88,10 @@ export default function ResetPassword() {
     resolver: zodResolver(passwordSchema),
   });
 
-  // Handle email submission
   const onSubmitNumberOrEmail = async (data) => {
     setLoading(true);
     try {
       await ResetPasswordManager.sendResetCode(data.number_or_email);
-      //   setEmail(data.email);
       setStep(2);
       toast.success("Verification code sent to your email");
     } catch (error) {
@@ -106,7 +101,6 @@ export default function ResetPassword() {
     }
   };
 
-  // Handle code verification
   const onSubmitCode = async (data) => {
     setLoading(true);
     try {
@@ -123,7 +117,6 @@ export default function ResetPassword() {
     }
   };
 
-  // Handle password reset
   const onSubmitPassword = async (data) => {
     setLoading(true);
     try {
@@ -150,7 +143,7 @@ export default function ResetPassword() {
         watchNumberOrEmail("number_or_email")
       );
       toast.success("New verification code sent!");
-      startCountdown(30); // 30-second countdown
+      startCountdown(30);
     } catch (error) {
       toast.error(error || "Failed to resend code. Please try again.");
     } finally {
@@ -215,7 +208,6 @@ export default function ResetPassword() {
           width: "100%",
         }}
       >
-        {/* Logo Section */}
         <Box
           sx={{
             display: "flex",
@@ -235,7 +227,6 @@ export default function ResetPassword() {
           />
         </Box>
 
-        {/* Title */}
         <Typography
           variant="h5"
           sx={{
@@ -252,7 +243,6 @@ export default function ResetPassword() {
             : "Create New Password"}
         </Typography>
 
-        {/* Step Indicator */}
         <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
           {[1, 2, 3].map((stepNumber) => (
             <Box
@@ -280,7 +270,6 @@ export default function ResetPassword() {
           ))}
         </Box>
 
-        {/* Step 1: Email Input */}
         {step === 1 && (
           <>
             <Typography variant="body1" sx={{ mb: 3, textAlign: "center" }}>
@@ -312,7 +301,6 @@ export default function ResetPassword() {
           </>
         )}
 
-        {/* Step 2: Verification Code */}
         {step === 2 && (
           <>
             <Typography variant="body1" sx={{ mb: 3, textAlign: "center" }}>
@@ -335,27 +323,6 @@ export default function ResetPassword() {
               }}
             />
 
-            {/* <Box sx={{ textAlign: "center", mb: 3 }}>
-              <Link
-                component="button"
-                type="button"
-                onClick={() =>
-                  ResetPasswordManager.sendResetCode(
-                    watchNumberOrEmail("number_or_email")
-                  )
-                }
-                sx={{
-                  fontSize: "0.875rem",
-                  color: "primary.main",
-                  "&:hover": {
-                    color: "primary.dark",
-                  },
-                }}
-              >
-                Resend Code
-              </Link>
-            </Box> */}
-            {/* Resend Code Section */}
             <Stack
               direction="row"
               justifyContent="center"
@@ -393,7 +360,6 @@ export default function ResetPassword() {
           </>
         )}
 
-        {/* Step 3: New Password */}
         {step === 3 && (
           <>
             <Typography variant="body1" sx={{ mb: 3, textAlign: "center" }}>
@@ -439,7 +405,6 @@ export default function ResetPassword() {
           </>
         )}
 
-        {/* Navigation Buttons */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
           <Button
             variant="outlined"

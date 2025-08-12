@@ -22,16 +22,14 @@ import { toast } from "react-toastify";
 import LoginManager from "../../managers/LoginManager";
 import { useAuth } from "../../context/Authorization";
 
-// Zod validation schema
 const loginSchema = z.object({
   number_or_email: z
     .string()
     .min(1, "Email or phone number is required")
     .refine(
       (value) => {
-        // Check if it's a valid email OR a valid phone number
         const isEmail = z.string().email().safeParse(value).success;
-        const isPhone = /^\+?[0-9]{11}$/.test(value); // Basic international phone format
+        const isPhone = /^\+?[0-9]{11}$/.test(value);
         return isEmail || isPhone;
       },
       {
@@ -72,7 +70,7 @@ export default function Login() {
           state: {
             numberOrEmail: data.number_or_email,
             password: data.password,
-            from: "login", // Indicate this came from login
+            from: "login",
           },
         });
       } else {
@@ -108,12 +106,11 @@ export default function Login() {
           p: { xs: 3, sm: 4, md: 6 },
           borderRadius: theme.shape.borderRadius,
           boxShadow: theme.shadows[3],
-          maxWidth: 500, // Added maxWidth for better centering
-          mx: "auto", // Center horizontally when viewport is wider
-          width: "100%", // Ensure it takes full width on mobile
+          maxWidth: 500,
+          mx: "auto",
+          width: "100%",
         }}
       >
-        {/* Logo Section */}
         <Box
           sx={{
             display: "flex",
@@ -133,7 +130,6 @@ export default function Login() {
           />
         </Box>
 
-        {/* Title */}
         <Typography
           variant="h5"
           sx={{
@@ -146,17 +142,16 @@ export default function Login() {
           Sign in to your account
         </Typography>
 
-        {/* Email Field */}
         <TextField
-          {...register("number_or_email")} // Must match schema field name
+          {...register("number_or_email")}
           label="Email Address or Phone Number"
           name="number_or_email"
           variant="outlined"
           fullWidth
           margin="normal"
-          autoComplete="email tel-national" // Better for login fields
-          error={!!errors.number_or_email} // Must match schema field name
-          helperText={errors.number_or_email?.message} // Must match schema field name
+          autoComplete="email tel-national"
+          error={!!errors.number_or_email}
+          helperText={errors.number_or_email?.message}
           sx={{
             mb: 3,
             "& input:-webkit-autofill": {
@@ -170,7 +165,6 @@ export default function Login() {
           }}
         />
 
-        {/* Password Field with Toggle */}
         <TextField
           {...register("password")}
           label="Password"
@@ -208,7 +202,6 @@ export default function Login() {
           }}
         />
 
-        {/* Forgot Password Link */}
         <Box
           sx={{
             display: "flex",
@@ -231,7 +224,6 @@ export default function Login() {
           </Link>
         </Box>
 
-        {/* Submit Button */}
         <Button
           type="submit"
           variant="contained"
@@ -250,7 +242,6 @@ export default function Login() {
           {loading ? "Signing In..." : "Sign In"}
         </Button>
 
-        {/* Divider */}
         <Divider
           sx={{
             my: 3,
@@ -263,7 +254,6 @@ export default function Login() {
           OR
         </Divider>
 
-        {/* Sign Up Link */}
         <Stack
           direction="row"
           justifyContent="center"
