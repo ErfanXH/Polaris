@@ -49,12 +49,12 @@ export default function UserLayout() {
   };
 
   const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    { text: "Map", icon: <MapIcon />, path: "/map" },
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/app/dashboard" },
+    { text: "Map", icon: <MapIcon />, path: "/app/map" },
     CookieManager.loadIsAdmin() && {
       text: "User List",
       icon: <GroupIcon />,
-      path: "/user-list",
+      path: "/app/user-list",
     },
     {
       text: "Sign Out",

@@ -61,7 +61,7 @@ export default function Login() {
       setAuthentication();
       toast.success("Login Successful", {
         autoClose: 3000,
-        onClose: () => navigate("/dashboard"),
+        onClose: () => navigate("/app/dashboard"),
         pauseOnHover: false,
       });
     } catch (error) {
