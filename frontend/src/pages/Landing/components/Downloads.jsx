@@ -156,7 +156,7 @@ const Downloads = ({ theme, isDark }) => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Download the APK file"
-                    secondary="Tap the download button above to get the installation file"
+                    secondary="Tap the download button to get the installation file"
                   />
                 </ListItem>
                 <ListItem sx={{ alignItems: "flex-start", px: 0 }}>

@@ -61,7 +61,7 @@ const NotFound = () => {
       >
         <Button
           component={RouterLink}
-          to="/"
+          to="/dashboard"
           variant="contained"
           color="primary"
           size="large"
@@ -75,7 +75,7 @@ const NotFound = () => {
         </Button>
         <Button
           component={RouterLink}
-          to="/map"
+          to="/"
           variant="outlined"
           color="primary"
           size="large"
@@ -85,7 +85,7 @@ const NotFound = () => {
             fontWeight: 500,
           }}
         >
-          View Network Map
+          Return to Homepage
         </Button>
       </Box>
 

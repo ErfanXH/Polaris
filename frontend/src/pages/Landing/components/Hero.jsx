@@ -49,8 +49,8 @@ const Hero = ({ theme, isDark }) => {
             mx: { xs: "auto", md: 0 },
           }}
         >
-          Polaris provides carrier-grade network analysis tools with detailed
-          signal metrics, automated testing, and comprehensive reporting for
+          Polaris provides carrier-grade network analysis tool with detailed
+          signal metrics, automated testing and comprehensive reporting for
           professionals and enthusiasts.
         </Typography>
         <Box

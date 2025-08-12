@@ -19,6 +19,7 @@ import Hero from "./components/Hero";
 import Faq from "./components/Faq";
 import Downloads from "./components/Downloads";
 import logo from "/logo.svg";
+import CookieManager from "../../managers/CookieManager";
 
 const PolarisLanding = () => {
   const theme = useTheme();
@@ -33,6 +34,9 @@ const PolarisLanding = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const token = CookieManager.loadToken();
+  console.log(token);
 
   return (
     <Box sx={{ bgcolor: theme.palette.background.default }}>
@@ -78,9 +82,6 @@ const PolarisLanding = () => {
                 <Button color="inherit" href="#download">
                   Download
                 </Button>
-                <Button color="inherit" href="/login">
-                  Login
-                </Button>
                 <Button color="inherit" href="/dashboard">
                   Dashboard
                 </Button>
@@ -88,20 +89,21 @@ const PolarisLanding = () => {
             </Box>
 
             <Box>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<Download />}
-                component="a"
-                href="#download"
-                sx={{
-                  px: 3,
-                  fontWeight: 600,
-                  display: { xs: "none", sm: "none", md: "flex" },
-                }}
-              >
-                Download APK
-              </Button>
+              {!token && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component="a"
+                  href="/login"
+                  sx={{
+                    px: 3,
+                    fontWeight: 600,
+                    display: { xs: "none", sm: "none", md: "flex" },
+                  }}
+                >
+                  Login
+                </Button>
+              )}
 
               <IconButton
                 size="large"
@@ -137,11 +139,11 @@ const PolarisLanding = () => {
                 <MenuItem onClick={handleMenuClose} href="#download">
                   Download
                 </MenuItem>
-                <MenuItem onClick={handleMenuClose} href="/login">
-                  Login
-                </MenuItem>
                 <MenuItem onClick={handleMenuClose} href="/dashboard">
                   Dashboard
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose} href="/login">
+                  Login
                 </MenuItem>
               </Menu>
             </Box>
@@ -177,8 +179,8 @@ const PolarisLanding = () => {
               }}
             />
             <Typography variant="body2" color="text.secondary">
-              Professional mobile network analysis tools for engineers,
-              technicians, and enthusiasts.
+              Professional mobile network analysis tool for engineers,
+              technicians and enthusiasts.
             </Typography>
           </Grid>
           <Divider sx={{ my: 4 }} />

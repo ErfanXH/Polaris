@@ -1,11 +1,11 @@
 const FaqList = [
     {
       question: "What Android versions does Polaris support?",
-      answer: "Polaris is compatible with Android 9.0 through Android 14.0 (Pie through Android U).",
+      answer: "Polaris is compatible with Android 9.0 through Android 14.0",
     },
     {
       question: "Does Polaris work on all cellular networks?",
-      answer: "Polaris supports analysis of all major cellular network technologies including GSM, CDMA, LTE, and 5G NSA networks.",
+      answer: "Polaris supports analysis of major cellular network technologies including GSM, UMTS, CDMA and LTE networks.",
     },
     {
       question: "Does Polaris support Wi-Fi network analysis?",
@@ -17,7 +17,7 @@ const FaqList = [
     },
     {
       question: "Can I config the server syncs time interval?",
-      answer: "Yes, Polaris lets you choose your preffered time intervals for syncing data with server from 15 minutes to 24 hours intervals.",
+      answer: "Yes, Polaris lets you choose your preffered time intervals for syncing data with server from 15-minute to 24-hour time intervals.",
     },
     {
       question: "Does Polaris support dual SIM analysis?",
@@ -33,7 +33,7 @@ const FaqList = [
     },
     {
       question: "How accurate are the signal measurements?",
-      answer: "Polaris uses the device's built-in radio measurement capabilities, providing the same accuracy as carrier-grade tools within the limits of your device hardware.",
+      answer: "Polaris uses the device's built-in radio measurement capabilities, providing the same accuracy as carrier-grade tool within the limits of your device hardware.",
     },
     {
       question: "What cellular bands can Polaris detect?",
@@ -41,7 +41,7 @@ const FaqList = [
     },
     {
       question: "Does Polaris require root access?",
-      answer: "No, Polaris works without root access. However, some advanced features may require root for full functionality.",
+      answer: "No, all Polaris functionalities are offered without root access requirement.",
     },
     {
       question: "Is there a desktop version of Polaris?",
