@@ -23,7 +23,9 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signUp(request: SignUpRequest): Result<Unit> {
         return try {
             val response = api.signUp(request)
-            if (response.isSuccessful) {
+            if (response
+                    .isSuccessful
+            ) {
                 Result.success(Unit)
             } else {
                 val errorMessage = response.errorBody()?.string() ?: "Unknown error"

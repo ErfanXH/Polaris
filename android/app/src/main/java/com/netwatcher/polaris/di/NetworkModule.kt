@@ -1,10 +1,7 @@
 package com.netwatcher.polaris.di
 
-import com.netwatcher.polaris.data.local.CookieManager
 import com.netwatcher.polaris.data.remote.AuthApi
 import com.netwatcher.polaris.data.remote.NetworkDataApi
-import com.netwatcher.polaris.data.repository.AuthRepositoryImpl
-import com.netwatcher.polaris.domain.repository.AuthRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
