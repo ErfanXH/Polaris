@@ -82,7 +82,7 @@ const PolarisLanding = () => {
                 <Button color="inherit" href="#download">
                   Download
                 </Button>
-                <Button color="inherit" href="/dashboard">
+                <Button color="inherit" href="/app/dashboard">
                   Dashboard
                 </Button>
               </Box>
