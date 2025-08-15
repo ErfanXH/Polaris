@@ -58,6 +58,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -166,6 +167,10 @@ export default function ResetPassword() {
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const handleBack = () => {
@@ -317,9 +322,17 @@ export default function ResetPassword() {
               helperText={codeErrors.code?.message}
               sx={{
                 mb: 3,
+                "& input": {
+                  textAlign: "center",
+                  letterSpacing: "0.5em",
+                  fontSize: "1.5rem",
+                  padding: "12px 14px",
+                },
               }}
-              InputLabelProps={{
-                sx: { color: "text.secondary" },
+              inputProps={{
+                maxLength: 5,
+                inputMode: "numeric",
+                pattern: "[0-9]*",
               }}
             />
 
@@ -380,7 +393,7 @@ export default function ResetPassword() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="toggle password visibility"
+                      aria-label="toggle confirm password visibility"
                       onClick={handleClickShowPassword}
                       edge="end"
                     >
@@ -394,13 +407,26 @@ export default function ResetPassword() {
             <TextField
               {...registerPassword("confirmPassword")}
               label="Confirm Password"
-              type={showPassword ? "text" : "password"}
+              type={showConfirmPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
               margin="normal"
               error={!!passwordErrors.confirmPassword}
               helperText={passwordErrors.confirmPassword?.message}
               sx={{ mb: 3 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowConfirmPassword}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
           </>
         )}

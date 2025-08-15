@@ -97,7 +97,7 @@ export function DashboardTable({ data, isMobile, activeTab }) {
     const blob = new Blob([kmlContent], {
       type: "application/vnd.google-earth.kml+xml",
     });
-    saveAs(blob, "measurements.kml");
+    saveAs(blob, `${activeTab}_data.kml`);
   };
 
   const paginatedData = data.slice(
