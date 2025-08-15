@@ -1,14 +1,15 @@
 export function getMinRange(metric) {
   const ranges = {
     signal_strength: -140,
+    signal_quality: -30,
     ssRsrp: -140,
     rsrp: -140,
     rscp: -140,
     rxLev: -120,
     rsrq: -30,
     ecIo: -30,
-    http_upload: 100,
-    http_download: 200,
+    http_upload: 0,
+    http_download: 0,
     ping_time: 500,
     dns_response: 500,
     web_response: 10000,
@@ -21,18 +22,19 @@ export function getMinRange(metric) {
 export function getMaxRange(metric) {
   const ranges = {
     signal_quality: -50,
+    signal_quality: -2,
     ssRsrp: -50,
     rsrp: -50,
     rscp: -50,
     rxLev: -50,
     rsrq: 0,
     ecIo: 0,
-    http_upload: 0,
-    http_download: 0,
-    ping_time: 0,
-    dns_response: 0,
-    web_response: 0,
-    sms_delivery_time: 0,
+    http_upload: 200,
+    http_download: 250,
+    ping_time: 1,
+    dns_response: 1,
+    web_response: 1,
+    sms_delivery_time: 1,
   };
   if (ranges[metric] === undefined || ranges[metric] === null) return 100;
   return ranges[metric];

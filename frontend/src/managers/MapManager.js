@@ -3,11 +3,14 @@ import { api } from "./ApiManager";
 const MapManager = {
   /**
    * Get all measurements for the authenticated user
+   * @param {boolean} allData - choose to get all users data(only for admin)
    * @returns {Promise<Array>} Array of measurement objects
    */
-  getMeasurements: async () => {
+  getMeasurements: async (allData) => {
     try {
-      const response = await api.get("/mobile/measurement/");
+      const response = allData
+        ? await api.get("/mobile/measurement/get_all/")
+        : await api.get("/mobile/measurement/");
       return response.data;
     } catch (error) {
       throw new Error(
