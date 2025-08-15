@@ -11,7 +11,7 @@ from uuid import uuid4
 SENDER_EMAIL = settings.EMAIL_HOST_USER
 
 def name_generator():
-    return uuid4().hex[:30]
+    return uuid4().hex[:10]
 
 class User(AbstractUser):
     phone_validator=RegexValidator(

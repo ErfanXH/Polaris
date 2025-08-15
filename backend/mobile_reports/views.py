@@ -54,8 +54,11 @@ class MeasurementViewSet(mixins.CreateModelMixin,
         else:
             return Response({'detail': 'access denied:admin access level is required for this operation'},status=status.HTTP_403_FORBIDDEN)
         return Response(serializer.data ,status=status.HTTP_200_OK)
-
-
+    
+    @action(methods=['GET'],detail=False)
+    def get_network_types(self, request):
+        network_types=Measurement.objects.order_by('network_type').values_list('network_type', flat=True).distinct()
+        return Response(list(network_types) ,status=status.HTTP_200_OK)
 
 class TestResultViewSet(mixins.CreateModelMixin,
                    mixins.RetrieveModelMixin,
