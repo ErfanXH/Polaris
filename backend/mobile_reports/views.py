@@ -50,7 +50,7 @@ class MeasurementViewSet(mixins.CreateModelMixin,
     def get_all(self, request):
         if request.user.is_staff:
             data = Measurement.objects.filter(user__allow_admin_access = True)
-            serializer = self.get_serializer(data=data, many=True)
+            serializer = self.get_serializer(data, many=True)
         else:
             return Response({'detail': 'access denied:admin access level is required for this operation'},status=status.HTTP_403_FORBIDDEN)
         return Response(serializer.data ,status=status.HTTP_200_OK)
