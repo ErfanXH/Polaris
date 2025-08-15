@@ -110,6 +110,7 @@ const Downloads = ({ theme, isDark }) => {
               startIcon={<Download />}
               component="a"
               href="/download/polaris-network-analyzer.apk"
+              download="polaris-network-analyzer.apk"
               sx={{
                 px: 6,
                 py: 2,
