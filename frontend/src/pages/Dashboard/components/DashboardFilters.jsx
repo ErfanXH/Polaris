@@ -8,6 +8,7 @@ export function DashboardFilters({
   setNetworkTypeFilter,
   dateRange,
   setDateRange,
+  networkTypes,
 }) {
   const theme = useTheme();
 
@@ -41,7 +42,8 @@ export function DashboardFilters({
         size={isMobile ? "small" : "medium"}
       >
         <MenuItem value="all">All Network Types</MenuItem>
-        <MenuItem value="GSM">GSM</MenuItem>
+        {networkTypes.map((item) =>{return(<MenuItem value={item}>{item}</MenuItem>)})}
+        {/* <MenuItem value="GSM">GSM</MenuItem>
         <MenuItem value="GPRS">GPRS</MenuItem>
         <MenuItem value="EDGE">EDGE</MenuItem>
         <MenuItem value="UMTS">UMTS</MenuItem>
@@ -49,7 +51,7 @@ export function DashboardFilters({
         <MenuItem value="HSPA+">HSPA+</MenuItem>
         <MenuItem value="LTE">LTE</MenuItem>
         <MenuItem value="5G">5G</MenuItem>
-        <MenuItem value="LTE-Adv">LTE-Adv</MenuItem>
+        <MenuItem value="LTE-Adv">LTE-Adv</MenuItem> */}
       </TextField>
 
       <TextField

@@ -50,6 +50,7 @@ export default function Dashboard() {
     dateRange,
     setDateRange,
     chartOptions,
+    networkTypes,
   } = useDashboardData();
 
   const handleTabChange = (event, newValue) => {
@@ -68,6 +69,7 @@ export default function Dashboard() {
         setNetworkTypeFilter={setNetworkTypeFilter}
         dateRange={dateRange}
         setDateRange={setDateRange}
+        networkTypes={networkTypes}
       />
 
       <Tabs

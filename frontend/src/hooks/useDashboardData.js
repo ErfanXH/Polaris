@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@mui/material";
 import DashboardManager from "../managers/DashboardManager";
@@ -20,8 +20,9 @@ export const useDashboardData = () => {
   const theme = useTheme();
   const [networkTypeFilter, setNetworkTypeFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [loading, setLoading] = useState(true)
 
-  const { data: measurements = [], isLoading: loading } = useQuery({
+  const { data: measurements = [], isLoading: measurementsLoading } = useQuery({
     queryKey: ["dashboard-measurements"],
     queryFn: async () => {
       try {
@@ -34,6 +35,24 @@ export const useDashboardData = () => {
     refetchOnWindowFocus: false,
     refetchInterval: 60000,
   });
+
+  const { data: networkTypes = [], isLoading: networkTypesLoading } = useQuery({
+    queryKey: ["dashboard-networkTypes"],
+    queryFn: async () => {
+      try {
+        return await DashboardManager.getNetworkTypes();
+      } catch (err) {
+        toast.error("Failed to fetch network types");
+        throw err;
+      }
+    },
+    refetchOnWindowFocus: false,
+    refetchInterval: 60000,
+  });
+
+    useEffect(() => {
+      setLoading(measurementsLoading || networkTypesLoading)
+    }, [measurementsLoading,networkTypesLoading]);
 
   const filteredData = useMemo(() => {
     let result = [...measurements];
@@ -192,5 +211,6 @@ export const useDashboardData = () => {
     dateRange,
     setDateRange,
     chartOptions,
+    networkTypes,
   };
 };
