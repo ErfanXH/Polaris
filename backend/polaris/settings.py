@@ -58,6 +58,7 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = '*'
 #CORS_ALLOWED_ORIGINS =[]  #activate this to for deployment and remove CORS_ALLOW_ALL_ORIGINS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ROOT_URLCONF = 'polaris.urls'
 
