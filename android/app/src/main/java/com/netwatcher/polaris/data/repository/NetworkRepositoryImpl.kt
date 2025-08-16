@@ -54,10 +54,10 @@ class NetworkRepositoryImpl(
     }
 
     // Server Database
-    override suspend fun uploadNetworkDataBatch(data: RequestBody): Result<Unit> {
+    override suspend fun uploadNetworkData(data: RequestBody): Result<Unit> {
         return try {
             val response =
-                api.uploadNetworkDataBatch(token = getAuthToken().toString(), data = data)
+                api.uploadNetworkData(token = getAuthToken().toString(), data = data)
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {

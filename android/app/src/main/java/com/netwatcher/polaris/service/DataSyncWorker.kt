@@ -73,7 +73,7 @@ class DataSyncWorker @AssistedInject constructor(
         )
 
         val json = Gson().toJson(payload).toRequestBody("application/json".toMediaType())
-        val response = networkDataApi.uploadNetworkDataBatch(token, json)
+        val response = networkDataApi.uploadNetworkData(token, json)
 
         return if (response.isSuccessful) {
             dao.markAsSynced(unsynced.map { it.id })
