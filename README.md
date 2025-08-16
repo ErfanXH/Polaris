@@ -43,7 +43,7 @@ It enables end users to measure network parameters, run functional tests, and vi
 
 ### **Android App**
 1. **Download & Install**
-   - Visit: [http://45.149.77.43:5174/](http://45.149.77.43:5174/)
+   - Visit: [https://polaris.work.gd/](https://polaris.work.gd/)
    - Install the APK on your (android 9.0+) device.
 2. **Grant Permissions**
    - Location (Precise & Background).
@@ -58,7 +58,7 @@ It enables end users to measure network parameters, run functional tests, and vi
    - Select tests, run measurements, and view results.
 
 ### **Web Platform**
-1. Open [http://45.149.77.43:5174/](http://45.149.77.43:5174/) in your browser.
+1. Open [https://polaris.work.gd/](https://polaris.work.gd/) in your browser.
 2. Create an account or log in.
 3. Access dashboards, view data on maps, and export results.
 4. Admins can manage users and monitor network performance.

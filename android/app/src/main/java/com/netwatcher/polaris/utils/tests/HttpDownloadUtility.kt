@@ -9,7 +9,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 object HttpDownloadUtility {
-    private const val DOWNLOAD_URL = "http://45.149.77.43:9000/api/mobile/HTTPTest/download/"
+    private const val DOWNLOAD_URL = "https://polaris.work.gd/api/mobile/HTTPTest/download/"
     private const val TEST_DURATION_MS = 5000
 
     private val client by lazy {

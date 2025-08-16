@@ -1,7 +1,7 @@
 const CookieKey = "PolarisCookie";
 
-const baseUrl = "http://45.149.77.43:9000/api/";
+const baseUrl = "https://polaris.work.gd/api/";
 
-const baseDomain = "http://45.149.77.43:9000/";
+const baseDomain = "https://polaris.work.gd/";
 
 export default { baseDomain, baseUrl, CookieKey };
