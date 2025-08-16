@@ -65,7 +65,7 @@ export default function Map() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [currentColor, setCurrentColor] = useState("low");
-  const [allData, setAllData] = useState(false);
+  const [allData, setAllData] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
   // Fetch measurements data
   const {

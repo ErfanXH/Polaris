@@ -57,7 +57,10 @@ class MeasurementViewSet(mixins.CreateModelMixin,
     
     @action(methods=['GET'],detail=False)
     def get_network_types(self, request):
-        network_types=self.get_queryset().order_by('network_type').values_list('network_type', flat=True).distinct()
+        if request.user.is_staff:
+            network_types=Measurement.objects.order_by('network_type').values_list('network_type', flat=True).distinct()
+        else:
+            network_types=self.get_queryset().order_by('network_type').values_list('network_type', flat=True).distinct()
         return Response(list(network_types) ,status=status.HTTP_200_OK)
 
 class TestResultViewSet(mixins.CreateModelMixin,

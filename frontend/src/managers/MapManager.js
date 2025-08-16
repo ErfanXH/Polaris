@@ -1,4 +1,5 @@
 import { api } from "./ApiManager";
+import CookieManager from "./CookieManager";
 
 const MapManager = {
   /**
@@ -8,7 +9,7 @@ const MapManager = {
    */
   getMeasurements: async (allData) => {
     try {
-      const response = allData
+      const response = (allData && CookieManager.loadIsAdmin())
         ? await api.get("/mobile/measurement/get_all/")
         : await api.get("/mobile/measurement/");
       return response.data;
