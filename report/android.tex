@@ -1,0 +1,521 @@
+\chapter{اندروید}
+\section{معماری \lr{Polaris Client}}
+کلاینت Polaris بر اساس اصول معماری پاک (\lr{Clean Architecture}) و MVVM (\lr{Model-View-ViewModel}) ساخته شده است و کدی ماژولار، قابل تست و قابل نگهداری دارد:
+
+\begin{itemize}
+    \item \textbf{لایه ارائه:} رابط کاربری با \lr{Jetpack Compose}، \lr{ViewModel}هایی که توسط Hilt مدیریت می‌شوند، برای کنترل وضعیت UI و تعاملات کاربر.
+    \item \textbf{لایه دامنه:} استفاده از \lr{Use Case} ها برای کپسوله کردن منطق کسب‌وکار و تعامل با رابط‌های \lr{Repository}.
+    \item \textbf{لایه داده:} پیاده‌سازی \lr{Repository} ها برای تعامل با دیتابیس محلی Room و API های راه دور \lr{Retrofit}.
+    \item \textbf{لایه سرویس:} سرویس‌های اندروید برای اجرای وظایف طولانی در پس‌زمینه، مانند تست شبکه.
+    \item \textbf{تزریق وابستگی:} استفاده از Hilt برای مدیریت وابستگی‌ها و جداسازی مسئولیت‌ها.
+    \item \textbf{\lr{WorkManager}:} مدیریت همگام‌سازی دوره‌ای داده‌ها با سرور به صورت آگاه از چرخه حیات و بهینه شده برای باتری.
+\end{itemize}
+
+\subsection{اجزای اصلی}
+
+\subsubsection{لایه ارائه}
+\begin{itemize}
+    \item صفحات \lr{Jetpack Compose}: اجزای UI اعلانی شامل صفحات دسترسی‌ها، تنظیمات و داشبورد اصلی.
+    \item \lr{PermissionsViewModel}: مدیریت وضعیت دسترسی‌ها، نمایش دیالوگ‌های توضیح دسترسی و به‌روزرسانی UI هنگام تغییر دسترسی‌ها.
+    \item ناوبری: استفاده از \lr{Jetpack Navigation Compose} برای جابجایی بین صفحات، شامل صفحه دسترسی‌ها و تنظیمات.
+    \item مدیریت وضعیت: استفاده از \lr{Kotlin StateFlow} و \lr{Compose mutableStateOf} برای به‌روزرسانی واکنشی \lr{UI}.
+\end{itemize}
+
+\subsubsection{لایه دامنه}
+\begin{itemize}
+    \item \lr{Use Case} ها: کپسوله کردن منطق مانند بررسی دسترسی‌ها (\lr{PermissionUseCase})، همگام‌سازی داده‌ها و اجرای تست‌های شبکه.
+    \item مدل‌ها: مدل‌های دامنه نماینده داده‌های شبکه و درخواست‌های اندازه‌گیری.
+\end{itemize}
+
+\subsubsection{لایه داده}
+\begin{itemize}
+    \item پیاده‌سازی \lr{Repository}: مانند \lr{NetworkRepositoryImpl} که داده‌ها را از دیتابیس Room و API شبکه مدیریت می‌کند.
+    \item دیتابیس \lr{Room}: ذخیره محلی داده‌های اندازه‌گیری شبکه (\lr{NetworkDataDao}).
+    \item \lr{API Retrofit}: ارتباط با API بک‌اند برای بارگذاری دسته‌ای داده‌های شبکه.
+\end{itemize}
+
+\subsubsection{لایه سرویس}
+\begin{itemize}
+    \item \lr{TestExecutionService}: یک سرویس اندروید در حالت Foreground که تست‌های شبکه را اجرا می‌کند و مجوزها و وضعیت دستگاه را رعایت می‌کند.
+    \item \lr{DataSyncWorker}: \lr{CoroutineWorker} در WorkManager که داده‌های همگام‌نشده شبکه را به صورت دوره‌ای به سرور ارسال می‌کند. وابستگی‌ها توسط Hilt تزریق می‌شوند.
+\end{itemize}
+
+\subsection{تزریق وابستگی با Hilt}
+\begin{itemize}
+    \item برنامه با افزودن \lr{@HiltAndroidApp} به کلاس \lr{PolarisApp} قابلیت‌های Hilt را فعال می‌کند.
+    \item Hilt وابستگی‌ها را به ViewModel ها، Worker ها، Service ها و Repository ها تزریق می‌کند.
+    \item \lr{DataSyncWorker} از \lr{@HiltWorker} و تزریق ترکیبی \lr{(Assisted Injection)} برای دریافت \lr{Context}، \lr{WorkerParameters} و سایر وابستگی‌ها بهره می‌برد.
+    \item کلاس \lr{PolarisApp} رابط \lr{Configuration.Provider} را پیاده‌سازی می‌کند تا WorkManager با \lr{WorkerFactory} ساخته شده توسط Hilt کار کند.
+\end{itemize}
+
+\subsection{وظایف پس‌زمینه و WorkManager}
+\begin{itemize}
+    \item \lr{DataSyncWorker} وظیفه همگام‌سازی دوره‌ای داده‌ها را با محدودیت‌هایی مانند اتصال شبکه انجام می‌دهد.
+    \item ابزار \lr{DataSyncScheduler} زمان‌بندی و مدیریت وظایف همگام‌سازی را بر اساس فواصل تنظیم شده توسط کاربر (ذخیره شده در \lr{SharedPreferences}) بر عهده دارد.
+    \item استفاده از \lr{PeriodicWorkRequestBuilder} برای درج منحصر به فرد وظایف در صف اجرا و جلوگیری از تکراری شدن.
+    \item ادغام با WorkManager تضمین می‌کند که وظایف همگام‌سازی با سلامت سیستم (باتری، شبکه) همخوانی داشته باشند و پس از ری‌استارت برنامه نیز ادامه یابند.
+\end{itemize}
+
+\subsection{مدیریت دسترسی‌ها}
+\begin{itemize}
+    \item دسترسی‌ها با کمک \lr{PermissionManager} و \lr{PermissionUtils} دسته‌بندی و بررسی می‌شوند.
+    \item برنامه دسترسی‌ها را به صورت پویا درخواست می‌کند و در صورت نیاز، کاربر را به تنظیمات سیستم برای تایید دستی هدایت می‌کند.
+    \item \lr{PermissionsViewModel} وضعیت UI مربوط به لیست دسترسی‌ها و دیالوگ‌های توضیح را فراهم می‌کند.
+    \item UI با استفاده از \lr{Context} فعال، \lr{Intent}های تنظیمات را به شکل ایمن اجرا می‌کند تا با محدودیت‌های اندروید سازگار باشد.
+    \item دسترسی‌ها شامل لوکیشن (پس‌زمینه و جلویی)، پیامک‌ها، وضعیت تلفن، اعلان‌ها، آلارم‌های دقیق و بهینه‌سازی باتری است.
+\end{itemize}
+
+\subsection{سرویس \lr{foreground} برای تست شبکه}
+\begin{itemize}
+    \item \lr{TestExecutionService} تست‌های شبکه را در حالت Foreground اجرا می‌کند تا اولویت بالایی داشته باشد و توسط سیستم بسته نشود.
+    \item قبل از شروع، مجوزهای لازم و وضعیت لوکیشن دستگاه را بررسی می‌کند.
+    \item به صورت asynchronous با استفاده از \lr{Kotlin Coroutine} اجرا می‌شود.
+    \item اعلان دائمی با استفاده از کانال اعلان \lr{(Notification Channel)} طبق بهترین شیوه‌های اندروید نمایش می‌دهد.
+    \item از Repository تزریق شده برای دریافت توکن و اجرای تست‌های شبکه استفاده می‌کند.
+\end{itemize}
+
+\subsection{ارتباط شبکه و مدل‌های داده}
+\begin{itemize}
+    \item داده‌های شبکه با استفاده از کلاس‌های داده‌ای Kotlin مانند \lr{NetworkData} و \\\lr{MeasurementRequest} مدل‌سازی شده‌اند.
+    \item بارگذاری JSON با استفاده از کتابخانه Gson انجام می‌شود.
+    \item توکن‌های احراز هویت به صورت ایمن از طریق \lr{CookieManager} مدیریت شده و با \lr{Kotlin Flows} به‌روزرسانی می‌شوند.
+    \item تماس‌های شبکه با Retrofit و همراه با \lr{header} ها و مدیریت خطاهای مناسب انجام می‌گیرند.
+\end{itemize}
+
+\subsection{چرخه حیات برنامه و تجربه کاربری}
+\begin{itemize}
+    \item ناوبری توسط \lr{Compose Navigation} مدیریت می‌شود.
+    \item وضعیت دسترسی‌ها در رویدادهای چرخه حیات مانند \lr{ON\_RESUME} به روز می‌شود تا تغییرات انجام شده خارج از برنامه نیز منعکس شود.
+    \item دیالوگ‌های توضیح دسترسی، راهنمایی شفاف و ناوبری مستقیم به تنظیمات سیستم ارائه می‌دهند.
+    \item سرویس Foreground و همگام‌سازی پس‌زمینه به گونه‌ای طراحی شده‌اند که حداقل تاثیر بر تجربه کاربر داشته باشند و در عین حال داده‌ها دقیق باقی بمانند.
+\end{itemize}
+
+\subsection{مقداردهی Manifest و تنظیمات امنیتی}
+\begin{itemize}
+    \item فایل \lr{AndroidManifest.xml} شامل تمامی مجوزهای مورد نیاز با دستورهای \lr{uses-permission} و \lr{uses-feature} است.
+    \item نوع سرویس‌های Foreground و ویژگی \lr{exported} با دقت برای امنیت و تطابق تنظیم شده‌اند.
+    \item تنظیمات امنیت شبکه از استانداردهای مدرن اندروید برای ارتباط HTTPS پشتیبانی می‌کند.
+\end{itemize}
+
+\subsection{خلاصه فناوری‌ها}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{5cm}|}
+\hline
+فناوری & کاربرد \\
+\hline
+Kotlin \& \lr{Jetpack Compose} & زبان مدرن و ابزار UI برای اندروید \\ \hline
+Hilt & فریمورک تزریق وابستگی \\ \hline
+WorkManager & زمان‌بندی و اجرای وظایف پس‌زمینه \\ \hline
+\lr{Room Database} & ذخیره‌سازی محلی داده‌ها \\ \hline
+Retrofit \& Gson & API شبکه و سریال‌سازی JSON \\ \hline
+\lr{Coroutine Workers} & وظایف پس‌زمینه asyncronous \\ \hline
+\lr{Android Services} & وظایف طولانی مدت در foreground \\ \hline
+\lr{Android Permissions API} & مدیریت پویا دسترسی‌ها \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{احراز هویت}
+این بخش از برنامه مسئول مدیریت ورود، ثبت‌نام، تأیید حساب و بازیابی رمز عبور است. ساختار این بخش بر اساس معماری پاک (\lr{Clean Architecture}) و الگوی \lr{MVVM} پیاده‌سازی شده و شامل چهار لایه اصلی است: دامنه، داده، تزریق وابستگی، و ارائه.
+
+\subsection{لایه دامنه (\lr{Domain Layer})}
+\begin{itemize}
+	\item \textbf{\lr{/model/LoginRequest.kt}:} 
+	مدل داده‌ای که برای ارسال درخواست ورود به سرور استفاده می‌شود. شامل شماره تلفن یا ایمیل کاربر و گذرواژه او است. از \lr{@SerializedName} برای نگاشت کلیدهای JSON به فیلدهای کاتلین استفاده می‌کند.
+	
+	\item \textbf{\lr{/model/LoginResponse.kt}:} 
+	مدل داده‌ای که پاسخ موفقیت‌آمیز ورود را از سرور دریافت می‌کند. حاوی توکن دسترسی و ایمیل کاربر است و برای ذخیره یا استفاده در سایر بخش‌ها به کار می‌رود.
+	
+	\item \textbf{\lr{/model/LoginResult.kt}:} 
+	کلاس مهروموم‌شده (\lr{sealed class}) که نتیجه فرآیند ورود را مدل می‌کند. سه حالت دارد: موفقیت، نیاز به تأیید حساب، و خطا با پیام مشخص.
+	
+	\item \textbf{\lr{/model/ResetPasswordRequest.kt}:} 
+	مدل درخواست تغییر رمز عبور که شامل شماره یا ایمیل کاربر، کد تأیید و گذرواژه جدید است. برای مرحله نهایی بازیابی رمز استفاده می‌شود.
+	
+	\item \textbf{\lr{/model/SendResetCodeRequest.kt}:} 
+	مدلی برای ارسال درخواست دریافت کد بازیابی رمز عبور. تنها شامل شماره یا ایمیل کاربر بوده و به سرور فرستاده می‌شود.
+	
+	\item \textbf{\lr{/model/SignUpRequest.kt}:} 
+	مدل داده‌ای برای ثبت‌نام کاربر جدید. شامل ایمیل، شماره تلفن و گذرواژه است. شماره تلفن با کلید JSON \lr{"phone\_number"} نگاشت می‌شود.
+	
+	\item \textbf{\lr{/model/VerificationRequest.kt}:} 
+	مدل درخواست تأیید حساب که شامل شماره یا ایمیل کاربر، گذرواژه و کد تأیید است. این مدل معمولاً بعد از ثبت‌نام یا ورود مشروط استفاده می‌شود.
+	
+	\item \textbf{\lr{/model/VerificationRetryRequest.kt}:} 
+	مدلی برای ارسال دوباره کد تأیید حساب. تنها شماره یا ایمیل کاربر را به سرور می‌فرستد تا کد جدید صادر شود.
+	
+	\item \textbf{\lr{/model/VerifyResetCodeRequest.kt}:} 
+	مدلی برای بررسی اعتبار کد بازیابی رمز عبور که شامل شماره یا ایمیل کاربر و کد ارسال‌شده است.
+	
+	\item \textbf{\lr{/repository/AuthRepository.kt}:}  
+	یک اینترفیس که قرارداد عملیات احراز هویت را تعریف می‌کند. شامل متدهایی برای ثبت‌نام، ورود، تأیید حساب، ارسال دوباره کد، ارسال کد بازیابی رمز، تأیید کد بازیابی و تغییر رمز عبور است. این لایه مستقل از جزئیات پیاده‌سازی عمل می‌کند.
+	
+	\item \textbf{\lr{/usecase/auth/Auth.kt}:}  
+	شامل مجموعه‌ای از کلاس‌های \lr{UseCase} مربوط به عملیات احراز هویت است. هر \lr{UseCase} یک عمل خاص (مثل ثبت‌نام یا ورود) را انجام داده و درخواست را به مخزن داده (\lr{Repository}) می‌فرستد. این لایه منطق کاربردی را از جزئیات داده جدا می‌کند.
+	
+	\item \textbf{\lr{/usecase/auth/AuthUseCases.kt}:}  
+	یک کلاس داده که تمام \lr{UseCase}‌های مرتبط با احراز هویت را در یک ساختار واحد گردآوری می‌کند. این کار تزریق وابستگی (\lr{DI}) و استفاده از چندین \lr{UseCase} را ساده‌تر می‌سازد.
+	
+\end{itemize}
+
+\subsection{لایه داده (\lr{Data Layer})}
+\begin{itemize}
+	\item \textbf{\lr{/local/CookieManager.kt}:}  
+	کلاسی برای مدیریت ذخیره‌سازی و بازیابی داده‌های احراز هویت مانند توکن و ایمیل کاربر با استفاده از \lr{DataStore}. شامل متدهایی برای ذخیره، خواندن و پاک‌کردن داده‌ها است. این کلاس به‌صورت \lr{@Singleton} تعریف شده تا در کل برنامه نمونه یکتا داشته باشد.
+	
+	\item \textbf{\lr{/remote/AuthApi.kt}:}  
+	اینترفیس \lr{Retrofit} که متدهای ارتباط با سرور برای عملیات احراز هویت را تعریف می‌کند. شامل ثبت‌نام، ورود، تأیید حساب، ارسال و تأیید کد بازیابی رمز و تغییر گذرواژه است. هر متد یک درخواست HTTP \lr{POST} به آدرس مشخصی از API ارسال می‌کند.
+	
+	\item \textbf{\lr{/repository/AuthRepositoryImpl.kt}:}  
+	پیاده‌سازی رابط \lr{AuthRepository} که با استفاده از \lr{AuthApi} درخواست‌های شبکه را ارسال کرده و با \lr{CookieManager} داده‌های احراز هویت را ذخیره می‌کند. شامل متدهایی برای ثبت‌نام، ورود، تأیید حساب، ارسال و تأیید کد بازیابی و تغییر رمز عبور است. هر عملیات با مدیریت خطا و پاسخ‌های سرور انجام می‌شود.
+\end{itemize}
+
+\subsection{تزریق وابستگی (\lr{Dependency Injection})}
+\begin{itemize}
+	\item \textbf{\lr{NetworkModule.kt}:}  
+	ماژول \lr{Hilt} برای پیکربندی و ارائه وابستگی‌های شبکه شامل\\ \lr{OkHttpClient}، \lr{Retrofit} و \lr{AuthApi}. این ماژول تنظیمات لاگ‌برداری درخواست‌ها و پاسخ‌ها را فعال کرده و پایه ارتباط HTTP را با آدرس سرور فراهم می‌کند.
+	\item \textbf{\lr{RepositoryModule.kt}:}  
+	ماژول \lr{Hilt} برای ساخت و ارائه وابستگی‌های مخزن داده \\(\lr{Repository}). در اینجا نمونه \lr{AuthRepository} با استفاده از \lr{AuthRepositoryImpl} ساخته شده و به‌صورت \lr{@Singleton} برای استفاده در کل برنامه در دسترس قرار می‌گیرد.
+	\item \textbf{\lr{UseCaseModule.kt}:}  
+	ماژول \lr{Hilt} برای ارائه‌ی مجموعه‌ی کامل \lr{AuthUseCases} شامل سناریوهای ثبت‌نام، ورود، تأیید، ارسال و تأیید کد بازیابی و تغییر رمز عبور. این ماژول وابستگی‌ها را از طریق \lr{AuthRepository} به هر \lr{UseCase} تزریق می‌کند.
+\end{itemize}
+
+\subsection{لایه ارائه (\lr{Presentation Layer})}
+\begin{itemize}
+	\item \textbf{\lr{/auth/components/ResetIdentifierStep.kt}:}  
+	کامپوننت \lr{Jetpack Compose} برای دریافت ایمیل یا شماره تلفن کاربر به‌منظور شروع فرآیند بازیابی رمز عبور. شامل اعتبارسنجی ورودی و نمایش پیام خطا قبل از ارسال کد به کاربر است.
+	\item \textbf{\lr{/auth/components/ResetPasswordStep.kt}:}  
+	کامپوننت \lr{Jetpack Compose} برای وارد کردن و تأیید رمز عبور جدید در فرآیند بازیابی. دارای ورودی‌های متنی با قابلیت نمایش/مخفی‌کردن رمز، اعتبارسنجی همخوانی رمزها، و نمایش خطاهای مرتبط.
+	\item \textbf{\lr{/auth/components/ResetVerificationStep.kt}:}  
+	کامپوننت \lr{Jetpack Compose} برای وارد کردن کد تأیید پنج رقمی در فرآیند بازیابی رمز عبور. شامل مدیریت فوکوس بین فیلدها، اعتبارسنجی کد، و امکان درخواست ارسال مجدد کد است.
+	
+	\item \textbf{\lr{/auth/AuthUiState.kt}:}  
+	کلاس \lr{sealed} برای تعریف حالات مختلف رابط کاربری احراز هویت مانند آماده، در حال بارگذاری، موفقیت، نیاز به تأیید، کد ارسال‌شده، کد تأییدشده و خطا با پیام مشخص.
+	
+	\item \textbf{\lr{/auth/AuthViewModel.kt}:}  
+	کلاس \lr{ViewModel} مسئول مدیریت منطق احراز هویت و ارتباط بین لایه \lr{UI} و \lr{Domain}. شامل متدهای اعتبارسنجی ورودی‌ها، ثبت‌نام، ورود، تأیید هویت، ارسال و تأیید کد بازیابی، تغییر رمز عبور و بررسی وضعیت ورود کاربر است. از \lr{StateFlow} برای مدیریت وضعیت رابط کاربری و \lr{Hilt} برای تزریق وابستگی‌ها استفاده می‌کند.
+	
+	\item \textbf{\lr{/auth/LoginScreen.kt}:}  
+	کامپوزبل صفحه ورود که شامل فرم ورود با فیلدهای شماره یا ایمیل و گذرواژه است. اعتبارسنجی ورودی‌ها انجام شده و خطاها نمایش داده می‌شوند. از \lr{Snackbar} برای نمایش پیام‌ها استفاده می‌کند و در هنگام بارگذاری، \lr{DotsLoader} نمایش می‌دهد. همچنین مسیرهای ناوبری به ثبت‌نام، فراموشی رمز و تأیید کد فعال است.
+	
+	\item \textbf{\lr{/auth/ResetPasswordScreen.kt}:}  
+	صفحه بازیابی رمز عبور چندمرحله‌ای که شامل مراحل وارد کردن شناسه (ایمیل یا شماره)، کد تایید و تنظیم رمز جدید است. وضعیت UI بر اساس پاسخ‌ها و مراحل تغییر می‌کند و پیام‌های مربوطه با \lr{Snackbar} نمایش داده می‌شوند. ناوبری برگشت به مراحل قبلی و به صفحه ورود مدیریت شده است. از \lr{DotsLoader} برای نمایش حالت بارگذاری استفاده می‌شود.
+	
+	\item \textbf{\lr{/auth/SignUpScreen.kt}:}  
+	صفحه ثبت‌نام کاربر با فیلدهای ایمیل، شماره تلفن و رمز عبور همراه با اعتبارسنجی ورودی‌ها و نمایش خطاها. شامل کنترل نمایش یا مخفی‌سازی رمز عبور و نمایش وضعیت بارگذاری است. پس از ثبت‌نام موفق، کاربر به مرحله تأیید هدایت می‌شود. همچنین امکان انتقال به صفحه ورود فراهم شده است.
+	
+	\item \textbf{\lr{/auth/SplashScreen.kt}:}  
+	صفحه آغازین برنامه که هنگام بارگذاری وضعیت ورود کاربر را بررسی می‌کند. در این صفحه نشانگر بارگذاری (DotsLoader) نمایش داده شده و پس از اعتبارسنجی توکن، به صفحه مناسب هدایت می‌شود.
+	
+	\item \textbf{\lr{/auth/VerificationScreen.kt}:}  
+	صفحه تأیید کد ارسالی به ایمیل یا شماره تلفن کاربر با پنج فیلد ورود کد و کنترل فوکوس خودکار بین آنها. این صفحه شامل اعتبارسنجی کد، ارسال مجدد کد و نمایش پیام‌های موفقیت یا خطا از طریق Snackbar است. همچنین قابلیت بازگشت به صفحه قبل را دارد.
+	
+	\item \textbf{\lr{MainActivity.kt}:}  
+	کلاس اصلی برنامه که نقطه ورود اپلیکیشن است و ناوبری صفحات مختلف را مدیریت می‌کند. با استفاده از Jetpack Compose و Navigation Compose مسیرهای مختلف مانند صفحه شروع \lr{(Splash)}، ورود، ثبت‌نام، تأیید کد، بازنشانی رمز عبور و صفحه اصلی را تعریف می‌کند. همچنین با مدیریت هوشمند مسیرها و پارامترهای ناوبری، جریان کاربری را روان و یکپارچه نگه می‌دارد.
+	
+\end{itemize}
+
+\section{صفحه اصلی و اندازه‌گیری شبکه}
+این بخش مسئول نمایش وضعیت شبکه، اجرای تست‌ها، جمع‌آوری داده‌های سلولی و ذخیره‌سازی نتایج است. ساختار آن مشابه سایر بخش‌ها بر اساس معماری پاک (\lr{Clean Architecture}) و الگوی (\lr{MVVM}) پیاده‌سازی شده و شامل چهار لایه اصلی است: دامنه، داده، تزریق وابستگی و ارائه.
+
+\subsection{لایه دامنه (\lr{Domain Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/model/NetworkData.kt}:}  
+    مدل داده‌ای اصلی برای نمایش اطلاعات شبکه. شامل مختصات کاربر (طول و عرض جغرافیایی)، نسل شبکه، شناسه سلول، فرکانس، باند فرکانسی، \lr{PLMN ID}، پارامترهای سیگنال (\lr{RSRP}، \lr{RSRQ}، \lr{RxLev} و غیره)
+    و نتایج تست‌های عملکردی (آپلود، دانلود، \lr{PING}، \lr{DNS} و \lr{Web Response}).
+    
+    \item \textbf{\lr{/model/TestSelection.kt}:}  
+    مدل داده‌ای که انتخاب تست‌ها توسط کاربر را مدل می‌کند (آپلود، دانلود، \lr{PING}، \lr{DNS}، \lr{Web Response} و \lr{SMS}). این انتخاب‌ها تعیین می‌کنند کدام تست‌ها توسط \lr{TestRunner} اجرا شوند.
+\end{itemize}
+
+\subsection{لایه داده (\lr{Data Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/utils/ParametersUtility.kt}:}  
+    این کد اطلاعات سلولی شبکه‌های موبایل (\lr{GSM}، \lr{WCDMA}، \lr{LTE}) را پردازش می‌کند.  
+    با استفاده از کلاس‌های \lr{CellInfo}، جزئیات هر نوع شبکه را استخراج می‌کند.  
+    فرکانس و باند هر سلول را بر اساس مقادیر \lr{ARFCN}، \lr{UARFCN} و \lr{EARFCN} محاسبه می‌کند.  
+    نتیجه را در قالب یک شیء \lr{NetworkData} که شامل اطلاعاتی مانند شناسه سلول، قدرت سیگنال و نوع شبکه است، برمی‌گرداند. این داده‌ها برای ذخیره در پایگاه داده و نمایش در رابط کاربری آماده می‌شوند.
+
+    \item \textbf{\lr{/utils/tests/*}:}  
+    مجموعه کلاس‌های اجرای تست‌ها شامل \lr{HttpDownloadTest.kt} و \lr{HttpUploadTest.kt} برای دانلود و آپلود، \lr{SmsTest.kt} برای پیامک، \lr{PingTest.kt} برای پینگ، \lr{DnsTest.kt} برای زمان پاسخ DNS و \lr{WebTest.kt} برای زمان بارگذاری صفحات وب. نتایج این تست‌ها مستقیماً در \lr{NetworkData} درج می‌شوند.
+\end{itemize}
+
+\subsection{تزریق وابستگی (\lr{Dependency Injection})}
+\begin{itemize}
+    \item \textbf{\lr{RepositoryModule.kt}:}  
+    مخازن داده مربوط به شبکه (\lr{Network Repository}) و ذخیره‌سازی (\lr{Room}) از این طریق به برنامه تزریق می‌شوند تا \lr{HomeViewModel} بتواند به سادگی داده‌های شبکه و تست را مدیریت کند.
+    
+    \item \textbf{\lr{UseCaseModule.kt}:}  
+    مجموعه‌ای از \lr{UseCase}‌های مرتبط با دریافت داده شبکه، اجرای تست‌ها و ذخیره‌سازی آن‌ها در پایگاه داده از طریق این ماژول فراهم شده و به \lr{ViewModel} تزریق می‌شوند.
+\end{itemize}
+
+\subsection{لایه ارائه (\lr{Presentation Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/home/HomeUiState.kt}:}  
+    یک \lr{sealed class} برای مدیریت حالت‌های مختلف صفحه اصلی شامل \lr{Loading}، \lr{Empty}، \lr{Error}، \lr{Success} (دریافت موفق داده‌های شبکه) و \lr{LocationSuccess}.
+    
+    \item \textbf{\lr{/home/HomeViewModel.kt}:}  
+    \lr{ViewModel} اصلی که وظیفه مدیریت داده‌های شبکه و اجرای تست‌ها را بر عهده دارد. انتخاب تست‌ها از طریق \lr{TestSelection} دریافت شده، با استفاده از کلاس‌های تست اجرا می‌شود و نتایج در \lr{NetworkData} ذخیره می‌گردد. همچنین این کلاس وضعیت صفحه (\lr{UI State}) را برای نمایش مناسب به رابط کاربری ارسال می‌کند.
+    
+    \item \textbf{\lr{/home/HomeScreen.kt}:}  
+    صفحه اصلی رابط کاربری که با استفاده از Jetpack Compose طراحی شده است. شامل نوار بالا (\lr{HomeTopBar})، محتوای اصلی (\lr{HomeContent}) و مدیریت وضعیت از طریق \lr{HomeStateContent}. کاربر می‌تواند تست‌ها را انتخاب و اجرا کند و نتایج به صورت کارت‌های اطلاعاتی نمایش داده می‌شوند.
+    
+    \item \textbf{\lr{/home/components/HomeTopBar.kt}:}  
+    نوار ابزار بالای صفحه اصلی با دکمه‌های تازه‌سازی داده، تنظیمات، دسترسی‌ها و خروج از حساب.
+    
+    \item \textbf{\lr{/home/components/HomeContent.kt}:}  
+    ساختار اصلی صفحه که شامل دکمه اجرای تست (\lr{RunTestButton})، بخش انتخاب تست‌ها (\lr{TestSelectionSection}) و نمایش نتایج شبکه (\lr{networkResults}) است.
+    
+    \item \textbf{\lr{/home/components/HomeStateContent.kt}:}  
+    مدیریت وضعیت‌های مختلف صفحه شامل بارگذاری (نمایش \lr{DotsLoader})، خطا، نبود داده و نمایش موفق داده‌ها.
+    
+    \item \textbf{\lr{/home/components/RunTestButton.kt}:}  
+    دکمه اصلی برای اجرای تست‌ها با افکت انیمیشن پالس. کاربر با فشردن این دکمه تست‌های انتخاب‌شده را اجرا می‌کند.
+    
+    \item \textbf{\lr{/home/components/TestSelectionSection.kt} \& \lr{TestToggleButton.kt}:}  
+    رابط کاربری برای انتخاب تست‌های مختلف توسط کاربر (آپلود، دانلود، \lr{PING}، \lr{DNS}، \lr{Web Response} و \lr{SMS}). نتایج انتخاب به \lr{HomeViewModel} ارسال می‌شود.
+    
+    \item \textbf{\lr{/home/components/networkResults.kt}:}  
+    نمایش نتایج تست‌ها و اطلاعات شبکه در قالب کارت‌های مجزا (\lr{NetworkInfoCard}) شامل اطلاعات کاربر، مشخصات سلول و کیفیت سیگنال.
+    
+    \item \textbf{\lr{/home/components/KeyMetricCard.kt}:}  
+    کارت شاخص‌های کلیدی عملکرد برای نمایش نتایج اصلی تست‌ها مانند سرعت آپلود و دانلود، زمان پینگ، پاسخ \lr{DNS} و زمان بارگذاری وب.
+    
+    \item \textbf{\lr{/home/components/NetworkInfoCard.kt} \& \lr{KeyValueRow.kt}:}  
+    نمایش جزئیات هر بخش از داده‌های شبکه به صورت ردیف‌های کلید-مقدار.
+\end{itemize}
+
+
+
+
+\section{ذخیره‌سازی در پایگاه داده}
+این بخش وظیفه ذخیره‌سازی محلی داده‌های شبکه و نتایج تست‌ها را برعهده دارد. هدف آن فراهم‌کردن امکان دسترسی آفلاین، نگهداری تاریخچه تست‌ها و آماده‌سازی داده برای همگام‌سازی با سرور است. پیاده‌سازی این بخش مبتنی بر \lr{Room Database} انجام شده است.
+
+\subsection{لایه دامنه (\lr{Domain Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/model/NetworkData.kt}:}  
+    مدل داده‌ای که هم در تست‌های شبکه و هم در ذخیره‌سازی پایگاه داده مورد استفاده قرار می‌گیرد. این مدل شامل شناسه یکتا، اطلاعات سلول، مکان کاربر، نتایج تست‌ها و زمان اجرای تست است.
+
+
+    \item \textbf{\lr{/model/NetworkDataDao.kt}:}  
+    رابط دسترسی به داده‌ها در \lr{Room}. شامل متدهایی برای درج داده جدید، واکشی آخرین تست‌ها و مدیریت تاریخچه تست‌ها است.
+    
+    \item \textbf{\lr{/model/NetworkDataDatabase.kt}:}  
+    کلاس پیکربندی پایگاه داده \lr{Room} که انتیتی‌ها و \lr{Dao}‌ها را تعریف می‌کند. این کلاس نقطه‌ی اصلی ارتباط با \lr{Room} بوده و دیتابیس را مقداردهی اولیه می‌کند.
+
+\end{itemize}
+
+\subsection{لایه داده (\lr{Data Layer})}
+\begin{itemize}
+    \item \textbf{\texttt{/data/local/AppDatabaseHelper.kt}:}  
+    این کد یک دیتابیس محلی (\texttt{Room Database}) برای ذخیره‌سازی اطلاعات شبکه ایجاد می‌کند.  
+    از الگوی \texttt{Singleton} استفاده می‌کند تا فقط یک نمونه از دیتابیس در طول عمر برنامه وجود داشته باشد. 
+    دیتابیس با نام \texttt{network\_data.db} ساخته می‌شود و در صورت نیاز به تغییر اسکیمای دیتابیس، به‌صورت خودکار ریست می‌شود (\texttt{fallbackToDestructiveMigration}).  
+    دسترسی به دیتابیس از طریق متد \texttt{getDatabase} امکان‌پذیر است که در صورت عدم وجود، آن را ایجاد می‌کند.
+    
+\end{itemize}
+
+\subsection{تزریق وابستگی (\lr{Dependency Injection})}
+\begin{itemize}
+    \item \textbf{\lr{DatabaseModule.kt}:}  
+    ماژول \lr{Hilt} برای ساخت و ارائه نمونه پایگاه داده و \lr{Dao}. این ماژول تضمین می‌کند که یک نسخه یکتا از پایگاه داده در سراسر اپلیکیشن مورد استفاده قرار گیرد.
+\end{itemize}
+
+\subsection{لایه ارائه (\lr{Presentation Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/home/HomeViewModel.kt}:}  
+    پس از اجرای هر تست، داده‌های به‌دست‌آمده در پایگاه داده ذخیره می‌شوند. \lr{ViewModel} داده‌های اخیر را بارگذاری کرده و از طریق \lr{UiState} به صفحه اصلی ارسال می‌کند.
+    
+    \item \textbf{\lr{/home/HomeScreen.kt}:}  
+    صفحه اصلی علاوه‌بر نمایش داده‌های زنده، تاریخچه تست‌ها را نیز از پایگاه داده دریافت کرده و در رابط کاربری نمایش می‌دهد.
+\end{itemize}
+
+
+\section{همگام‌سازی با سرور}
+این بخش مسئول انتقال نتایج تست‌های ذخیره‌شده در پایگاه داده محلی به سرور مرکزی است. فرآیند همگام‌سازی به‌صورت خودکار و دوره‌ای توسط \lr{WorkManager} اجرا شده و تضمین می‌کند که هیچ داده‌ای از دست نرود و رکوردها پس از ارسال موفق به‌روزرسانی شوند.
+
+\subsection{لایه دامنه (\lr{Domain Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/model/Measurement.kt} و \lr{/model/MeasurementRequest.kt}:}  
+    ساختار داده‌ای که نتایج تست (موقعیت جغرافیایی، نوع شبکه، شناسه سلول، کیفیت سیگنال و نتایج عملکردی مثل پینگ و \lr{DNS}) را تعریف می‌کند. این داده‌ها برای ارسال به سرور در قالب \lr{MeasurementRequest} گردآوری می‌شوند.
+    
+    \item \textbf{\lr{/model/NetworkData.kt}:}  
+    مدل اصلی ذخیره‌سازی داده در پایگاه داده محلی که بعداً به فرمت \lr{Measurement} تبدیل می‌شود.
+    
+    \item \textbf{\lr{/model/NetworkDataDao.kt}:}  
+    رابط \lr{DAO} برای دریافت داده‌های ذخیره‌نشده (\lr{unsynced}) و علامت‌گذاری رکوردهای همگام‌شده.
+\end{itemize}
+
+\subsection{لایه داده (\lr{Data Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/data/remote/NetworkDataApi.kt}:}  
+    رابط \lr{Retrofit} برای ارسال داده‌های شبکه به سرور شامل متد \lr{uploadNetworkData} برای ارسال دسته‌ای  است.
+    
+    \item \textbf{\lr{/data/repository/NetworkRepositoryImpl.kt}:}  
+    پیاده‌سازی \lr{NetworkRepository} که علاوه‌بر اجرای تست‌ها، متد \lr{uploadNetworkData} را برای همگام‌سازی داده‌های محلی با سرور پیاده‌سازی می‌کند. از \lr{CookieManager} برای دریافت توکن احراز هویت و از \lr{NetworkDataApi} برای ارسال داده استفاده می‌کند.
+    
+    \item \textbf{\lr{/service/DataSyncWorker.kt}:}  
+    کلاس \lr{Worker} مبتنی بر \lr{CoroutineWorker} که وظیفه اجرای همگام‌سازی دوره‌ای را بر عهده دارد.  
+    داده‌های \lr{unsynced} را از پایگاه داده واکشی می‌کند.  
+    با استفاده از \lr{measurementConverter} به مدل \lr{Measurement} تبدیل می‌کند.  
+    داده‌ها را با \lr{uploadNetworkDataBatch} به سرور می‌فرستد.  
+    در صورت موفقیت رکوردها را با متد \lr{markAsSynced} علامت‌گذاری می‌کند.
+    
+    \item \textbf{\lr{/utils/DataSyncScheduler.kt}:}  
+    ابزار زمان‌بندی همگام‌سازی که با استفاده از \lr{WorkManager} کارگر دوره‌ای تعریف می‌کند. کاربر می‌تواند بازه همگام‌سازی (۱۵ دقیقه تا ۲۴ ساعت) را تنظیم کند و این زمان در \lr{SharedPreferences} ذخیره می‌شود.
+\end{itemize}
+
+\subsection{تزریق وابستگی (\lr{Dependency Injection})}
+\begin{itemize}
+    \item \textbf{\lr{NetworkModule.kt}:}  
+    نمونه \lr{NetworkDataApi} را از طریق \lr{Retrofit} ساخته و در اختیار سایر بخش‌ها قرار می‌دهد.
+    
+    \item \textbf{\lr{RepositoryModule.kt}:}  
+    نمونه \lr{NetworkRepository} را با پیاده‌سازی \lr{NetworkRepositoryImpl} ایجاد کرده و به‌صورت \lr{Singleton} در سطح برنامه قابل‌استفاده می‌کند.
+\end{itemize}
+
+\subsection{لایه ارائه (\lr{Presentation Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/home/components/HomeContent.kt} و \lr{/home/components/HomeStateContent.kt}:}  
+    داده‌های ذخیره‌شده پس از هر تست در این کامپوننت‌ها مدیریت شده و به‌صورت پس‌زمینه برای همگام‌سازی آماده می‌شوند.
+    
+    \item \textbf{\lr{/service/DataSyncWorker.kt}:}  
+    وضعیت اجرای همگام‌سازی را در لاگ ثبت کرده و نتیجه را به WorkManager برمی‌گرداند تا UI بتواند در صورت نیاز پیام موفقیت یا خطا را نمایش دهد.
+    
+    \item \textbf{\lr{/utils/DataSyncScheduler.kt}:}  
+    از طریق تنظیمات برنامه (Settings) کاربر می‌تواند بازه همگام‌سازی را تغییر دهد که مستقیماً در لایه ارائه قابل مدیریت است.
+\end{itemize}
+
+
+
+
+\section{تنظیمات و ترجیحات}
+این بخش امکان پیکربندی ترجیحات کاربر، انتخاب سیم‌کارت، تغییر بازه همگام‌سازی و تعریف پارامترهای تست‌ها را فراهم می‌کند. تمام این مقادیر در حافظه محلی ذخیره شده و در اجرای تست‌ها و همگام‌سازی داده‌ها مورد استفاده قرار می‌گیرند.
+
+\subsection{لایه دامنه (\lr{Domain Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/domain/usecase/settings/SettingsUseCases.kt}:}  
+    مجموعه‌ای از \lr{UseCase}‌ها را برای مدیریت تنظیمات در اختیار \lr{ViewModel} قرار می‌دهد. این موارد شامل مدیریت پیکربندی تست‌ها، بارگذاری سیم‌کارت‌ها و به‌روزرسانی بازه همگام‌سازی است.
+
+    \item \textbf{\lr{/domain/usecase/settings/LoadSimCards.kt}:}  
+    لیست سیم‌کارت‌های فعال دستگاه را با استفاده از \lr{SubscriptionManager} واکشی کرده و به مدل \lr{SimInfo} تبدیل می‌کند.
+
+    \item \textbf{\lr{/domain/usecase/settings/TestConfig.kt}:}  
+    شامل مجموعه‌ای از \lr{UseCase}‌های مرتبط با پیکربندی تست‌ها: 
+    \begin{itemize}
+    \item  \lr{SetSmsTestNumberUseCase}: تعیین شماره مقصد برای تست پیامک.  
+    \item  \lr{SetPingAddressUseCase}: تعیین آدرس مقصد برای تست پینگ.  
+    \item  \lr{SetDnsAddressUseCase}: تعیین دامنه برای تست DNS.  
+    \item  \lr{SetWebAddressUseCase}: تعیین URL برای تست وب.  
+    \item  \lr{SetSelectedSimUseCase}: انتخاب سیم‌کارت پیش‌فرض برای اجرای تست‌ها.  
+    \item  \lr{GetSelectedSimSlotIdUseCase} و \lr{GetSelectedSimSubsIdUseCase}: واکشی سیم‌کارت انتخاب‌شده.
+    \end{itemize}
+
+    \item \textbf{\lr{/domain/usecase/settings/UpdateSyncInterval.kt}:}  
+    دریافت یا تغییر بازه همگام‌سازی پس‌زمینه با استفاده از \lr{DataSyncScheduler}.
+
+    \item \textbf{\lr{/domain/model/SimInfo.kt}:}
+    برای  مدیریت و نگهداری اطلاعات مربوط به سیم‌کارت‌های دستگاه نام اپراتور، شماره اسلات سیم‌کارت و آی‌دی اشتراک ذخیره می‌شوند.
+\end{itemize}
+
+\subsection{لایه داده (\lr{Data Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/utils/TestConfigManager.kt}:}  
+    مدیریت تمام تنظیمات کاربر شامل شماره تست پیامک، آدرس پینگ، دامنه \lr{DNS}، \lr{URL} تست وب و سیم‌کارت انتخاب‌شده. این داده‌ها در \lr{SharedPreferences} ذخیره و بازیابی می‌شوند.
+
+    \item \textbf{\lr{/utils/DataSyncScheduler.kt}:}  
+    وظیفه ذخیره‌سازی و به‌روزرسانی بازه همگام‌سازی دوره‌ای و زمان‌بندی کارگر همگام‌سازی را بر عهده دارد.
+\end{itemize}
+
+\subsection{تزریق وابستگی (\lr{Dependency Injection})}
+\begin{itemize}
+    \item \textbf{\lr{SettingsUseCases}:}  
+    از طریق \lr{Hilt} به \lr{SettingsViewModel} تزریق می‌شود و تمام \lr{UseCase}‌های مرتبط با تنظیمات را در اختیار لایه ارائه قرار می‌دهد.
+\end{itemize}
+
+\subsection{لایه ارائه (\lr{Presentation Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/presentation/settings/SettingsViewModel.kt}:}  
+    مدیریت وضعیت تنظیمات شامل: لیست سیم‌کارت‌ها، سیم انتخاب‌شده، بازه همگام‌سازی و مقادیر پارامترهای تست. این ViewModel با استفاده از \lr{SettingsUseCases} داده‌ها را در \lr{SharedPreferences} ذخیره یا بارگذاری می‌کند.
+
+    \item \textbf{\lr{/presentation/settings/SettingsScreen.kt}:}  
+    رابط کاربری صفحه تنظیمات که شامل بخش‌های انتخاب سیم‌کارت، تعیین بازه همگام‌سازی و پیکربندی تست‌ها است. این صفحه از کامپوننت‌های مختلف برای نمایش و ویرایش مقادیر استفاده می‌کند.
+
+    \item \textbf{\lr{/presentation/settings/components/SimSelectionSection.kt}:}  
+    رابط کاربری برای نمایش لیست سیم‌کارت‌ها و انتخاب سیم پیش‌فرض با استفاده از \lr{RadioButton}.
+
+    \item \textbf{\lr{/presentation/settings/components/SyncIntervalSection.kt}:}  
+    رابط کاربری برای انتخاب بازه همگام‌سازی داده‌ها از میان مقادیر از پیش تعریف‌شده (۱۵ دقیقه تا ۲۴ ساعت).
+
+    \item \textbf{\lr{/presentation/settings/components/TestConfigurationSection.kt}:}  
+    رابط کاربری برای تعیین پارامترهای تست شامل شماره پیامک، آدرس پینگ، دامنه DNS و URL تست وب.
+\end{itemize}
+
+
+
+\section{دریافت دسترسی و اجرا در پس‌زمینه}
+این بخش مسئول مدیریت دسترسی‌های حیاتی (مکان، پیامک، وضعیت تلفن، اعلان‌ها و غیره) و همچنین تضمین اجرای تست‌های شبکه در پس‌زمینه است. پیاده‌سازی این قابلیت در چند لایه مجزا انجام شده است.
+
+\subsection{لایه دامنه (\lr{Domain Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/domain/usecase/permission/PermissionUseCase.kt}:}  
+    بررسی وضعیت تمام دسترسی‌های مورد نیاز با استفاده از توابعی نظیر \lr{requiredPermissions()} و \lr{permissionStatus()} و بازگرداندن آن‌ها به‌صورت \lr{PermissionItemState}.
+\end{itemize}
+
+\subsection{لایه داده (\lr{Data Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/utils/permission/PermissionManager.kt}:}  
+    مدیریت لیست دسترسی‌های پایه و ویژه (بر اساس نسخه اندروید)، شامل دسترسی مکان، وضعیت تلفن، پیامک، اعلان‌ها و دسترسی‌های خاص مانند \lr{Schedule Exact Alarm} و \lr{Battery Optimization}.
+    
+    \item \textbf{\lr{/utils/permission/PermissionUtility.kt}:}  
+    تعریف مدل \lr{AppPermission} به همراه توضیحات و مسیر هدایت به تنظیمات سیستم برای هر دسترسی.  
+    این کلاس وظیفه ساختن \lr{Intent}‌های لازم برای تغییر تنظیمات مانند «غیرفعال‌سازی بهینه‌سازی باتری» یا «فعال‌سازی آلارم دقیق» را برعهده دارد.
+
+    \item \textbf{\lr{/utils/LocationUtility.kt}:}  
+    بررسی فعال بودن سرویس مکان‌یابی (\lr{GPS} یا \lr{Network Provider}) پیش از اجرای تست‌ها.
+\end{itemize}
+
+\subsection{لایه ارائه (\lr{Presentation Layer})}
+\begin{itemize}
+    \item \textbf{\lr{/presentation/permission/PermissionsViewModel.kt}:}  
+    مدیریت وضعیت دسترسی‌ها و ذخیره آن‌ها به‌صورت \lr{StateFlow}. همچنین مسئول نمایش یا پنهان‌سازی دیالوگ راهنما برای هر دسترسی است.
+    
+    \item \textbf{\lr{/presentation/permission/PermissionScreen.kt}:}  
+    رابط کاربری برای نمایش لیست دسترسی‌ها به کاربر. در این صفحه وضعیت هر دسترسی نمایش داده می‌شود و کاربر می‌تواند برای فعال‌سازی به تنظیمات سیستم هدایت گردد.
+
+    \item \textbf{\lr{PermissionItemCard.kt}:} کارت نمایشی برای هر دسترسی به همراه وضعیت (فعال یا غیرفعال) و دکمه درخواست دسترسی.
+    
+    \item \textbf{\lr{PermissionRationaleDialog.kt}:} دیالوگ راهنما برای توضیح اهمیت هر دسترسی و ارائه لینک به تنظیمات دستگاه.
+    
+    \item \textbf{\lr{PermissionsContent.kt}:} لیست کلی دسترسی‌ها همراه با وضعیت آن‌ها و تعداد دسترسی‌های فعال شده.
+    
+    \item \textbf{\lr{PermissionTopBar.kt}:} نوار بالای صفحه با امکان بازگشت به صفحه قبل.
+\end{itemize}
+
+\subsection{سرویس‌ها و اجرای پس‌زمینه}
+\begin{itemize}
+    \item \textbf{\lr{/service/TestExecutionService.kt}:}  
+    یک \lr{Foreground Service} که مسئول اجرای تست‌های شبکه در پس‌زمینه است. این سرویس:
+    \begin{itemize}
+        \item پیش از اجرا وضعیت تمام دسترسی‌ها و فعال بودن مکان‌یابی را بررسی می‌کند.
+        \item تست‌ها را بر اساس تنظیمات کاربر (\lr{TestConfigManager}) اجرا و نتایج را ذخیره می‌کند.
+        \item در هنگام اجرا یک اعلان (\lr{Notification}) نمایش می‌دهد تا سیستم از متوقف کردن آن جلوگیری کند.
+        \item پس از پایان تست یا بروز خطا سرویس متوقف می‌شود.
+    \end{itemize}
+\end{itemize}
+
+\subsection{مدیریت در سطح فعالیت اصلی}
+\begin{itemize}
+    \item \textbf{\lr{/MainActivity.kt}:}  
+    نقطه شروع بررسی دسترسی‌ها. در این فایل:
+    \begin{itemize}
+        \item دسترسی‌های اولیه در زمان شروع بررسی و در صورت نیاز از کاربر درخواست می‌شوند.
+        \item پس از تأیید، مراحل تکمیلی شامل درخواست دسترسی مکان پس‌زمینه و اعلان‌ها انجام می‌شود.
+        \item وضعیت بهینه‌سازی باتری و مجوز آلارم دقیق بررسی می‌شود.
+        \item وظایف دوره‌ای از طریق \lr{DataSyncScheduler} و \lr{TestAlarmScheduler} زمان‌بندی می‌شوند.
+        \item در نهایت فعال بودن سرویس مکان‌یابی کنترل و محتوای اصلی برنامه بارگذاری می‌گردد.
+    \end{itemize}
+\end{itemize}
+
