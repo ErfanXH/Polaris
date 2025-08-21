@@ -1,0 +1,12 @@
+\contentsline {chapter}{\numberline {1}اندروید}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}ساختار راهنمای برنامه‌ی اندروید}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}شروع به کار}{3}{section.1.2}%
+\contentsline {section}{\numberline {1.3}مدیریت حساب کاربری}{8}{section.1.3}%
+\contentsline {section}{\numberline {1.4}استفاده از برنامه}{18}{section.1.4}%
+\contentsline {chapter}{\numberline {2}فرانت‌اند}{26}{chapter.2}%
+\contentsline {section}{\numberline {2.1}ساختار راهنمای وب‌سایت}{26}{section.2.1}%
+\contentsline {section}{\numberline {2.2}شروع به کار}{26}{section.2.2}%
+\contentsline {section}{\numberline {2.3}مدیریت حساب کاربری}{29}{section.2.3}%
+\contentsline {section}{\numberline {2.4}بخش کاربری}{34}{section.2.4}%
+\contentsline {section}{\numberline {2.5}ویژگی‌های مدیر}{40}{section.2.5}%
+\contentsline {section}{\numberline {2.6}نقشه}{42}{section.2.6}%

@@ -1,5 +1,262 @@
 \chapter{بک‌اند}
-    \section{ساختار و جزئیات \lr{Polaris Server}}
-    \section{احراز هویت}
-    \section{ساختار پایگاه داده}
-    \section{تبادل داده میان خدمتگزار و کاربر}
+\section{ساختار و جزئیات \lr{Polaris Server}}
+این بخش شامل پیاده سازی API های سمت سرور، مدل های داده، مکانیزم احراز هویت و زیرساخت لازم برای اجرای برنامه است. Backend با استفاده از چارچوب Django و Django REST Framework نوشته شده و وظیفه دریافت گزارش های اندازه گیری از اپلیکیشن های موبایل، ذخیره سازی آن ها در دیتابیس، ارائه API های مدیریتی و تأمین امنیت با JWT را بر عهده دارد.
+
+\section{فهرست اجزاء}
+\begin{itemize}
+  \item اپلیکیشن ها: \texttt{users} و \texttt{mobile reports}.
+  \item تنظیمات پروژه: پکیج \texttt{polaris} شامل \texttt{settings.py}, \texttt{urls.py} و \texttt{swagger.py}.
+  \item زیرساخت کانتینری: \texttt{Dockerfile} در پوشه \texttt{backend} و فایل \texttt{docker compose.yml} در ریشه پروژه.
+  \item وابستگی ها: \texttt{requirements.txt}.
+\end{itemize}
+
+\section{فایل پیکربندی و وابستگی ها}
+\subsection{requirements.txt}
+فهرست بسته های پایتون مورد نیاز شامل:
+Django, djangorestframework, drf-yasg, django-environ, restframework simplejwt, mysqlclient و سایر بسته های کمکی مانند pillow, requests, django cors headers و غیره.
+
+\subsection{تنظیمات اصلی (polaris/settings.py)}
+تنظیمات پروژه موارد زیر را مشخص می کند:
+\begin{itemize}
+  \item استفاده از مدل کاربر سفارشی: \texttt{AUTH USER MODEL = 'users.User'}.
+  \item پایگاه داده: استفاده از MySQL با ENGINE django.db.backends.mysql و مقادیر اتصال از طریق متغیرهای محیطی خوانده می شوند شامل DB NAME, DB USER, DB PASSWORD, DB HOST, DB PORT.
+  \item تنظیمات JWT با استفاده از djangorestframework simplejwt و دوره عمر توکن ها.
+  \item فعال بودن CORS در محیط توسعه و مسیرهای static و media تعریف شده اند.
+\end{itemize}
+
+\section{مدل های داده}
+در بخش بک اند چهار مدل اصلی تعریف شده اند: \lr{Device}, \lr{Measurement}، \lr{TestResult} و \lr{Users}.
+
+\subsection{User}
+برای دسترسی به هریک از قابلیت ها و API ها نیاز به داشتن یک اکانت است. اطلاعات هر یوزر در این مدل ذخیره می شود.
+
+ویژگی های مهم:
+\begin{itemize}
+  \item phone number شماره تلفن کاربر که معمولاً یکتا است
+  \item username در هنگام ثبت نام به صورت رندوم ثبت می شود اما قابل تغییر توسط کاربر است
+  \item email ایمیل کاربر که اجباری و معمولاً یکتا است
+  \item image عکس پروفایل کاربر
+  \item is verified, verification code, expire at مقادیری برای کنترل اعتبار اطلاعات داده شده
+  \item is banned یک مقدار Boolean که نشان می دهد کاربر بن شده یا خیر
+  \item allow admin access مشخص می کند آیا یک ادمین اجازه دارد به داده های measurement این کاربر دسترسی داشته باشد یا نه
+\end{itemize}
+
+\subsection{Device}
+ویژگی های مهم:
+\begin{itemize}
+  \item device id کلید اصلی به صورت CharField
+  \item manufacturer, model, os version مشخصات سخت افزاری و نرم افزاری دستگاه
+  \item is active یک Boolean برای فعال بودن دستگاه
+  \item created at, last seen timestamp های خودکار
+  \item ارتباط با کاربر: \lr{(user = ForeignKey, User, related name='devices')}
+\end{itemize}
+این مدل برای ثبت دستگاه های کاربر و نگهداری آخرین وضعیت آن ها طراحی شده است
+\\
+نکته: این مدل به دلیل تغییر ساختار کنونی \lr{API} ها استفاده نمیشود
+\subsection{Measurement}
+این مدل گزارش های اندازه گیری شبکه را ذخیره می کند و فیلدهای زیر را دارد:
+\begin{itemize}
+  \item موقعیت جغرافیایی: latitude, longitude
+  \item زمان اندازه گیری: timestamp
+  \item نوع شبکه: network type مانند GSM, LTE, 5G و غیره
+  \item شناسه های سلولی: lac, tac, cell id, plmn id
+  \item پارامترهای رادیویی: arfcn, frequency, frequency band, rsrp, rsrq, rscp, ecIo, rxLev
+  \item پارامترهای عملکردی شبکه: http upload, http download, ping time, dns response, web response, sms delivery time
+  \item created at خودکار و ایندکس ها: ایندکس روی (\lr{user, timestamp}) و (\lr{latitude, longitude}) برای بهینه سازی کوئری های زمانی و مکانی
+\end{itemize}
+در صورت نبود هر یک از موارد مقدار آن را null قرار می دهیم.
+
+\subsection{TestResult}
+این مدل برای ذخیره نتایج تست های جداگانه طراحی شده است و فیلدهای اصلی عبارتند از:
+\begin{itemize}
+  \item timestamp, test type با مجموعه مقادیر مشخص، value مقدار عددی نتیجه، success Boolean
+  \item additional info از نوع JSONField برای نگهداری متادیتای دلخواه
+  \item ایندکس و unique together روی (user, timestamp) در مایگریشن ها تعریف شده است
+  نکته: این مدل ممکن است بسته به نسخه API در همه جریان ها استفاده نشود
+\end{itemize}
+
+\section{سریالایزرها}
+برای هر مدل سریالایزرهای متناظر تعریف شده اند تا تبدیل داده ها بین مدل و JSON انجام شود:
+\begin{itemize}
+  \item Register Serializer, Login Serializer و سایر سریالایزرها برای ورود و ثبت نام و اعتبارسنجی داده ها
+  \item Device Serializer شامل فیلدهای readonly مانند created at, last seen
+  \item Measurement Serializer و TestResult Serializer شامل فیلدهای مدل با readonly برای user و created at
+  \item سریالایزرهای Bulk برای دریافت و پردازش دسته ای measurement ها و تست ها
+  \item Bulk Delete Serializer برای حذف گروهی با یک لیست از شناسه ها
+\end{itemize}
+
+\section{اپلیکیشن users}
+\label{sec:users app}
+\subsection{معرفی و نقش}
+اپلیکیشن users مسئول مدیریت حساب ها، احراز هویت و تمامی عملیات مرتبط با کاربران شامل ثبت نام ورود و بازیابی رمز است. این اپلیکیشن از مدل کاربر سفارشی استفاده می کند و با JWT یکپارچه شده است.
+
+\subsection{مدل ها}
+مدل کاربر سفارشی دارای خصوصیات زیر است:
+\begin{itemize}
+  \item فیلدهای شناسایی و تماس: phone number, email, username, image
+  \item فیلدهای وضعیت و کنترل: is active, is staff, is superuser, is verified, is banned, allow admin access
+  \item فیلدهای زمانی و امنیتی: \lr{date joined, last login, last seen, password}
+  \item مدل های کمکی اختیاری: PhoneOTP یا VerificationCode برای ذخیره کدها با فیلد code, expires
+\end{itemize}
+ارتباط با سایر مدل ها از طریق ForeignKey یا related name برقرار می شود تا داده های وابسته به هر کاربر قابل واکشی باشند.
+
+\subsection{لیست کامل Endpoint ها}
+در ادامه فهرست تمام endpoint های مهم در اپ users آمده است.
+
+\subsubsection{ثبت نام Register}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/register/}
+  \item متد: POST
+  \item دسترسی: AllowAny
+  \item رفتار: اگر ورودی معتبر باشد، کاربر ایجاد می شود و is verified برابر false خواهد بود و کد تأیید ارسال می شود
+\end{itemize}
+
+\subsubsection{تأیید OTP Verify}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/verify/}
+  \item متد: POST
+  \item دسترسی: AllowAny
+  \item رفتار: چک انقضا و در صورت تطابق فیلد is verified برای کاربر برابر true قرار می گیرد
+\end{itemize}
+
+\subsubsection{درخواست مجدد OTP Resend}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/resend/}
+  \item متد: POST
+  \item دسترسی: AllowAny
+\end{itemize}
+
+\subsubsection{ورود Login}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/login/}
+  \item متد: POST
+  \item دسترسی: AllowAny
+\end{itemize}
+
+\subsubsection{تجدید توکن Token Refresh}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/token/refresh/}
+  \item متد: POST
+  \item دسترسی: AllowAny
+\end{itemize}
+
+\subsubsection{پروفایل کاربر ProfileView}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/profile/}
+  \item متدها: GET, PATCH, PUT
+  \item دسترسی: IsAuthenticated, IsNotBanned
+\end{itemize}
+
+\subsubsection{تغییر رمز Change Password}
+\begin{itemize}
+  \item مسیر: \texttt{/api/users/change\_password/}
+  \item متد: POST
+  \item دسترسی: IsAuthenticated, IsNotBanned
+\end{itemize}
+
+\subsubsection{مدیریت کاربران Admin}
+مسیرها:
+\begin{itemize}
+  \item \texttt{/api/admin/all\_users/}  GET برای لیست کاربران
+  \item \texttt{/api/admin/user\_info/{id}/}  GET گرفتن اطلاعات یک کاربر
+  \item \texttt{/api/admin/ban\_user/}  POST برای بن کردن
+  \item \texttt{/api/admin/allow\_user/} POST برای رفع بن
+  \item \texttt{/api/admin/make\_admin/} POST برای ایجاد ادمین با دادن رمز
+  \item \texttt{/api/admin/all\_data/} GET برای گرفتن تمام \lr{measurement} های کاربرانی که اجازه گرفتن داده های آنها هست
+\end{itemize}
+
+\subsection{نحوه پیاده سازی و نکات فنی}
+\begin{itemize}
+  \item تمام endpoint ها با ViewSetها یا APIViewهای DRF پیاده سازی شده اند و از Routerها برای ثبت مسیرها در urls.py استفاده می شود.
+  \item سریالایزرها ورودی ها را اعتبارسنجی می کنند و فیلدهای readonly در صورت نیاز تعریف می شوند.
+  \item ارسال OTP در حالت پایه با فراخوانی سرویس پیامک یا ایمیل انجام می شود؛ در محیط تولید پیشنهاد می شود ارسال به صورت غیرهمزمان و صفی با ابزارهایی مانند Celery انجام شود.
+\end{itemize}
+
+\section{ویوها و API ها}
+API ها با استفاده از ViewSet ها و Router های DRF ساخته شده اند.
+
+\subsection{مسیرها URLs}
+روتر اصلی اپلیکیشن mobile مسیرهای measurement, test result, bulk upload, bulk delete, HTTPTest را ثبت می کند و از DefaultRouter برای ثبت روترها استفاده شده است.
+
+\subsection{Measurement ViewSet}
+ویژگی ها:
+\begin{itemize}
+  \item متدهای پیش فرض: Create, Retrieve, List, Destroy
+  \item permission classes = [ IsAuthenticated, IsNotBanned ] نیاز به JWT و بررسی بن بودن کاربر
+  \item هنگام ایجاد مقدار user از request.user ست می شود
+  \item اکشن های سفارشی: latest, get all برای admin و get network types
+\end{itemize}
+
+\subsection{TestResult ViewSet}
+ساختار مشابه Measurement است و اکشن latest برای گرفتن آخرین نتیجه دارد.
+
+\subsection{BulkUpload ViewSet}
+دارای اکشن های POST برای measurement و test report است که داده ورودی را با سریالایزرهای bulk اعتبارسنجی کرده و رکوردها را ایجاد می کند و تعداد ایجاد شده را برمی گرداند.
+
+\subsection{BulkDelete ViewSet}
+دریافت لیستی از شناسه ها و حذف رکوردهای مرتبط با کاربر جاری.
+
+\subsection{HTTPTest ViewSet}
+یک ViewSet سبک برای تست عملکرد دانلود و آپلود:
+\begin{itemize}
+  \item download متد GET که بایت تصادفی به اندازه randbytes(2**19) را برمی گرداند
+  \item upload متد POST که با کد 204 پاسخ می دهد
+\end{itemize}
+
+\section{احراز هویت و مجوزها}
+\begin{itemize}
+  \item JWT با djangorestframework simplejwt پیکربندی شده و هدر Authorization Bearer پشتیبانی می شود
+  \item Permission سفارشی IsNotBanned باید در ویوهای محافظت شده به کار رود
+  \item برای عملیات مدیریتی از IsAdminUser یا بررسی request.user.is staff استفاده می شود
+\end{itemize}
+
+\section{زیرساخت و دپلوی}
+\subsection{Dockerfile}
+تصویر پایه از python 3.13 استفاده می کند. در ادامه برنامه بسته های سیستمی لازم برای اتصال به MySQL و ابزارهای کمکی نصب می شوند، requirements.txt داخل ایمیج نصب شده و entrypoint.sh اجرایی می شود. پورت 9000 برای Django در نظر گرفته شده است.
+
+\subsection{entrypoint.sh}
+در هنگام شروع کانتینر:
+\begin{enumerate}
+  \item انتظار برای آماده شدن سرویس MySQL با بررسی اتصال به آدرس database و پورت 3306
+  \item اجرای migrations با python manage.py migrate
+  \item جمع آوری فایل های static با collectstatic --noinput
+  \item اجرای سرور Django بر روی پورت 9000
+\end{enumerate}
+
+\subsection{پایگاه داده}
+پیکربندی پیش فرض MySQL است و مقادیر اتصال از فایل .env خوانده می شوند. در زمان دپلوی لازم است سرویس MySQL توسط docker compose یا سرویس DB جداگانه مهیا شود.
+
+\subsection{docker compose.yml}
+این فایل اجرای کانتینرها را مدیریت می کند. برای دپلوی کردن پروژه کافی است به دایرکتوری ریشه پروژه رفته و دستور \lr{docker compose up -d --build} را اجرا کنید. در زمان اجرا، ابتدا کانتینر دیتابیس بالا می آید و پس از اطمینان از سلامت آن، سرویس backend اجرا می شود.
+
+\subsection{فایل .env}
+مقادیر حساس و ثابت مانند \lr{SECRET KEY}، اطلاعات دیتابیس، توکن سرویس پیامک و رمز ادمین در فایل .env ذخیره می شوند و نباید در کنترل نسخه قرار گیرند.
+
+\subsection{استفاده از nginx}
+برای ارائه سرویس بدون نیاز به وارد کردن پورت از reverse proxy مانند nginx استفاده شده است. nginx وظیفه مسیر دهی درخواست ها به فرانت و بک اند، مدیریت SSL و دامنه ها را بر عهده دارد. تبدیل http به https توسط certbot و دریافت گواهی SSL انجام می شود.
+
+\subsection{بکاپ گیری}
+به دلیل اهمیت داده ها باید اسکریپتی جهت بکاپ گیری از دیتابیس MySQL وجود داشته باشد و آن را به صورت دوره ای با crontab یا ابزار مشابه اجرا کرد.\\
+در این پروؤه از یک اسکریپت ساده استفده شده بود که \lr{sqldump} را سر ساعت 12 هر روز در فایل\lr{backup.sql} قرار میداد
+\\
+در صورت نیاز به لود کردن دیتا بیس فقط لازم است تا sqldump را با داده های بکاپ گیری شده جایگزاری کنیم
+
+\section{ابزارها و توابع کمکی}
+\subsection{utils.py در mobile reports}
+یک تابع کمکی مهم وجود دارد که با نام \lr{arfcn to frequency} ورودی arfcn و نوع شبکه را گرفته و فرکانس متناظر را باز می گرداند. پیاده سازی شامل شاخه بندی برای GSM, UMTS, LTE و 5G است و در صورت نامشخص بودن مقدار None برمی گرداند.
+
+\subsection{users utils.py}
+تابعی برای ارسال OTP با استفاده از سرویس خارجی پیاده سازی شده است. تابع send OTP ساختار درخواست را می سازد و با requests.post به سرویس ارسال می کند. روش تأیید می تواند از طریق SMS یا Email انتخاب شود که از طریق \lr{VERIFICATION METHOD} در فایل .env مشخص می شود. در محیط توسعه معمولاً ایمیل قابل اطمینان تر است.
+
+\section{ملاحظات امنیتی و عملکردی}
+\begin{itemize}
+  \item نگهداری مقادیر حساس در فایل .env مانند \lr{SECRET KEY} و اطلاعات دیتابیس
+  \item در محیط تولید CORS باید محدود شود و فقط دامنه های مجاز مجوز داشته باشند
+  \item اعمال محدودیت نرخ برای endpoint های حساس مانند ارسال OTP و ورود
+\end{itemize}
+
+\section{دستورالعمل اجرای محلی}
+\begin{enumerate}
+  \item فایل .env را در شاخه والد backend بسازید و مقادیر مورد نیاز شامل \lr{DB NAME, DB USER, DB PASSWORD, DB HOST, DB PORT, SECRET KEY, SMS API TOKEN, ADMIN PASSWORD, ALLOWED HOSTS, VERIFICATION METHOD} و غیره را قرار دهید.
+  \item با دستور \lr{docker compose up -d --build} پروژه را اجرا کنید تا کانتینرها ساخته و راه اندازی شوند.
+\end{enumerate}

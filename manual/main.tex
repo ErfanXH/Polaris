@@ -1,0 +1,26 @@
+\documentclass[oneside]{report}
+
+\def \CourseName {شبکه های تلفن همراه}
+\def \Instructor {ابوالفضل دیانت}
+\def \Semester {نیم‌سال دوم\\سال تحصیلی 1404-1403}
+\input{packages}
+\input{commands}
+\input{firstpage}
+
+\begin{document}
+	
+	\pagenumbering{gobble}
+	\pagestyle{empty}
+	\maketitle
+	
+	\cleardoublepage
+	\pagenumbering{arabic}
+	\pagestyle{headings}
+	
+	\tableofcontents
+	\cleardoublepage
+	
+	\input{android}
+	\input{frontend}
+	
+\end{document}
